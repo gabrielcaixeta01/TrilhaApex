@@ -5,11 +5,11 @@
     "consulta_pet_ok": true,
     "pet_id": 12345,
     "pet_nome": "Rex",
-    "total_por_status": 343
+    "total_por_status": 348
   },
   "loja": {
     "consulta_inventario_ok": true,
-    "total_status_inventario": 9,
+    "total_status_inventario": 14,
     "consulta_pedido_ok": true,
     "pedido_id": 54321,
     "pedido_status": "placed"
@@ -19,6 +19,6 @@
     "username": "gabriel_teste_main",
     "email": "gabriel@email.com",
     "login_ok": true,
-    "login_message": "logged in user session:1773773734915"
+    "login_message": "logged in user session:1773774189869"
   }
 }

@@ -177,10 +177,10 @@ def main():
     except Exception:
         pass
 
-    with open("resultado_script1.json", "w", encoding="utf-8") as arquivo:
+    with open("script1.json", "w", encoding="utf-8") as arquivo:
         json.dump(resultado, arquivo, ensure_ascii=False, indent=2)
 
-    print("Arquivo JSON salvo: resultado_script1.json")
+    print("Arquivo JSON salvo: script1.json")
 
 if __name__ == "__main__":
     main()
