@@ -1,0 +1,24 @@
+{
+  "api_base": "https://petstore.swagger.io/v2",
+  "ok": true,
+  "pet": {
+    "consulta_pet_ok": true,
+    "pet_id": 12345,
+    "pet_nome": "Rex",
+    "total_por_status": 343
+  },
+  "loja": {
+    "consulta_inventario_ok": true,
+    "total_status_inventario": 9,
+    "consulta_pedido_ok": true,
+    "pedido_id": 54321,
+    "pedido_status": "placed"
+  },
+  "usuario": {
+    "consulta_usuario_ok": true,
+    "username": "gabriel_teste_main",
+    "email": "gabriel@email.com",
+    "login_ok": true,
+    "login_message": "logged in user session:1773773734915"
+  }
+}
