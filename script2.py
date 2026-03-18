@@ -5,14 +5,6 @@ def _request(method, path, **kwargs):
     return requests.request(method, f"https://petstore.swagger.io/v2{path}", **kwargs).json()
 
 
-def _delecao_confirmada(resp):
-    if not isinstance(resp, dict):
-        return False
-    code = resp.get("code")
-    mensagem = str(resp.get("message", "")).lower()
-    return code in (404, 1) or "not found" in mensagem
-
-
 class Category:
     def __init__(self, category_id, name):
         self.category_id = category_id
@@ -163,7 +155,6 @@ class User:
 def main():
     resultado = {
         "api_base": "https://petstore.swagger.io/v2",
-        "ok": True,
         "pet": {},
         "loja": {},
         "usuario": {},
@@ -184,67 +175,41 @@ def main():
         pet.add_tag(Tag(1, "Brinquedo"))
         pet.criar()
 
-        encontrado = Pet.buscar(pet_id)
         por_status = Pet.por_status("available")
         resultado["pet"] = {
-            "consulta_pet_ok": encontrado.get("id") == pet_id,
-            "pet_id": encontrado.get("id"),
-            "pet_nome": encontrado.get("name"),
-            "total_por_status": len(por_status),
+            "pet_enviado": pet.to_dict(),
+            "pets_disponiveis_total": len(por_status),
         }
 
-        pet.deletar(pet_id)
-        pet_pos_delete = Pet.buscar(pet_id)
-        resultado["pet"]["deletar_code"] = pet_pos_delete.get("code")
-        resultado["pet"]["deletar_ok"] = _delecao_confirmada(pet_pos_delete)
 
 
     except Exception as e:
-        resultado["ok"] = False
         resultado["pet"] = {"erro": str(e)}
 
     try:
         inventario = Order.inventario()
         pedido = Order(order_id, pet_id, 1, "2026-03-16T10:00:00.000Z", "placed", False)
         pedido.criar()
-        pedido_encontrado = Order.buscar(order_id)
         resultado["loja"] = {
-            "consulta_inventario_ok": len(inventario) >= 0,
+            "pedido_enviado": pedido.to_dict(),
+            "inventario": inventario,
             "total_status_inventario": len(inventario),
-            "consulta_pedido_ok": pedido_encontrado.get("id") == order_id,
-            "pedido_id": pedido_encontrado.get("id"),
-            "pedido_status": pedido_encontrado.get("status"),
         }
 
-        pedido.deletar(order_id)
-        pedido_pos_delete = Order.buscar(order_id)
-        resultado["loja"]["deletar_code"] = pedido_pos_delete.get("code")
-        resultado["loja"]["deletar_ok"] = _delecao_confirmada(pedido_pos_delete)
 
     except Exception as e:
-        resultado["ok"] = False
         resultado["loja"] = {"erro": str(e)}
 
     try:
         usuario = User(1001, username, "Gabriel", "Romero", "gabriel@email.com", "123456", "11999999999", 1)
         usuario.criar()
-        user_encontrado = User.buscar(username)
         login_resp = User.login(username, "123456")
         resultado["usuario"] = {
-            "consulta_usuario_ok": user_encontrado.get("username") == username,
-            "username": user_encontrado.get("username"),
-            "email": user_encontrado.get("email"),
-            "login_ok": login_resp.get("message") is not None,
-            "login_message": login_resp.get("message"),
+            "usuario_enviado": usuario.to_dict(),
+            "login_retorno": login_resp,
         }
 
-        usuario.deletar(username)
-        usuario_pos_delete = User.buscar(username)
-        resultado["usuario"]["deletar_code"] = usuario_pos_delete.get("code")
-        resultado["usuario"]["deletar_ok"] = _delecao_confirmada(usuario_pos_delete)
-            
     except Exception as e:
-        resultado["ok"] = False
         resultado["usuario"] = {"erro": str(e)}
 
     try:

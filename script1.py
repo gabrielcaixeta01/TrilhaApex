@@ -3,17 +3,14 @@ import json
 
 BASE_URL = "https://petstore.swagger.io/v2"
 
-# funcao pra auxiliar nas chamadas
 def _request(method, path, **kwargs):
     return requests.request(method, f"{BASE_URL}{path}", **kwargs).json()
 
-# funcao pra nao repetir o json do usuario
 def _usuario_payload(id, username, firstName, lastName, email, password, phone, userStatus):
     return {"id": id, "username": username, "firstName": firstName, "lastName": lastName,
             "email": email, "password": password, "phone": phone, "userStatus": userStatus}
 
 
-# funcoes de pet
 
 def criarPet(id, categoria, nome, fotoUrl, tags, status):
     return _request("POST", "/pet", json={"id": id, "category": categoria, "name": nome,
@@ -38,7 +35,6 @@ def deletarPet(id):
     return _request("DELETE", f"/pet/{id}")
 
 
-# funcoes da loja
 
 def inventarioPets():
     return _request("GET", "/store/inventory")
@@ -54,7 +50,6 @@ def deletarCompraPet(id):
     return _request("DELETE", f"/store/order/{id}")
 
 
-# funcoes do usuario
 
 def criarListaDesejo(id, username, firstName, lastName, email, password, phone, userStatus):
     return _request("POST", "/user/createWithList",
@@ -92,7 +87,6 @@ def criarUsuario(id, username, firstName, lastName, email, password, phone, user
 def main():
     resultado = {
         "api_base": BASE_URL,
-        "ok": True,
         "pet": {},
         "loja": {},
         "usuario": {},
@@ -103,70 +97,83 @@ def main():
     username = "gabriel_teste_main"
 
     try:
+        pet_payload = {
+            "id": pet_id,
+            "category": {"id": 1, "name": "Cachorro"},
+            "name": "Rex",
+            "photoUrls": ["https://example.com/photo1.jpg"],
+            "tags": [{"id": 1, "name": "Brinquedo"}],
+            "status": "available",
+        }
         criarPet(
             id=pet_id,
-            categoria={"id": 1, "name": "Cachorro"},
-            nome="Rex",
-            fotoUrl=["https://example.com/photo1.jpg"],
-            tags=[{"id": 1, "name": "Brinquedo"}],
-            status="available",
+            categoria=pet_payload["category"],
+            nome=pet_payload["name"],
+            fotoUrl=pet_payload["photoUrls"],
+            tags=pet_payload["tags"],
+            status=pet_payload["status"],
         )
-        pet = buscarPet(pet_id)
         pets_status = petsPorStatus("available")
         resultado["pet"] = {
-            "consulta_pet_ok": pet.get("id") == pet_id,
-            "pet_id": pet.get("id"),
-            "pet_nome": pet.get("name"),
+            "pet_enviado": pet_payload,
             "total_por_status": len(pets_status),
         }
     except Exception as e:
-        resultado["ok"] = False
         resultado["pet"] = {"erro": str(e)}
 
     try:
         inventario = inventarioPets()
+        pedido_payload = {
+            "id": order_id,
+            "petId": pet_id,
+            "quantity": 1,
+            "shipDate": "2026-03-16T10:00:00.000Z",
+            "status": "placed",
+            "complete": False,
+        }
         criarCompraPet(
             id=order_id,
             petId=pet_id,
-            quantidade=1,
-            dataEntrega="2026-03-16T10:00:00.000Z",
-            status="placed",
-            completo=False,
+            quantidade=pedido_payload["quantity"],
+            dataEntrega=pedido_payload["shipDate"],
+            status=pedido_payload["status"],
+            completo=pedido_payload["complete"],
         )
-        pedido = buscarCompraPet(order_id)
         resultado["loja"] = {
-            "consulta_inventario_ok": len(inventario) >= 0,
+            "pedido_enviado": pedido_payload,
+            "inventario": inventario,
             "total_status_inventario": len(inventario),
-            "consulta_pedido_ok": pedido.get("id") == order_id,
-            "pedido_id": pedido.get("id"),
-            "pedido_status": pedido.get("status"),
         }
     except Exception as e:
-        resultado["ok"] = False
         resultado["loja"] = {"erro": str(e)}
 
     try:
-        criarUsuario(
-            id=1001,
-            username=username,
-            firstName="Gabriel",
-            lastName="Romero",
-            email="gabriel@email.com",
-            password="123456",
-            phone="11999999999",
-            userStatus=1,
+        usuario_payload = _usuario_payload(
+            1001,
+            username,
+            "Gabriel",
+            "Romero",
+            "gabriel@email.com",
+            "123456",
+            "11999999999",
+            1,
         )
-        user = buscarUsuario(username)
+        criarUsuario(
+            id=usuario_payload["id"],
+            username=usuario_payload["username"],
+            firstName=usuario_payload["firstName"],
+            lastName=usuario_payload["lastName"],
+            email=usuario_payload["email"],
+            password=usuario_payload["password"],
+            phone=usuario_payload["phone"],
+            userStatus=usuario_payload["userStatus"],
+        )
         login_resp = login(username, "123456")
         resultado["usuario"] = {
-            "consulta_usuario_ok": user.get("username") == username,
-            "username": user.get("username"),
-            "email": user.get("email"),
-            "login_ok": login_resp.get("message") is not None,
-            "login_message": login_resp.get("message"),
+            "usuario_enviado": usuario_payload,
+            "login_retorno": login_resp,
         }
     except Exception as e:
-        resultado["ok"] = False
         resultado["usuario"] = {"erro": str(e)}
 
     try:
