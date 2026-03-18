@@ -5,6 +5,14 @@ def _request(method, path, **kwargs):
     return requests.request(method, f"https://petstore.swagger.io/v2{path}", **kwargs).json()
 
 
+def _delecao_confirmada(resp):
+    if not isinstance(resp, dict):
+        return False
+    code = resp.get("code")
+    mensagem = str(resp.get("message", "")).lower()
+    return code in (404, 1) or "not found" in mensagem
+
+
 class Category:
     def __init__(self, category_id, name):
         self.category_id = category_id
@@ -62,7 +70,7 @@ class Pet:
     def buscar(pet_id):
         return _request("GET", f"/pet/{pet_id}")
 
-    def deletar(pet_id):
+    def deletar(self, pet_id):
         return _request("DELETE", f"/pet/{pet_id}")
 
     def por_status(status):
@@ -94,7 +102,7 @@ class Order:
     def buscar(order_id):
         return _request("GET", f"/store/order/{order_id}")
 
-    def deletar(order_id):
+    def deletar(self, order_id):
         return _request("DELETE", f"/store/order/{order_id}")
 
     def inventario():
@@ -136,7 +144,7 @@ class User:
     def buscar(username):
         return _request("GET", f"/user/{username}")
 
-    def deletar(username):
+    def deletar(self, username):
         return _request("DELETE", f"/user/{username}")
 
     def login(username, password):
@@ -184,6 +192,13 @@ def main():
             "pet_nome": encontrado.get("name"),
             "total_por_status": len(por_status),
         }
+
+        pet.deletar(pet_id)
+        pet_pos_delete = Pet.buscar(pet_id)
+        resultado["pet"]["deletar_code"] = pet_pos_delete.get("code")
+        resultado["pet"]["deletar_ok"] = _delecao_confirmada(pet_pos_delete)
+
+
     except Exception as e:
         resultado["ok"] = False
         resultado["pet"] = {"erro": str(e)}
@@ -200,6 +215,12 @@ def main():
             "pedido_id": pedido_encontrado.get("id"),
             "pedido_status": pedido_encontrado.get("status"),
         }
+
+        pedido.deletar(order_id)
+        pedido_pos_delete = Order.buscar(order_id)
+        resultado["loja"]["deletar_code"] = pedido_pos_delete.get("code")
+        resultado["loja"]["deletar_ok"] = _delecao_confirmada(pedido_pos_delete)
+
     except Exception as e:
         resultado["ok"] = False
         resultado["loja"] = {"erro": str(e)}
@@ -216,6 +237,12 @@ def main():
             "login_ok": login_resp.get("message") is not None,
             "login_message": login_resp.get("message"),
         }
+
+        usuario.deletar(username)
+        usuario_pos_delete = User.buscar(username)
+        resultado["usuario"]["deletar_code"] = usuario_pos_delete.get("code")
+        resultado["usuario"]["deletar_ok"] = _delecao_confirmada(usuario_pos_delete)
+            
     except Exception as e:
         resultado["ok"] = False
         resultado["usuario"] = {"erro": str(e)}
