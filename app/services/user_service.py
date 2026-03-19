@@ -1,10 +1,10 @@
 from fastapi import HTTPException
 from scripts.script2 import User
-from app.schemas.user import UserSchema
+from app.schemas.models import UserSchema
 
-def build_user(user_id: int, payload: UserSchema) -> User:
+def build_user(payload: UserSchema):
     user = User(
-        user_id=user_id,
+        user_id=payload.id,
         username=payload.username,
         firstName=payload.firstName,
         lastName=payload.lastName,
@@ -16,12 +16,20 @@ def build_user(user_id: int, payload: UserSchema) -> User:
     return user
 
 
-def create_user(user_id: int, payload: UserSchema) -> dict:
-    user = build_user(user_id, payload)
+def create_user(payload: UserSchema):
+    user = build_user(payload)
     result = user.criar()
+    return result
 
-    if not isinstance(result, dict) or result.get("id") is None:
-        raise HTTPException(status_code=502, detail="Falha ao criar usuário na API externa")
+def createWithList(users: list[UserSchema]):
+    user_list = [build_user(user) for user in users]
+    result = User.criar_lista(user_list)
+
+    if not isinstance(result, dict):
+        raise HTTPException(status_code=502, detail="Falha ao criar lista de usuarios na API externa")
+
+    if result.get("code") not in (None, 200):
+        raise HTTPException(status_code=502, detail=f"Falha ao criar lista de usuarios: {result}")
 
     return result
 
@@ -100,14 +108,3 @@ def logout():
 
     return result
 
-def createWithList(users: list[UserSchema]):
-    user_list = [build_user(user.id, user) for user in users]
-    result = User.criar_lista(user_list)
-
-    if not isinstance(result, dict):
-        raise HTTPException(status_code=502, detail="Falha ao criar lista de usuarios na API externa")
-
-    if result.get("code") not in (None, 200):
-        raise HTTPException(status_code=502, detail=f"Falha ao criar lista de usuarios: {result}")
-
-    return result
