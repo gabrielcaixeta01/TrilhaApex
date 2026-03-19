@@ -16,7 +16,7 @@ class PetBaseSchema(BaseModel):
 	name: str = Field(..., min_length=1, max_length=120)
 	photoUrls: list[str] = Field(default_factory=list)
 	tags: list[TagSchema] = Field(default_factory=list)
-	status: str = Field(default="available", pattern="^(available|pending|sold)$")
+	status: str = Field(default="available", pattern="(?i)^(available|pending|sold)$")
 
 
 class PetCreateSchema(PetBaseSchema):

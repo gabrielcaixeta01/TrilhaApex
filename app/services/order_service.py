@@ -18,10 +18,22 @@ def create_order(order_id: int, payload: OrderCreateSchema) -> dict:
     order = build_order(order_id, payload)
     result = order.criar()
 
-    if not isinstance(result, dict) or result.get("id") is None:
-        raise HTTPException(status_code=502, detail="Falha ao criar pedido na API externa")
+    if not isinstance(result, dict):
+        raise HTTPException(status_code=502, detail="Retorno invalido da API externa ao criar pedido")
 
-    return result
+    if result.get("id") is not None:
+        return result
+
+    # A API Petstore pode responder com code/type/message em alguns cenarios.
+    if result.get("code") == 200:
+        return payload.model_dump()
+
+    raise HTTPException(
+        status_code=502,
+        detail=f"Falha ao criar pedido na API externa: {result}",
+    )
+
+    
 
 def get_order(order_id):
     result = Order.buscar(order_id)

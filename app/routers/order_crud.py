@@ -7,17 +7,17 @@ from app.services.order_service import (
     list_inventory,
 )
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(prefix="/store", tags=["Store"])
 
-@router.post("/{order_id}", response_model=OrderResponseSchema, status_code=201)
-def criar_pedido(order_id: int, payload: OrderCreateSchema):
-    return create_order(order_id, payload)
+@router.post("/order", response_model=OrderResponseSchema, status_code=201)
+def criar_pedido(payload: OrderCreateSchema):
+    return create_order(payload.id, payload)
 
-@router.get("/{order_id}", response_model=OrderResponseSchema)
+@router.get("/order/{order_id}", response_model=OrderResponseSchema)
 def buscar_pedido(order_id: int):
     return get_order(order_id)
 
-@router.delete("/{order_id}", status_code=204)
+@router.delete("/order/{order_id}", status_code=204)
 def deletar_pedido(order_id: int):
     delete_order(order_id)
     return Response(status_code=204)
