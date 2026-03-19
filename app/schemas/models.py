@@ -13,6 +13,7 @@ class TagSchema(BaseModel):
 
 
 class PetSchema(BaseModel):
+    pet_id: int = Field()
     category: CategorySchema
     name: str = Field(...)
     photoUrls: list[str] = Field(default_factory=list)

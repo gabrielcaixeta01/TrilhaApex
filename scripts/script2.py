@@ -54,8 +54,8 @@ class Pet:
     def atualizar(self, **dados):
         atual = Pet.buscar(self.pet_id)
         atual.update(dados)
-        atual["id"] = self.pet_id
-        return _request("PUT", f"/pet/{self.pet_id}", json=atual)
+        atual["username"] = self.username
+        return _request("PUT", f"/user/{self.username}", json=atual)
 
     def upload_imagem(self, metadata, file_path):
         with open(file_path, "rb") as f:

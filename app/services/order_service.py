@@ -2,16 +2,16 @@ from scripts.script2 import Order
 from app.schemas.models import OrderSchema
 
 
-def create_order(payload: OrderSchema):
+def create_order(order_id: int, payload: OrderSchema):
     order = Order(
-        order_id=payload.order_id,
+        order_id=order_id,
         pet_id=payload.petId,
         quantity=payload.quantity,
         ship_date=payload.shipDate,
         status=payload.status,
         complete=payload.complete,
     )
-    return order
+    return order.criar()
 
 
 def get_order(order_id):
@@ -26,6 +26,6 @@ def delete_order(order_id):
     return result
     
 
-def get_inventory():
+def list_inventory():
     inventory = Order.inventario()
     return inventory
