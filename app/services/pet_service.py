@@ -3,10 +3,10 @@ from scripts.script2 import Category, Tag, Pet
 from app.schemas.models import PetSchema
 
 
-def build_pet(id, payload: PetSchema) -> Pet:
+def build_pet(payload: PetSchema):
 	pet = Pet(
 		category=Category(payload.category.id, payload.category.name),
-		pet_id=id,
+		pet_id=payload.id,
 		name=payload.name,
 		status=payload.status,
 	)
@@ -20,49 +20,35 @@ def build_pet(id, payload: PetSchema) -> Pet:
 	return pet
 
 
-def create_pet(payload: PetSchema) -> dict:
-	pet = build_pet(payload.id, payload)
+def create_pet(payload: PetSchema):
+	pet = build_pet(payload)
 	result = pet.criar()
-
-	if not isinstance(result, dict) or result.get("id") is None:
-		raise HTTPException(status_code=502, detail="Falha ao criar pet na API externa")
-
 	return result
 
 
 def get_pet(pet_id):
 	result = Pet.buscar(pet_id)
-
-	if isinstance(result, dict) and result.get("code") == 1:
-		raise HTTPException(status_code=404, detail="Pet nao encontrado")
-
 	return result
 
 
-def update_pet(id: int, payload: PetSchema) -> dict:
-	pet = build_pet(id, payload)
-	result = pet.atualizar()
-
-	if isinstance(result, dict) and result.get("code") == 1:
-		raise HTTPException(status_code=404, detail="Pet nao encontrado")
-
+def update_pet(pet_id, payload: PetSchema):
+	atual = Pet.buscar(pet_id)
+	result = atual.atualizar(
+		Category(payload.category.id, payload.category.name),
+		name = payload.name,
+		photoUrls = payload.photoUrls,
+		tags = [Tag(tag.id, tag.name) for tag in payload.tags],
+		status = payload.status
+	)
 	return result
 
 
 def delete_pet(pet_id):
-	pet = Pet()
-	result = pet.deletar(pet_id)
-
-	if isinstance(result, dict) and result.get("code") == 1:
-		raise HTTPException(status_code=404, detail="Pet nao encontrado")
-	
+	alvo = Pet.buscar(pet_id)
+	result = alvo.deletar(pet_id)
 	return result
 
 
 def list_pets_by_status(status):
 	result = Pet.por_status(status)
-
-	if not isinstance(result, list):
-		raise HTTPException(status_code=502, detail="Falha ao listar pets por status")
-
 	return result

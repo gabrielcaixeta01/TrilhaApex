@@ -51,8 +51,11 @@ class Pet:
     def criar(self):
         return _request("POST", "/pet", json=self.to_dict())
 
-    def atualizar(self):
-        return _request("PUT", "/pet", json=self.to_dict())
+    def atualizar(self, **dados):
+        atual = Pet.buscar(self.pet_id)
+        atual.update(dados)
+        atual["id"] = self.pet_id
+        return _request("PUT", f"/pet/{self.pet_id}", json=atual)
 
     def upload_imagem(self, metadata, file_path):
         with open(file_path, "rb") as f:
