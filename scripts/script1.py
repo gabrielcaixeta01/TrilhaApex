@@ -49,12 +49,6 @@ def buscarCompraPet(id):
 def deletarCompraPet(id):
     return _request("DELETE", f"/store/order/{id}")
 
-
-
-def criarListaDesejo(id, username, firstName, lastName, email, password, phone, userStatus):
-    return _request("POST", "/user/createWithList",
-                    json=[_usuario_payload(id, username, firstName, lastName, email, password, phone, userStatus)])
-
 def buscarUsuario(username):
     return _request("GET", f"/user/{username}")
 

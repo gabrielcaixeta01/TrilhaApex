@@ -102,26 +102,26 @@ class Order:
 
 
 class User:
-    def __init__(self, user_id, username, first_name, last_name, email, password, phone, user_status):
+    def __init__(self, user_id, username, firstName, lastName, email, password, phone, userStatus):
         self.user_id = user_id
         self.username = username
-        self.first_name = first_name
-        self.last_name = last_name
+        self.firstName = firstName
+        self.lastName = lastName
         self.email = email
         self.password = password
         self.phone = phone
-        self.user_status = user_status
+        self.userStatus = userStatus
 
     def to_dict(self):
         return {
             "id": self.user_id,
             "username": self.username,
-            "firstName": self.first_name,
-            "lastName": self.last_name,
+            "firstName": self.firstName,
+            "lastName": self.lastName,
             "email": self.email,
             "password": self.password,
             "phone": self.phone,
-            "userStatus": self.user_status,
+            "userStatus": self.userStatus,
         }
 
     def criar(self):
@@ -148,8 +148,7 @@ class User:
     def criar_lista(users):
         return _request("POST", "/user/createWithArray", json=[user.to_dict() for user in users])
 
-    def criar_lista_desejo(users):
-        return _request("POST", "/user/createWithList", json=[user.to_dict() for user in users])
+    
 
 
 def main():
