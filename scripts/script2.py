@@ -54,8 +54,8 @@ class Pet:
     def atualizar(self, **dados):
         atual = Pet.buscar(self.pet_id)
         atual.update(dados)
-        atual["username"] = self.username
-        return _request("PUT", f"/user/{self.username}", json=atual)
+        atual["pet_id"] = self.pet_id
+        return _request("PUT", f"/pet/{self.pet_id}", json=atual)
 
     def upload_imagem(self, metadata, file_path):
         with open(file_path, "rb") as f:
@@ -65,7 +65,7 @@ class Pet:
     def buscar(pet_id):
         return _request("GET", f"/pet/{pet_id}")
 
-    def deletar(self, pet_id):
+    def deletar(pet_id):
         return _request("DELETE", f"/pet/{pet_id}")
 
     def por_status(status):
@@ -97,7 +97,7 @@ class Order:
     def buscar(order_id):
         return _request("GET", f"/store/order/{order_id}")
 
-    def deletar(self, order_id):
+    def deletar(order_id):
         return _request("DELETE", f"/store/order/{order_id}")
 
     def inventario():

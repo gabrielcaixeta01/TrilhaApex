@@ -5,9 +5,13 @@ from app.services.pet_service import (create_pet, get_pet, update_pet, delete_pe
 router = APIRouter(prefix="/pet", tags=["Pets"])
 
 @router.post("", status_code=201)
-def criar_pet(payload: PetSchema):
-    return create_pet(payload)
+def criar_pet(name: str, payload: PetSchema):
+    return create_pet(name, payload)
 
+
+@router.get("/findByStatus")
+def buscar_por_status(status: str):
+    return list_pets_by_status(status)
 
 @router.get("/{pet_id}")
 def buscar_pet(pet_id: int):
@@ -21,8 +25,3 @@ def atualizar_pet(pet_id: int, payload: PetSchema):
 @router.delete("/{pet_id}", status_code=204)
 def deletar_pet(pet_id: int):
     return delete_pet(pet_id)
-
-
-@router.get("/status/{status}")
-def buscar_por_status(status: str):
-    return list_pets_by_status(status)

@@ -6,7 +6,7 @@ router = APIRouter(prefix="/store", tags=["Store"])
 
 @router.post("/order", status_code=201)
 def criar_pedido(payload: OrderSchema):
-    return create_order(payload.id, payload)
+    return create_order(payload)
 
 @router.get("/order/{order_id}")
 def buscar_pedido(order_id: int):

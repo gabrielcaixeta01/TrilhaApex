@@ -22,7 +22,7 @@ class PetSchema(BaseModel):
 
 
 class OrderSchema(BaseModel):
-    id: int = Field()
+    order_id: int = Field()
     petId: int = Field()
     quantity: int = Field()
     shipDate: str = Field()
