@@ -70,6 +70,9 @@ def update_pet(pet_id, updates: dict):
 
 	result = pet.atualizar(**filtered_updates)
 
+	if not result or (isinstance(result, dict) and result.get("code") == 1):
+		raise HTTPException(status_code=404, detail="Pet not found")
+
 	if not result:
 		raise HTTPException(status_code=400, detail="Failed to update pet")
 	

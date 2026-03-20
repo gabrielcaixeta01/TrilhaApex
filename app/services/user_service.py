@@ -73,6 +73,9 @@ def update_user(username, updates: dict):
 
     result = user.atualizar(username, **filtered_updates)
 
+    if not result or (isinstance(result, dict) and result.get("code") == 1):
+        raise HTTPException(status_code=404, detail="User not found")
+
     return result
 
 
