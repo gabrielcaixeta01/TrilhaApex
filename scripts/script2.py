@@ -2,7 +2,15 @@ import requests
 import json
 
 def _request(method, path, **kwargs):
-    return requests.request(method, f"https://petstore.swagger.io/v2{path}", **kwargs).json()
+    response = requests.request(method, f"https://petstore.swagger.io/v2{path}", **kwargs)
+    try:
+        return response.json()
+    except ValueError:
+        return {
+            "status_code": response.status_code,
+            "ok": response.ok,
+            "text": response.text,
+        }
 
 
 class Category:
@@ -53,9 +61,10 @@ class Pet:
 
     def atualizar(self, **dados):
         atual = Pet.buscar(self.pet_id)
-        atual.update(dados)
-        atual["pet_id"] = self.pet_id
-        return _request("PUT", f"/pet/{self.pet_id}", json=atual)
+        payload = atual.copy() if isinstance(atual, dict) else self.to_dict()
+        payload.update(dados)
+        payload["id"] = self.pet_id
+        return _request("PUT", "/pet", json=payload)
 
     def upload_imagem(self, metadata, file_path):
         with open(file_path, "rb") as f:
@@ -83,7 +92,7 @@ class Order:
 
     def to_dict(self):
         return {
-            "id": self.order_id,
+            "order_id": self.order_id,
             "petId": self.pet_id,
             "quantity": self.quantity,
             "shipDate": self.ship_date,
@@ -91,8 +100,13 @@ class Order:
             "complete": self.complete,
         }
 
+    def to_api_dict(self):
+        payload = self.to_dict()
+        payload["id"] = payload.pop("order_id")
+        return payload
+
     def criar(self):
-        return _request("POST", "/store/order", json=self.to_dict())
+        return _request("POST", "/store/order", json=self.to_api_dict())
 
     def buscar(order_id):
         return _request("GET", f"/store/order/{order_id}")
@@ -130,16 +144,17 @@ class User:
     def criar(self):
         return _request("POST", "/user", json=self.to_dict())
 
-    def atualizar(self, **dados):
-        atual = User.buscar(self.username)
-        atual.update(dados)
-        atual["username"] = self.username
-        return _request("PUT", f"/user/{self.username}", json=atual)
+    def atualizar(self, username: str, **dados):
+        atual = User.buscar(username)
+        payload = atual.copy() if isinstance(atual, dict) else self.to_dict()
+        payload.update(dados)
+        payload["username"] = username
+        return _request("PUT", f"/user/{username}", json=payload)
 
     def buscar(username):
         return _request("GET", f"/user/{username}")
 
-    def deletar(self, username):
+    def deletar(username):
         return _request("DELETE", f"/user/{username}")
 
     def login(username, password):

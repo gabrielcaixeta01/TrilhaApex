@@ -12,8 +12,14 @@ class TagSchema(BaseModel):
 	name: str = Field()
 
 
-class PetSchema(BaseModel):
-    pet_id: int = Field()
+class PetCreateSchema(BaseModel):
+    category: CategorySchema
+    photoUrls: list[str] = Field(default_factory=list)
+    tags: list[TagSchema] = Field(default_factory=list)
+    status: Literal["available", "pending", "sold"] = Field(default="available")
+
+
+class PetUpdateSchema(BaseModel):
     category: CategorySchema
     name: str = Field(...)
     photoUrls: list[str] = Field(default_factory=list)
@@ -36,11 +42,28 @@ class InventorySchema(BaseModel):
 
 class UserSchema(BaseModel):
     id: int = Field()
-    username: str = Field()
+    username: str = Field(...)
     firstName: str = Field()
     lastName: str = Field()
     email: str = Field()
-    password: str = Field()
+    password: str = Field(...)
     phone: str = Field()
     userStatus: int = Field(default=0)
 
+class UserCreateSchema(BaseModel):
+    id: int = Field()
+    firstName: str = Field()
+    lastName: str = Field()
+    email: str = Field()
+    phone: str = Field()
+    userStatus: int = Field(default=0)
+
+
+class UserUpdateSchema(BaseModel):
+    id: int = Field()
+    firstName: str = Field()
+    lastName: str = Field()
+    email: str = Field()
+    password: str = Field(...)
+    phone: str = Field()
+    userStatus: int = Field(default=0)
