@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Literal
+from datetime import datetime
 
 
 class CategorySchema(BaseModel):
@@ -31,7 +32,7 @@ class OrderSchema(BaseModel):
     order_id: int = Field()
     petId: int = Field()
     quantity: int = Field()
-    shipDate: str = Field()
+    shipDate: datetime = Field()
     status: str = Field(default="placed", pattern="(?i)^(placed|approved|delivered)$")
     complete: bool = Field(default=False)
 
