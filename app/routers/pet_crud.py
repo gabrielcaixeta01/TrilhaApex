@@ -1,69 +1,47 @@
-from typing import Literal
-from fastapi import APIRouter
-from app.schemas.models import Pet
-from app.services.pet_service import (
-    create_pet,
-    get_pet,
-    update_pet,
-    delete_pet,
-    list_pets_by_status
-)
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.services import pet_service
 
 router = APIRouter(prefix="/pet", tags=["Pets"])
 
 
-@router.post("", status_code=201, response_model=Pet)
+@router.post("", status_code=201, response_model=dict)
 def criar_pet(
     pet_id: int,
     name: str,
     category_id: int | None = None,
     category_name: str | None = None,
     photoUrls: list[str] | None = None,
-    status: Literal["available", "pending", "sold"] = "available",
-    tags: list[dict] | None = None
+    status: str = "available",
+    tags: list[dict] | None = None,
+    db: Session = Depends(get_db),
 ):
-    
-    return create_pet(
-        pet_id=pet_id,
-        name=name,
-        category_id=category_id,
-        category_name=category_name,
-        photoUrls=photoUrls,
-        status=status,
-        tags=tags
+    return pet_service.create_pet(
+        db, pet_id, name, category_id, category_name, photoUrls, status, tags
     )
 
 
-@router.get("/findByStatus", response_model=list[Pet])
-def buscar_por_status(status: Literal["available", "pending", "sold"]) -> list[dict]:
-    return list_pets_by_status(status)
+@router.get("/{pet_id}", response_model=dict)
+def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
+    return pet_service.get_pet(db, pet_id)
 
 
-@router.get("/{pet_id}", response_model=Pet)
-def buscar_pet(pet_id: int):
-    return get_pet(pet_id)
-
-
-@router.put("/{pet_id}", response_model=Pet)
+@router.put("/{pet_id}", response_model=dict)
 def atualizar_pet(
     pet_id: int,
     name: str | None = None,
-    status: Literal["available", "pending", "sold"] | None = None,
-    category_id: int | None = None,
-    category_name: str | None = None,
-    photoUrls: list[str] | None = None
+    status: str | None = None,
+    db: Session = Depends(get_db),
 ):
-   
-    return update_pet(
-        pet_id=pet_id,
-        name=name,
-        status=status,
-        category_id=category_id,
-        category_name=category_name,
-        photoUrls=photoUrls
-    )
+    return pet_service.update_pet(db, pet_id, name=name, status=status)
 
 
 @router.delete("/{pet_id}", status_code=204)
-def deletar_pet(pet_id: int):
-    delete_pet(pet_id)
+def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
+    pet_service.delete_pet(db, pet_id)
+
+
+@router.get("/findByStatus", response_model=list[dict])
+def buscar_por_status(status: str, db: Session = Depends(get_db)):
+    return pet_service.list_pets_by_status(db, status)

@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from app.routers.pet_crud import router as pet_router
-from app.routers.order_crud import router as order_router
-from app.routers.user_crud import router as user_router
+from app.database import Base, engine
+from app.routers import pet_crud, order_crud, user_crud
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Petstore da Apex")
 
-app.include_router(pet_router)
-app.include_router(order_router)
-app.include_router(user_router)
+app.include_router(pet_crud.router)
+app.include_router(order_crud.router)
+app.include_router(user_crud.router)
