@@ -1,4 +1,3 @@
-from scripts.script2 import Category
 from sqlalchemy.orm import Session
 from app.schemas.models import Pet, Category
 
@@ -25,11 +24,14 @@ def create_pet(db: Session, pet_id: int, name: str, category_id: int | None = No
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
-    return db_pet
+    return _pet_to_dict(db_pet)
 
 
 def get_pet(db: Session, pet_id: int):
-    return db.query(Pet).filter(Pet.id == pet_id).first()
+    pet = db.query(Pet).filter(Pet.id == pet_id).first()
+    if not pet:
+        return None
+    return _pet_to_dict(pet)
 
 
 def update_pet(db: Session, pet_id: int, **kwargs):
@@ -43,7 +45,7 @@ def update_pet(db: Session, pet_id: int, **kwargs):
     
     db.commit()
     db.refresh(pet)
-    return pet
+    return _pet_to_dict(pet)
 
 
 def delete_pet(db: Session, pet_id: int):
@@ -54,4 +56,20 @@ def delete_pet(db: Session, pet_id: int):
 
 
 def list_pets_by_status(db: Session, status: str):
-    return db.query(Pet).filter(Pet.status == status).all()
+    pets = db.query(Pet).filter(Pet.status == status).all()
+    return [_pet_to_dict(pet) for pet in pets]
+
+
+def _pet_to_dict(pet: Pet) -> dict:
+    photo_urls = pet.photoUrls.split(",") if pet.photoUrls else []
+    return {
+        "id": pet.id,
+        "name": pet.name,
+        "status": pet.status,
+        "photoUrls": photo_urls,
+        "category": {
+            "id": pet.category.id,
+            "name": pet.category.name,
+        } if pet.category else None,
+        "tags": [],
+    }

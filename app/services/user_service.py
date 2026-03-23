@@ -1,156 +1,138 @@
+import time
 from fastapi import HTTPException
-from scripts.script2 import User
+from sqlalchemy.orm import Session
+from app.schemas.models import User
 
 
-def create_user(id: int, username: str, password: str, firstName: str | None = None, lastName: str | None = None, email: str | None = None, phone: str | None = None, userStatus: int = 0):
-    try:
-        user = User(
-            user_id=id,
+def create_user(
+    db: Session,
+    id: int,
+    username: str,
+    password: str,
+    firstName: str | None = None,
+    lastName: str | None = None,
+    email: str | None = None,
+    phone: str | None = None,
+    userStatus: int = 0,
+):
+    exists = db.query(User).filter(User.username == username).first()
+    if exists:
+        raise HTTPException(status_code=400, detail="Usuário já existe")
+
+    db_user = User(
+        id=id,
+        username=username,
+        firstName=firstName,
+        lastName=lastName,
+        email=email,
+        password=password,
+        phone=phone,
+        userStatus=userStatus,
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return _user_to_dict(db_user)
+
+
+def create_with_list(db: Session, users: list[dict]) -> list[dict]:
+    created: list[dict] = []
+    for data in users:
+        username = data.get("username")
+        if not username:
+            continue
+
+        exists = db.query(User).filter(User.username == username).first()
+        if exists:
+            continue
+
+        db_user = User(
+            id=data.get("id", int(time.time())),
             username=username,
-            firstName=firstName,
-            lastName=lastName,
-            email=email,
-            password=password,
-            phone=phone,
-            userStatus=userStatus,
+            firstName=data.get("firstName"),
+            lastName=data.get("lastName"),
+            email=data.get("email"),
+            password=data.get("password", ""),
+            phone=data.get("phone"),
+            userStatus=data.get("userStatus", 0),
         )
-        result = user.criar()
-        
-        if not result:
-            raise HTTPException(status_code=400, detail="Erro ao criar usuário")
-        
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao criar usuário: {str(e)}")
+        db.add(db_user)
+        db.flush()
+        created.append(_user_to_dict(db_user))
+
+    db.commit()
+    return created
 
 
-def create_with_list(users: list[dict]) -> list[dict]:
-    try:
-        user_list = [
-            User(
-                user_id=user.get("id", 0),
-                username=user.get("username", ""),
-                firstName=user.get("firstName", ""),
-                lastName=user.get("lastName", ""),
-                email=user.get("email", ""),
-                password=user.get("password", ""),
-                phone=user.get("phone"),
-                userStatus=user.get("userStatus", 0),
-            )
-            for user in users
-        ]
-        
-        result = User.criar_lista(user_list)
-        
-        if not result:
-            raise HTTPException(status_code=400, detail="Erro ao criar usuários")
-        
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao criar usuários: {str(e)}")
+def get_user(db: Session, username: str) -> dict:
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return _user_to_dict(user)
 
 
-def get_user(username: str) -> dict:
-    try:
-        result = User.buscar(username)
-        
-        if not result or (isinstance(result, dict) and result.get("code") == 1):
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao buscar usuário: {str(e)}")
+def update_user(
+    db: Session,
+    username: str,
+    firstName: str | None = None,
+    lastName: str | None = None,
+    email: str | None = None,
+    password: str | None = None,
+    phone: str | None = None,
+    userStatus: int | None = None,
+):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    updates = {
+        "firstName": firstName,
+        "lastName": lastName,
+        "email": email,
+        "password": password,
+        "phone": phone,
+        "userStatus": userStatus,
+    }
+    for key, value in updates.items():
+        if value is not None:
+            setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
+    return _user_to_dict(user)
 
 
-def update_user(username: str, firstName: str | None = None, lastName: str | None = None, email: str | None = None, password: str | None = None, phone: str | None = None, userStatus: int | None = None):
-    try:
-        atual = User.buscar(username)
-        
-        if not atual or (isinstance(atual, dict) and atual.get("code") == 1):
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        
-        user = User(
-            user_id=atual.get("id", 0),
-            username=atual.get("username", username),
-            firstName=firstName if firstName is not None else atual.get("firstName", ""),
-            lastName=lastName if lastName is not None else atual.get("lastName", ""),
-            email=email if email is not None else atual.get("email", ""),
-            password=password if password is not None else atual.get("password", ""),
-            phone=phone if phone is not None else atual.get("phone", ""),
-            userStatus=userStatus if userStatus is not None else atual.get("userStatus", 0),
-        )
-        
-        updates = {
-            "firstName": firstName,
-            "lastName": lastName,
-            "email": email,
-            "password": password,
-            "phone": phone,
-            "userStatus": userStatus,
-        }
-        filtered_updates = {k: v for k, v in updates.items() if v is not None}
-        
-        if not filtered_updates:
-            return atual
-        
-        result = user.atualizar(username, **filtered_updates)
-        
-        if not result or (isinstance(result, dict) and result.get("code") == 1):
-            raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-        if isinstance(result, dict) and "code" in result and "message" in result:
-            updated = User.buscar(username)
-            if updated and not (isinstance(updated, dict) and updated.get("code") == 1):
-                return updated
-
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao atualizar usuário: {str(e)}")
+def delete_user(db: Session, username: str):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    db.delete(user)
+    db.commit()
 
 
-def delete_user(username: str):
-    try:
-        result = User.deletar(username)
-        
-        if not result:
-            raise HTTPException(status_code=400, detail="Erro ao deletar usuário")
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao deletar usuário: {str(e)}")
-
-
-def login(username: str, password: str):
-    try:
-        result = User.login(username, password)
-        
-        if not result:
-            raise HTTPException(status_code=401, detail="Erro ao fazer login")
-        
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao fazer login: {str(e)}")
+def login(db: Session, username: str, password: str):
+    user = db.query(User).filter(User.username == username).first()
+    if not user or user.password != password:
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    return {
+        "code": 200,
+        "type": "success",
+        "message": f"logged in user session:{int(time.time())}",
+    }
 
 
 def logout():
-    try:
-        result = User.logout()
-        
-        if not result:
-            raise HTTPException(status_code=400, detail="Erro ao fazer logout")
-        
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao fazer logout: {str(e)}")
+    return {"code": 200, "type": "success", "message": "ok"}
+
+
+def _user_to_dict(user: User) -> dict:
+    return {
+        "id": user.id,
+        "username": user.username,
+        "firstName": user.firstName,
+        "lastName": user.lastName,
+        "email": user.email,
+        "password": user.password,
+        "phone": user.phone,
+        "userStatus": user.userStatus,
+    }
