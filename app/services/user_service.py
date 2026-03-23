@@ -103,7 +103,12 @@ def update_user(username: str, firstName: str | None = None, lastName: str | Non
         
         if not result or (isinstance(result, dict) and result.get("code") == 1):
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
-        
+
+        if isinstance(result, dict) and "code" in result and "message" in result:
+            updated = User.buscar(username)
+            if updated and not (isinstance(updated, dict) and updated.get("code") == 1):
+                return updated
+
         return result
     except HTTPException:
         raise

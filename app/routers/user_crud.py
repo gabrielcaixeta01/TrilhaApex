@@ -68,12 +68,12 @@ def deletar_user(username: str) -> None:
     delete_user(username)
 
 
-@router.post("/login", response_model=dict)
+@router.get("/login", response_model=dict)
 def login_user(username: str, password: str) -> dict:
     return login(username, password)
 
 
-@router.post("/logout", response_model=dict)
+@router.get("/logout", response_model=dict)
 def logout_user() -> dict:
     return logout()
 
