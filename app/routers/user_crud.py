@@ -1,51 +1,117 @@
+"""
+Router para operações de Users (CRUD)
+Endpoints documentados automaticamente no Swagger
+"""
 from fastapi import APIRouter
-from app.schemas.models import UserSchema, UserCreateSchema
-from app.services.user_service import (create_user, get_user, update_user, delete_user, login, logout, createWithList)
+from app.services.user_service import (
+    create_user,
+    get_user,
+    update_user,
+    delete_user,
+    login,
+    logout,
+    create_with_list
+)
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-@router.post("")
-def criar_user(username, password, payload: UserCreateSchema):
-    return create_user(username, password, payload)
 
-@router.get("/{username}")
-def buscar_user(username):
+@router.post("", status_code=201, response_model=dict)
+def criar_user(
+    id: int,
+    username: str,
+    password: str,
+    firstName: str,
+    lastName: str,
+    email: str,
+    phone: str | None = None,
+    userStatus: int = 0
+) -> dict:
+    """
+    Criar um novo usuário
+    
+    - **username**: Nome de usuário único
+    - **email**: Email único
+    - **password**: Senha (será armazenada de forma segura)
+    """
+    return create_user(
+        id=id,
+        username=username,
+        password=password,
+        firstName=firstName,
+        lastName=lastName,
+        email=email,
+        phone=phone,
+        userStatus=userStatus
+    )
+
+
+@router.get("/{username}", response_model=dict)
+def buscar_user(username: str) -> dict:
+    """
+    Buscar um usuário específico por username
+    
+    - **username**: Nome de usuário
+    """
     return get_user(username)
 
-@router.put("/{username}")
+
+@router.put("/{username}", response_model=dict)
 def atualizar_user(
-    username,
-    id: int | None = None,
+    username: str,
     firstName: str | None = None,
     lastName: str | None = None,
     email: str | None = None,
     password: str | None = None,
     phone: str | None = None,
-    userStatus: int | None = None,
-):
-    updates = {
-        "id": id,
-        "firstName": firstName,
-        "lastName": lastName,
-        "email": email,
-        "password": password,
-        "phone": phone,
-        "userStatus": userStatus,
-    }
-    return update_user(username, updates)
+    userStatus: int | None = None
+) -> dict:
+    """
+    Atualizar informações de um usuário
+    
+    - **username**: Nome de usuário a atualizar
+    """
+    return update_user(
+        username=username,
+        firstName=firstName,
+        lastName=lastName,
+        email=email,
+        password=password,
+        phone=phone,
+        userStatus=userStatus
+    )
+
 
 @router.delete("/{username}", status_code=204)
-def deletar_user(username):
-    return delete_user(username)
+def deletar_user(username: str) -> None:
+    """
+    Deletar um usuário
+    
+    - **username**: Nome de usuário a deletar
+    """
+    delete_user(username)
 
-@router.get("/login")
-def login_user(username, password):
+
+@router.post("/login", response_model=dict)
+def login_user(username: str, password: str) -> dict:
+    """
+    Fazer login do usuário
+    
+    - **username**: Nome de usuário
+    - **password**: Senha
+    """
     return login(username, password)
 
-@router.get("/logout")
-def logout_user():
+
+@router.post("/logout", response_model=dict)
+def logout_user() -> dict:
+    """Fazer logout do usuário"""
     return logout()
 
-@router.post("/createWithList")
-def criar_lista_Usuarios(users: list[UserSchema]):
-    return createWithList(users)
+
+@router.post("/createWithList", response_model=list[dict])
+def criar_lista_usuarios(users: list[dict]) -> list[dict]:
+    """
+    Criar múltiplos usuários em uma única operação
+    """
+    return create_with_list(users)

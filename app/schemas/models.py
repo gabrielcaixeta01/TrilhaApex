@@ -1,70 +1,115 @@
-from pydantic import BaseModel, Field
+"""
+Esquemas/Modelos de dados usando Type Hints nativos do Python
+FastAPI gera automaticamente a documentação Swagger com base nesses tipos
+"""
 from typing import Literal
 from datetime import datetime
 
 
-class CategorySchema(BaseModel):
-	id: int = Field()
-	name: str = Field()
+# ============ CATEGORY ============
+class Category:
+    """Categoria de pets"""
+    id: int
+    name: str
+    
+    def __init__(self, id: int, name: str):
+        self.id = id
+        self.name = name
 
 
-class TagSchema(BaseModel):
-	id: int = Field()
-	name: str = Field()
+# ============ TAG ============
+class Tag:
+    """Tags/etiquetas para categorizar pets"""
+    id: int
+    name: str
+    
+    def __init__(self, id: int, name: str):
+        self.id = id
+        self.name = name
 
 
-class PetCreateSchema(BaseModel):
-    category: CategorySchema
-    photoUrls: list[str] = Field(default_factory=list)
-    tags: list[TagSchema] = Field(default_factory=list)
-    status: Literal["available", "pending", "sold"] = Field(default="available")
+# ============ PET ============
+class Pet:
+    """Animal de estimação"""
+    id: int
+    name: str
+    photoUrls: list[str]
+    status: Literal["available", "pending", "sold"]
+    category: Category | None
+    tags: list[Tag]
+    
+    def __init__(
+        self,
+        id: int,
+        name: str,
+        photoUrls: list[str] | None = None,
+        status: Literal["available", "pending", "sold"] = "available",
+        category: Category | None = None,
+        tags: list[Tag] | None = None
+    ):
+        self.id = id
+        self.name = name
+        self.photoUrls = photoUrls or []
+        self.status = status
+        self.category = category
+        self.tags = tags or []
 
 
-class PetUpdateSchema(BaseModel):
-    category: CategorySchema
-    name: str = Field(...)
-    photoUrls: list[str] = Field(default_factory=list)
-    tags: list[TagSchema] = Field(default_factory=list)
-    status: Literal["available", "pending", "sold"] = Field(default="available")
+# ============ ORDER ============
+class Order:
+    """Pedido de compra"""
+    order_id: int
+    petId: int
+    quantity: int
+    shipDate: datetime | None
+    status: str
+    complete: bool
+    
+    def __init__(
+        self,
+        order_id: int,
+        petId: int,
+        quantity: int,
+        shipDate: datetime | None = None,
+        status: str = "placed",
+        complete: bool = False
+    ):
+        self.order_id = order_id
+        self.petId = petId
+        self.quantity = quantity
+        self.shipDate = shipDate
+        self.status = status
+        self.complete = complete
 
 
-class OrderSchema(BaseModel):
-    order_id: int = Field()
-    petId: int = Field()
-    quantity: int = Field()
-    shipDate: datetime = Field()
-    status: str = Field(default="placed", pattern="(?i)^(placed|approved|delivered)$")
-    complete: bool = Field(default=False)
-
-class InventorySchema(BaseModel):
-    status: str = Field()
-    quantity: int = Field()
-
-
-class UserSchema(BaseModel):
-    id: int = Field()
-    username: str = Field(...)
-    firstName: str = Field()
-    lastName: str = Field()
-    email: str = Field()
-    password: str = Field(...)
-    phone: str = Field()
-    userStatus: int = Field(default=0)
-
-class UserCreateSchema(BaseModel):
-    id: int = Field()
-    firstName: str = Field()
-    lastName: str = Field()
-    email: str = Field()
-    phone: str = Field()
-    userStatus: int = Field(default=0)
-
-
-class UserUpdateSchema(BaseModel):
-    id: int = Field()
-    firstName: str = Field()
-    lastName: str = Field()
-    email: str = Field()
-    password: str = Field(...)
-    phone: str = Field()
-    userStatus: int = Field(default=0)
+# ============ USER ============
+class User:
+    """Usuário do sistema"""
+    id: int
+    username: str
+    firstName: str
+    lastName: str
+    email: str
+    password: str
+    phone: str | None
+    userStatus: int
+    
+    def __init__(
+        self,
+        id: int,
+        username: str,
+        firstName: str,
+        lastName: str,
+        email: str,
+        password: str,
+        phone: str | None = None,
+        userStatus: int = 0
+    ):
+        self.id = id
+        self.username = username
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
+        self.password = password
+        self.phone = phone
+        self.userStatus = userStatus
