@@ -1,21 +1,8 @@
-"""
-Service de Users - Lógica de negócio para operações com usuários
-"""
 from fastapi import HTTPException
 from scripts.script2 import User
 
 
-def create_user(
-    id: int,
-    username: str,
-    password: str,
-    firstName: str,
-    lastName: str,
-    email: str,
-    phone: str | None = None,
-    userStatus: int = 0
-) -> dict:
-    """Criar um novo usuário"""
+def create_user(id: int, username: str, password: str, firstName: str | None = None, lastName: str | None = None, email: str | None = None, phone: str | None = None, userStatus: int = 0):
     try:
         user = User(
             user_id=id,
@@ -40,7 +27,6 @@ def create_user(
 
 
 def create_with_list(users: list[dict]) -> list[dict]:
-    """Criar múltiplos usuários"""
     try:
         user_list = [
             User(
@@ -69,7 +55,6 @@ def create_with_list(users: list[dict]) -> list[dict]:
 
 
 def get_user(username: str) -> dict:
-    """Obter um usuário por username"""
     try:
         result = User.buscar(username)
         
@@ -83,23 +68,13 @@ def get_user(username: str) -> dict:
         raise HTTPException(status_code=400, detail=f"Erro ao buscar usuário: {str(e)}")
 
 
-def update_user(
-    username: str,
-    firstName: str | None = None,
-    lastName: str | None = None,
-    email: str | None = None,
-    password: str | None = None,
-    phone: str | None = None,
-    userStatus: int | None = None
-) -> dict:
-    """Atualizar um usuário"""
+def update_user(username: str, firstName: str | None = None, lastName: str | None = None, email: str | None = None, password: str | None = None, phone: str | None = None, userStatus: int | None = None):
     try:
         atual = User.buscar(username)
         
         if not atual or (isinstance(atual, dict) and atual.get("code") == 1):
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         
-        # Construir objeto User com dados atualizados
         user = User(
             user_id=atual.get("id", 0),
             username=atual.get("username", username),
@@ -136,8 +111,7 @@ def update_user(
         raise HTTPException(status_code=400, detail=f"Erro ao atualizar usuário: {str(e)}")
 
 
-def delete_user(username: str) -> None:
-    """Deletar um usuário"""
+def delete_user(username: str):
     try:
         result = User.deletar(username)
         
@@ -149,8 +123,7 @@ def delete_user(username: str) -> None:
         raise HTTPException(status_code=400, detail=f"Erro ao deletar usuário: {str(e)}")
 
 
-def login(username: str, password: str) -> dict:
-    """Fazer login do usuário"""
+def login(username: str, password: str):
     try:
         result = User.login(username, password)
         
@@ -164,8 +137,7 @@ def login(username: str, password: str) -> dict:
         raise HTTPException(status_code=400, detail=f"Erro ao fazer login: {str(e)}")
 
 
-def logout() -> dict:
-    """Fazer logout do usuário"""
+def logout():
     try:
         result = User.logout()
         

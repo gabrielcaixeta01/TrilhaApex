@@ -1,30 +1,13 @@
-"""
-Service de Pets - Lógica de negócio para operações com pets
-"""
 from typing import Literal
 from fastapi import HTTPException
 from scripts.script2 import Category, Tag, Pet as PetScript
 
 
-# Armazém em memória (substituir por banco de dados depois)
-pets_db: dict[int, dict] = {}
-
-
-def create_pet(
-    pet_id: int,
-    name: str,
-    category_id: int | None = None,
-    category_name: str | None = None,
-    photoUrls: list[str] | None = None,
-    status: Literal["available", "pending", "sold"] = "available",
-    tags: list[dict] | None = None
-) -> dict:
-    """Criar um novo pet"""
+def create_pet(pet_id: int, name: str,category_id: int | None = None, category_name: str | None = None, photoUrls: list[str] | None = None, status: Literal["available", "pending", "sold"] = "available", tags: list[dict] | None = None):
     try:
-        # Usar classe Pet do script2
-        category = None
-        if category_id or category_name:
-            category = Category(category_id or 0, category_name or "")
+        # A classe Pet do script externo sempre chama category.to_dict().
+        # Quando categoria nao e enviada, usamos um valor padrao para evitar NoneType.
+        category = Category(category_id or 0, category_name or "")
         
         pet = PetScript(
             category=category,
@@ -33,12 +16,10 @@ def create_pet(
             status=status,
         )
         
-        # Adicionar URLs de foto
         if photoUrls:
             for url in photoUrls:
                 pet.add_photo_url(url)
         
-        # Adicionar tags
         if tags:
             for tag in tags:
                 pet.add_tag(Tag(tag.get("id", 0), tag.get("name", "")))
@@ -53,8 +34,7 @@ def create_pet(
         raise HTTPException(status_code=400, detail=f"Erro ao criar pet: {str(e)}")
 
 
-def get_pet(pet_id: int) -> dict:
-    """Obter um pet por ID"""
+def get_pet(pet_id: int):
     result = PetScript.buscar(pet_id)
     
     if not result or (isinstance(result, dict) and result.get("code") == 1):
@@ -63,8 +43,7 @@ def get_pet(pet_id: int) -> dict:
     return result
 
 
-def list_pets_by_status(status: Literal["available", "pending", "sold"]) -> list[dict]:
-    """Listar pets por status"""
+def list_pets_by_status(status: Literal["available", "pending", "sold"]):
     valid_statuses = ["available", "pending", "sold"]
     if status not in valid_statuses:
         raise HTTPException(
@@ -80,53 +59,38 @@ def list_pets_by_status(status: Literal["available", "pending", "sold"]) -> list
     return result
 
 
-def update_pet(
-    pet_id: int,
-    name: str | None = None,
-    status: Literal["available", "pending", "sold"] | None = None,
-    category_id: int | None = None,
-    category_name: str | None = None,
-    photoUrls: list[str] | None = None
-) -> dict:
-    """Atualizar um pet"""
+def update_pet(pet_id: int,name: str | None = None, status: Literal["available", "pending", "sold"] | None = None, category_id: int | None = None, category_name: str | None = None, photoUrls: list[str] | None = None):
     try:
-        # Buscar pet atual
         atual = PetScript.buscar(pet_id)
         
         if not atual or (isinstance(atual, dict) and atual.get("code") == 1):
             raise HTTPException(status_code=404, detail="Pet não encontrado")
         
-        # Construir objeto Pet com dados atualizados
         category_data = atual.get("category") or {}
         pet = PetScript(
             category=Category(category_data.get("id", 0), category_data.get("name", "")),
             pet_id=pet_id,
-            name=name if name is not None else atual.get("name", ""),
-            status=status if status is not None else atual.get("status", "available"),
+            name=atual.get("name", ""),
+            status=atual.get("status", "available"),
         )
-        
-        # Adicionar URLs de foto
-        for url in atual.get("photoUrls", []):
-            pet.add_photo_url(url)
-        
-        # Adicionar tags
-        for tag in atual.get("tags", []):
-            pet.add_tag(Tag(tag.get("id", 0), tag.get("name", "")))
-        
-        # Atualizar categoria se fornecida
-        if category_id or category_name:
-            pet.category = Category(
-                category_id or category_data.get("id", 0),
-                category_name or category_data.get("name", "")
-            )
-        
-        # Atualizar fotos se fornecidas
-        if photoUrls:
-            for url in photoUrls:
-                if url not in atual.get("photoUrls", []):
-                    pet.add_photo_url(url)
-        
-        result = pet.atualizar()
+
+        updates = {}
+        if name is not None:
+            updates["name"] = name
+        if status is not None:
+            updates["status"] = status
+        if category_id is not None or category_name is not None:
+            updates["category"] = {
+                "id": category_id if category_id is not None else category_data.get("id", 0),
+                "name": category_name if category_name is not None else category_data.get("name", ""),
+            }
+        if photoUrls is not None:
+            updates["photoUrls"] = photoUrls
+
+        if not updates:
+            return atual
+
+        result = pet.atualizar(**updates)
         
         if not result or (isinstance(result, dict) and result.get("code") == 1):
             raise HTTPException(status_code=404, detail="Pet não encontrado")
@@ -138,8 +102,7 @@ def update_pet(
         raise HTTPException(status_code=400, detail=f"Erro ao atualizar pet: {str(e)}")
 
 
-def delete_pet(pet_id: int) -> None:
-    """Deletar um pet"""
+def delete_pet(pet_id: int):
     try:
         result = PetScript.deletar(pet_id)
         if not result:

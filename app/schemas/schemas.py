@@ -1,43 +1,20 @@
-"""
-Esquemas/Modelos de dados usando Type Hints nativos do Python
-FastAPI gera automaticamente a documentação Swagger com base nesses tipos
-"""
 from typing import Literal
 from datetime import datetime
 
 
-# ============ CATEGORY ============
 class Category:
-    """Categoria de pets"""
-    id: int
-    name: str
-    
     def __init__(self, id: int, name: str):
         self.id = id
         self.name = name
 
 
-# ============ TAG ============
 class Tag:
-    """Tags/etiquetas para categorizar pets"""
-    id: int
-    name: str
-    
     def __init__(self, id: int, name: str):
         self.id = id
         self.name = name
 
 
-# ============ PET ============
 class Pet:
-    """Animal de estimação"""
-    id: int
-    name: str
-    photoUrls: list[str]
-    status: Literal["available", "pending", "sold"]
-    category: Category | None
-    tags: list[Tag]
-    
     def __init__(
         self,
         id: int,
@@ -55,21 +32,12 @@ class Pet:
         self.tags = tags or []
 
 
-# ============ ORDER ============
 class Order:
-    """Pedido de compra"""
-    order_id: int
-    petId: int
-    quantity: int
-    shipDate: datetime | None
-    status: str
-    complete: bool
-    
     def __init__(
         self,
         order_id: int,
         petId: int,
-        quantity: int,
+        quantity: int | None = None,
         shipDate: datetime | None = None,
         status: str = "placed",
         complete: bool = False
@@ -82,27 +50,16 @@ class Order:
         self.complete = complete
 
 
-# ============ USER ============
 class User:
-    """Usuário do sistema"""
-    id: int
-    username: str
-    firstName: str
-    lastName: str
-    email: str
-    password: str
-    phone: str | None
-    userStatus: int
-    
-    def __init__(
+    def __init__( 
         self,
         id: int,
         username: str,
-        firstName: str,
-        lastName: str,
-        email: str,
-        password: str,
-        phone: str | None = None,
+        password: str, 
+        firstName: str | None = None, 
+        lastName: str | None = None,
+        email: str | None = None, 
+        phone: str | None = None, 
         userStatus: int = 0
     ):
         self.id = id
