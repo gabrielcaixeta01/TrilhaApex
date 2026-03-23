@@ -16,7 +16,6 @@ router = APIRouter(prefix="/user", tags=["User"])
 
 @router.post("", status_code=201, response_model=dict)
 def criar_user(
-    id: int,
     username: str,
     password: str,
     firstName: str | None = None,
@@ -26,9 +25,8 @@ def criar_user(
     userStatus: int = 0,
     db: Session = Depends(get_db),
 ) -> dict:
-    return create_user(
+    user = create_user(
         db=db,
-        id=id,
         username=username,
         password=password,
         firstName=firstName,
@@ -37,6 +35,10 @@ def criar_user(
         phone=phone,
         userStatus=userStatus
     )
+    return {
+        "message": f"User criado com sucesso, Id: {user['id']}",
+        "id": user["id"],
+    }
 
 
 @router.get("/{username}", response_model=dict)

@@ -8,18 +8,20 @@ router = APIRouter(prefix="/pet", tags=["Pets"])
 
 @router.post("", status_code=201, response_model=dict)
 def criar_pet(
-    pet_id: int,
     name: str,
-    category_id: int | None = None,
     category_name: str | None = None,
     photoUrls: list[str] | None = None,
     status: str = "available",
     tags: list[dict] | None = None,
     db: Session = Depends(get_db),
 ):
-    return pet_service.create_pet(
-        db, pet_id, name, category_id, category_name, photoUrls, status, tags
+    pet = pet_service.create_pet(
+        db, name, category_name, photoUrls, status, tags
     )
+    return {
+        "message": f"Pet criado com sucesso, Id: {pet['id']}",
+        "id": pet["id"],
+    }
 
 
 @router.get("/{pet_id}", response_model=dict)

@@ -2,20 +2,19 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Pet, Category
 
 
-def create_pet(db: Session, pet_id: int, name: str, category_id: int | None = None, 
-               category_name: str | None = None, photoUrls: list[str] | None = None, 
+def create_pet(db: Session, name: str, category_name: str | None = None,
+               photoUrls: list[str] | None = None,
                status: str = "available", tags: list[dict] | None = None):
-    
+
     category = None
-    if category_id or category_name:
-        category = db.query(Category).filter(Category.id == category_id).first()
+    if category_name:
+        category = db.query(Category).filter(Category.name == category_name).first()
         if not category:
-            category = Category(id=category_id or 0, name=category_name or "")
+            category = Category(name=category_name)
             db.add(category)
-            db.commit()
+            db.flush()
     
     db_pet = Pet(
-        id=pet_id,
         name=name,
         photoUrls=",".join(photoUrls) if photoUrls else None,
         status=status,

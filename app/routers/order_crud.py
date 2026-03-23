@@ -14,7 +14,6 @@ router = APIRouter(prefix="/store", tags=["Store"])
 
 @router.post("/order", status_code=201, response_model=dict)
 def criar_pedido(
-    order_id: int,
     petId: int,
     quantity: int | None = None,
     shipDate: datetime | None = None,
@@ -22,25 +21,28 @@ def criar_pedido(
     complete: bool = False,
     db: Session = Depends(get_db),
 ):
-    return create_order(
+    order = create_order(
         db=db,
-        order_id=order_id,
         petId=petId,
         quantity=quantity,
         shipDate=shipDate,
         status=status,
         complete=complete
     )
+    return {
+        "message": f"Pedido criado com sucesso, Id: {order['id']}",
+        "id": order["id"],
+    }
 
 
-@router.get("/order/{order_id}", response_model=dict)
-def buscar_pedido(order_id: int, db: Session = Depends(get_db)) -> dict:
-    return get_order(db, order_id)
+@router.get("/order/{id}", response_model=dict)
+def buscar_pedido(id: int, db: Session = Depends(get_db)) -> dict:
+    return get_order(db, id)
 
 
-@router.delete("/order/{order_id}", status_code=204)
-def deletar_pedido(order_id: int, db: Session = Depends(get_db)):
-    delete_order(db, order_id)
+@router.delete("/order/{id}", status_code=204)
+def deletar_pedido(id: int, db: Session = Depends(get_db)):
+    delete_order(db, id)
 
 
 @router.get("/inventory", response_model=dict)

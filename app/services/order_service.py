@@ -5,7 +5,6 @@ from app.schemas.models import Order, Pet
 
 def create_order(
     db: Session,
-    order_id: int,
     petId: int,
     quantity: int | None,
     shipDate,
@@ -13,7 +12,6 @@ def create_order(
     complete: bool,
 ):
     db_order = Order(
-        order_id=order_id,
         petId=petId,
         quantity=quantity,
         shipDate=shipDate,
@@ -27,14 +25,14 @@ def create_order(
 
 
 def get_order(db: Session, order_id: int):
-    order = db.query(Order).filter(Order.order_id == order_id).first()
+    order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         return None
     return _order_to_dict(order)
 
 
 def delete_order(db: Session, order_id: int):
-    order = db.query(Order).filter(Order.order_id == order_id).first()
+    order = db.query(Order).filter(Order.id == order_id).first()
     if order:
         db.delete(order)
         db.commit()
@@ -47,7 +45,7 @@ def list_inventory(db: Session):
 
 def _order_to_dict(order: Order) -> dict:
     return {
-        "order_id": order.order_id,
+        "id": order.id,
         "petId": order.petId,
         "quantity": order.quantity,
         "shipDate": order.shipDate,

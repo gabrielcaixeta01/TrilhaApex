@@ -6,7 +6,6 @@ from app.schemas.models import User
 
 def create_user(
     db: Session,
-    id: int,
     username: str,
     password: str,
     firstName: str | None = None,
@@ -20,7 +19,6 @@ def create_user(
         raise HTTPException(status_code=400, detail="Usuário já existe")
 
     db_user = User(
-        id=id,
         username=username,
         firstName=firstName,
         lastName=lastName,
@@ -47,7 +45,6 @@ def create_with_list(db: Session, users: list[dict]) -> list[dict]:
             continue
 
         db_user = User(
-            id=data.get("id", int(time.time())),
             username=username,
             firstName=data.get("firstName"),
             lastName=data.get("lastName"),
