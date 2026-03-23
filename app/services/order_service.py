@@ -1,59 +1,56 @@
-from datetime import datetime
-from fastapi import HTTPException
-from scripts.script2 import Order
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+from app.schemas.models import Order, Pet
 
 
-def create_order(order_id: int, petId: int, quantity: int | None = None, shipDate: datetime | None = None, status: str = "placed", complete: bool = False):
-    try:
-        order = Order(
-            order_id=order_id,
-            pet_id=petId,
-            quantity=quantity,
-            ship_date=shipDate.isoformat() if shipDate else None,
-            status=status,
-            complete=complete,
-        )
-        result = order.criar()
-        
-        if not result:
-            raise HTTPException(status_code=400, detail="Erro ao criar pedido")
-        return result
-    except HTTPException:
-        raise
+def create_order(
+    db: Session,
+    order_id: int,
+    petId: int,
+    quantity: int | None,
+    shipDate,
+    status: str,
+    complete: bool,
+):
+    db_order = Order(
+        order_id=order_id,
+        petId=petId,
+        quantity=quantity,
+        shipDate=shipDate,
+        status=status,
+        complete=complete,
+    )
+    db.add(db_order)
+    db.commit()
+    db.refresh(db_order)
+    return _order_to_dict(db_order)
 
-def get_order(order_id: int):
-    try:
-        result = Order.buscar(order_id)
-        
-        if not result:
-            raise HTTPException(status_code=404, detail="Pedido não encontrado")
-        if isinstance(result, dict) and result.get("code") == 1:
-            raise HTTPException(status_code=404, detail="Pedido não encontrado")
-        return result
-    except HTTPException:
-        raise
 
-def delete_order(order_id: int):
-    try:
-        result = Order.deletar(order_id)
-        
-        if not result:
-            raise HTTPException(status_code=404, detail="Pedido não encontrado")
-        if isinstance(result, dict) and result.get("code") == 1:
-            raise HTTPException(status_code=404, detail="Pedido não encontrado")
-        return result
-    except HTTPException:
-        raise
+def get_order(db: Session, order_id: int):
+    order = db.query(Order).filter(Order.order_id == order_id).first()
+    if not order:
+        return None
+    return _order_to_dict(order)
 
-def list_inventory():
-    try:
-        inventory = Order.inventario()
-        
-        if not inventory:
-            raise HTTPException(status_code=404, detail="Inventário não encontrado")
-        
-        return inventory
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Erro ao buscar inventário: {str(e)}")
+
+def delete_order(db: Session, order_id: int):
+    order = db.query(Order).filter(Order.order_id == order_id).first()
+    if order:
+        db.delete(order)
+        db.commit()
+
+
+def list_inventory(db: Session):
+    rows = db.query(Pet.status, func.count(Pet.id)).group_by(Pet.status).all()
+    return {status: count for status, count in rows}
+
+
+def _order_to_dict(order: Order) -> dict:
+    return {
+        "order_id": order.order_id,
+        "petId": order.petId,
+        "quantity": order.quantity,
+        "shipDate": order.shipDate,
+        "status": order.status,
+        "complete": order.complete,
+    }

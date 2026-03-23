@@ -1,42 +1,50 @@
-from pydantic import BaseModel
-from typing import Literal
-from datetime import datetime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from app.database import Base
 
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    
+    pets = relationship("Pet", back_populates="category")
 
-class Category(BaseModel):
-    id: int
-    name: str
+class Tag(Base):
+    __tablename__ = "tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
 
+class Pet(Base):
+    __tablename__ = "pets"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    photoUrls = Column(String, nullable=True)
+    status = Column(String, default="available")
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    
+    category = relationship("Category", back_populates="pets")
 
-class Tag(BaseModel):
-    id: int
-    name: str
+class Order(Base):
+    __tablename__ = "orders"
+    
+    order_id = Column(Integer, primary_key=True, index=True)
+    petId = Column(Integer, ForeignKey("pets.id"))
+    quantity = Column(Integer, nullable=True)
+    shipDate = Column(DateTime, nullable=True)
+    status = Column(String, default="placed")
+    complete = Column(Boolean, default=False)
 
-
-class Pet(BaseModel):
-    id: int
-    name: str
-    photoUrls: list[str] | None = None
-    status: Literal["available", "pending", "sold"] = "available"
-    category: Category | None = None
-    tags: list[Tag] | None = None
-
-
-class Order(BaseModel):
-    order_id: int
-    petId: int
-    quantity: int | None = None
-    shipDate: datetime | None = None
-    status: str = "placed"
-    complete: bool = False
-
-
-class User(BaseModel):
-    id: int
-    username: str
-    firstName: str | None = None
-    lastName: str | None = None
-    email: str | None = None
-    password: str
-    phone: str | None = None
-    userStatus: int = 0
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    firstName = Column(String, nullable=True)
+    lastName = Column(String, nullable=True)
+    email = Column(String, nullable=True)
+    password = Column(String)
+    phone = Column(String, nullable=True)
+    userStatus = Column(Integer, default=0)

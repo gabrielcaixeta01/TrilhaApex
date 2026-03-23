@@ -1,6 +1,7 @@
 from datetime import datetime
-from fastapi import APIRouter
-from app.schemas.models import Order
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.database import get_db
 from app.services.order_service import (
     create_order,
     get_order,
@@ -11,17 +12,18 @@ from app.services.order_service import (
 router = APIRouter(prefix="/store", tags=["Store"])
 
 
-@router.post("/order", status_code=201, response_model=Order)
+@router.post("/order", status_code=201, response_model=dict)
 def criar_pedido(
     order_id: int,
     petId: int,
     quantity: int | None = None,
     shipDate: datetime | None = None,
     status: str = "placed",
-    complete: bool = False
+    complete: bool = False,
+    db: Session = Depends(get_db),
 ):
-   
     return create_order(
+        db=db,
         order_id=order_id,
         petId=petId,
         quantity=quantity,
@@ -31,16 +33,16 @@ def criar_pedido(
     )
 
 
-@router.get("/order/{order_id}", response_model=Order)
-def buscar_pedido(order_id: int) -> dict:
-    return get_order(order_id)
+@router.get("/order/{order_id}", response_model=dict)
+def buscar_pedido(order_id: int, db: Session = Depends(get_db)) -> dict:
+    return get_order(db, order_id)
 
 
 @router.delete("/order/{order_id}", status_code=204)
-def deletar_pedido(order_id: int):
-    delete_order(order_id)
+def deletar_pedido(order_id: int, db: Session = Depends(get_db)):
+    delete_order(db, order_id)
 
 
 @router.get("/inventory", response_model=dict)
-def buscar_inventario() -> dict:
-    return list_inventory()
+def buscar_inventario(db: Session = Depends(get_db)) -> dict:
+    return list_inventory(db)
