@@ -1,5 +1,6 @@
 from typing import Literal
 from fastapi import APIRouter
+from app.schemas.models import Pet
 from app.services.pet_service import (
     create_pet,
     get_pet,
@@ -11,7 +12,7 @@ from app.services.pet_service import (
 router = APIRouter(prefix="/pet", tags=["Pets"])
 
 
-@router.post("", status_code=201, response_model=dict)
+@router.post("", status_code=201, response_model=Pet)
 def criar_pet(
     pet_id: int,
     name: str,
@@ -33,17 +34,17 @@ def criar_pet(
     )
 
 
-@router.get("/findByStatus", response_model=list[dict])
+@router.get("/findByStatus", response_model=list[Pet])
 def buscar_por_status(status: Literal["available", "pending", "sold"]) -> list[dict]:
     return list_pets_by_status(status)
 
 
-@router.get("/{pet_id}", response_model=dict)
+@router.get("/{pet_id}", response_model=Pet)
 def buscar_pet(pet_id: int):
     return get_pet(pet_id)
 
 
-@router.put("/{pet_id}", response_model=dict)
+@router.put("/{pet_id}", response_model=Pet)
 def atualizar_pet(
     pet_id: int,
     name: str | None = None,

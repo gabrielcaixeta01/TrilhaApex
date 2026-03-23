@@ -1,5 +1,6 @@
 from datetime import datetime
 from fastapi import APIRouter
+from app.schemas.models import Order
 from app.services.order_service import (
     create_order,
     get_order,
@@ -10,7 +11,7 @@ from app.services.order_service import (
 router = APIRouter(prefix="/store", tags=["Store"])
 
 
-@router.post("/order", status_code=201, response_model=dict)
+@router.post("/order", status_code=201, response_model=Order)
 def criar_pedido(
     order_id: int,
     petId: int,
@@ -30,7 +31,7 @@ def criar_pedido(
     )
 
 
-@router.get("/order/{order_id}", response_model=dict)
+@router.get("/order/{order_id}", response_model=Order)
 def buscar_pedido(order_id: int) -> dict:
     return get_order(order_id)
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from app.schemas.models import User
 from app.services.user_service import (
     create_user,
     get_user,
@@ -12,7 +13,7 @@ from app.services.user_service import (
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.post("", status_code=201, response_model=dict)
+@router.post("", status_code=201, response_model=User)
 def criar_user(
     id: int,
     username: str,
@@ -36,12 +37,12 @@ def criar_user(
     )
 
 
-@router.get("/{username}", response_model=dict)
+@router.get("/{username}", response_model=User)
 def buscar_user(username: str) -> dict:
     return get_user(username)
 
 
-@router.put("/{username}", response_model=dict)
+@router.put("/{username}", response_model=User)
 def atualizar_user(
     username: str,
     firstName: str | None = None,
