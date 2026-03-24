@@ -20,7 +20,7 @@ def create_user(
     userStatus: int = 1,
 ):
     if not password or not password.strip():
-        raise HTTPException(status_code=400, detail="Senha é obrigatória")
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
     if role not in ALLOWED_ROLES:
         raise HTTPException(status_code=400, detail="Role inválida")
     if userStatus not in (0, 1):

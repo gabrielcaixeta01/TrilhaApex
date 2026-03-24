@@ -18,17 +18,16 @@ from app.security import get_current_user, require_roles
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.post("", status_code=201, response_model=User, summary="Criar novo usuário", 
-             description="Cria um novo usuário no sistema")
+@router.post("", status_code=201, response_model=User)
 def criar_user(
-    username: str = Query(..., description="Nome de usuário único"),
-    password: str = Query(..., description="Senha do usuário"),
-    firstName: str | None = Query(None, description="Primeiro nome"),
-    lastName: str | None = Query(None, description="Último nome"),
-    email: str | None = Query(None, description="Email do usuário"),
-    phone: str | None = Query(None, description="Número de telefone"),
-    userStatus: int = Query(1, ge=0, le=1, description="Status do usuário (0=inativo, 1=ativo)"),
-    role: Literal["admin", "user", "viewer"] = Query("user", description="Função do usuário"),
+    username: str = Query(...),
+    password: str = Query(...),
+    firstName: str | None = Query(None),
+    lastName: str | None = Query(None),
+    email: str | None = Query(None),
+    phone: str | None = Query(None),
+    userStatus: int = Query(1, ge=0, le=1),
+    role: Literal["admin", "user", "viewer"] = Query("user"),
     db: Session = Depends(get_db),
 ) -> User:
     created_user = create_user(
@@ -45,45 +44,40 @@ def criar_user(
     return created_user
 
 
-@router.post("/login", response_model=TokenResponse, summary="Login de usuário",
-            description="Realiza login com username e password")
+@router.post("/login", response_model=TokenResponse)
 def login_user(
-    username: str = Query(..., description="Nome de usuário"),
-    password: str = Query(..., description="Senha do usuário"),
+    username: str = Query(...),
+    password: str = Query(...),
     db: Session = Depends(get_db),
 ) -> TokenResponse:
     return login(db, username, password)
 
 
-@router.get("/logout", response_model=dict, summary="Logout de usuário",
-            description="Realiza logout do usuário")
+@router.get("/logout", response_model=dict)
 def logout_user(current_user: UserModel = Depends(get_current_user)) -> dict:
     return logout()
 
 
-@router.post("/createWithList", response_model=list[User], summary="Criar múltiplos usuários",
-             description="Cria uma lista de usuários de uma vez")
+@router.post("/createWithList", response_model=list[User])
 def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[User]:
     payload = [user.model_dump() for user in users]
     return create_with_list(db, payload)
 
 
-@router.get("/{username}", response_model=User, summary="Buscar usuário",
-            description="Busca um usuário pelo nome de usuário")
+@router.get("/{username}", response_model=User)
 def buscar_user(username: str, db: Session = Depends(get_db)) -> User:
     return get_user(db, username)
 
 
-@router.put("/{username}", response_model=User, summary="Atualizar usuário",
-            description="Atualiza os dados de um usuário existente")
+@router.put("/{username}", response_model=User)
 def atualizar_user(
     username: str,
-    firstName: str | None = Query(None, description="Primeiro nome"),
-    lastName: str | None = Query(None, description="Último nome"),
-    email: str | None = Query(None, description="Email do usuário"),
-    password: str | None = Query(None, description="Senha do usuário"),
-    phone: str | None = Query(None, description="Número de telefone"),
-    userStatus: int | None = Query(None, description="Status do usuário"),
+    firstName: str | None = Query(None),
+    lastName: str | None = Query(None),
+    email: str | None = Query(None),
+    password: str | None = Query(None),
+    phone: str | None = Query(None),
+    userStatus: int  = Query(1),
     db: Session = Depends(get_db),
 ) -> User:
     return update_user(
@@ -98,8 +92,7 @@ def atualizar_user(
     )
 
 
-@router.delete("/{username}", status_code=204, summary="Deletar usuário",
-               description="Remove um usuário do sistema")
+@router.delete("/{username}", status_code=204)
 def deletar_user(
     username: str,
     db: Session = Depends(get_db),

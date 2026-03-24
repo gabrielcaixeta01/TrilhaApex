@@ -13,16 +13,16 @@ from app.schemas.schemas import Order
 router = APIRouter(prefix="/store", tags=["Store"])
 
 
-@router.post("/order", status_code=201, response_model=Order, summary="Criar novo pedido",
-             description="Cria um novo pedido para um pet")
+@router.post("/order", status_code=201, response_model=Order)
 def criar_pedido(
-    petId: int = Query(..., description="ID do pet"),
-    quantity: int | None = Query(None, description="Quantidade"),
-    shipDate: datetime | None = Query(None, description="Data de envio"),
-    status: str = Query("placed", description="Status do pedido (placed, approved, delivered)"),
-    complete: bool = Query(False, description="Indica se o pedido está completo"),
+    petId: int = Query(...),
+    quantity: int = Query(1),
+    shipDate: datetime = Query(datetime.now()),
+    status: str = Query("placed"),
+    complete: bool = Query(False),
     db: Session = Depends(get_db),
 ):
+    
     created_order = create_order(
         db=db,
         petId=petId,
@@ -34,19 +34,16 @@ def criar_pedido(
     return created_order
 
 
-@router.get("/order/{id}", response_model=Order, summary="Buscar pedido por ID",
-            description="Retorna os detalhes de um pedido específico")
+@router.get("/order/{id}", response_model=Order)
 def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
     return get_order(db, id)
 
 
-@router.delete("/order/{id}", status_code=204, summary="Deletar pedido",
-               description="Remove um pedido do sistema")
+@router.delete("/order/{id}", status_code=204)
 def deletar_pedido(id: int, db: Session = Depends(get_db)):
     delete_order(db, id)
 
 
-@router.get("/inventory", response_model=dict, summary="Listar inventário",
-            description="Retorna o inventário de pets disponíveis")
+@router.get("/inventory", response_model=dict)
 def buscar_inventario(db: Session = Depends(get_db)) -> dict:
     return list_inventory(db)
