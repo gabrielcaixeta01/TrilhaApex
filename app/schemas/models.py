@@ -47,4 +47,4 @@ class User(Base):
     email = Column(String, nullable=True)
     password = Column(String)
     phone = Column(String, nullable=True)
-    userStatus = Column(Integer, default=0)
+    userStatus = Column(Integer, default=1)

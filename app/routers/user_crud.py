@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services.user_service import (
@@ -10,22 +10,24 @@ from app.services.user_service import (
     logout,
     create_with_list
 )
+from app.schemas.schemas import UserResponse, UserCreate
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.post("", status_code=201, response_model=dict)
+@router.post("", status_code=201, response_model=UserResponse, summary="Criar novo usuário", 
+             description="Cria um novo usuário no sistema")
 def criar_user(
-    username: str,
-    password: str,
-    firstName: str | None = None,
-    lastName: str | None = None,
-    email: str | None = None,
-    phone: str | None = None,
-    userStatus: int = 0,
+    username: str = Query(..., description="Nome de usuário único"),
+    password: str = Query(..., description="Senha do usuário"),
+    firstName: str | None = Query(None, description="Primeiro nome"),
+    lastName: str | None = Query(None, description="Último nome"),
+    email: str | None = Query(None, description="Email do usuário"),
+    phone: str | None = Query(None, description="Número de telefone"),
+    userStatus: int = Query(1, description="Status do usuário (0=inativo, 1=ativo)"),
     db: Session = Depends(get_db),
-) -> dict:
-    user = create_user(
+) -> UserResponse:
+    created_user = create_user(
         db=db,
         username=username,
         password=password,
@@ -35,28 +37,27 @@ def criar_user(
         phone=phone,
         userStatus=userStatus
     )
-    return {
-        "message": f"User criado com sucesso, Id: {user['id']}",
-        "id": user["id"],
-    }
+    return created_user
 
 
-@router.get("/{username}", response_model=dict)
-def buscar_user(username: str, db: Session = Depends(get_db)) -> dict:
+@router.get("/{username}", response_model=UserResponse, summary="Buscar usuário",
+            description="Busca um usuário pelo nome de usuário")
+def buscar_user(username: str, db: Session = Depends(get_db)) -> UserResponse:
     return get_user(db, username)
 
 
-@router.put("/{username}", response_model=dict)
+@router.put("/{username}", response_model=UserResponse, summary="Atualizar usuário",
+            description="Atualiza os dados de um usuário existente")
 def atualizar_user(
     username: str,
-    firstName: str | None = None,
-    lastName: str | None = None,
-    email: str | None = None,
-    password: str | None = None,
-    phone: str | None = None,
-    userStatus: int | None = None,
+    firstName: str | None = Query(None, description="Primeiro nome"),
+    lastName: str | None = Query(None, description="Último nome"),
+    email: str | None = Query(None, description="Email do usuário"),
+    password: str | None = Query(None, description="Senha do usuário"),
+    phone: str | None = Query(None, description="Número de telefone"),
+    userStatus: int | None = Query(None, description="Status do usuário"),
     db: Session = Depends(get_db),
-) -> dict:
+) -> UserResponse:
     return update_user(
         db=db,
         username=username,
@@ -69,21 +70,25 @@ def atualizar_user(
     )
 
 
-@router.delete("/{username}", status_code=204)
+@router.delete("/{username}", status_code=204, summary="Deletar usuário",
+               description="Remove um usuário do sistema")
 def deletar_user(username: str, db: Session = Depends(get_db)) -> None:
     delete_user(db, username)
 
 
-@router.get("/login", response_model=dict)
+@router.get("/login", response_model=dict, summary="Login de usuário",
+            description="Realiza login com username e password")
 def login_user(username: str, password: str, db: Session = Depends(get_db)) -> dict:
     return login(db, username, password)
 
 
-@router.get("/logout", response_model=dict)
+@router.get("/logout", response_model=dict, summary="Logout de usuário",
+            description="Realiza logout do usuário")
 def logout_user() -> dict:
     return logout()
 
 
-@router.post("/createWithList", response_model=list[dict])
-def criar_lista_usuarios(users: list[dict], db: Session = Depends(get_db)) -> list[dict]:
+@router.post("/createWithList", response_model=list[dict], summary="Criar múltiplos usuários",
+             description="Cria uma lista de usuários de uma vez")
+def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[dict]:
     return create_with_list(db, users)

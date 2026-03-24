@@ -21,14 +21,14 @@ def create_order(
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
-    return _order_to_dict(db_order)
+    return db_order
 
 
 def get_order(db: Session, order_id: int):
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         return None
-    return _order_to_dict(order)
+    return order
 
 
 def delete_order(db: Session, order_id: int):
@@ -42,13 +42,3 @@ def list_inventory(db: Session):
     rows = db.query(Pet.status, func.count(Pet.id)).group_by(Pet.status).all()
     return {status: count for status, count in rows}
 
-
-def _order_to_dict(order: Order) -> dict:
-    return {
-        "id": order.id,
-        "petId": order.petId,
-        "quantity": order.quantity,
-        "shipDate": order.shipDate,
-        "status": order.status,
-        "complete": order.complete,
-    }

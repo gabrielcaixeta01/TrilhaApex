@@ -1,7 +1,12 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from app.routers import pet_crud, order_crud, user_crud
 
 app = FastAPI(title="Petstore da Apex")
+
+@app.get("/")
+def root():
+    return RedirectResponse(url="/docs")
 
 app.include_router(pet_crud.router)
 app.include_router(order_crud.router)

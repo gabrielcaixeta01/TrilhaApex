@@ -12,7 +12,7 @@ def create_user(
     lastName: str | None = None,
     email: str | None = None,
     phone: str | None = None,
-    userStatus: int = 0,
+    userStatus: int = 1,
 ):
     exists = db.query(User).filter(User.username == username).first()
     if exists:
@@ -30,7 +30,7 @@ def create_user(
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return _user_to_dict(db_user)
+    return db_user
 
 
 def create_with_list(db: Session, users: list[dict]) -> list[dict]:
@@ -51,21 +51,21 @@ def create_with_list(db: Session, users: list[dict]) -> list[dict]:
             email=data.get("email"),
             password=data.get("password", ""),
             phone=data.get("phone"),
-            userStatus=data.get("userStatus", 0),
+            userStatus=data.get("userStatus", 1),
         )
         db.add(db_user)
         db.flush()
-        created.append(_user_to_dict(db_user))
+        created.append(db_user.__dict__)
 
     db.commit()
     return created
 
 
-def get_user(db: Session, username: str) -> dict:
+def get_user(db: Session, username: str):
     user = db.query(User).filter(User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    return _user_to_dict(user)
+    return user
 
 
 def update_user(
@@ -96,7 +96,7 @@ def update_user(
 
     db.commit()
     db.refresh(user)
-    return _user_to_dict(user)
+    return user
 
 
 def delete_user(db: Session, username: str):
@@ -121,15 +121,3 @@ def login(db: Session, username: str, password: str):
 def logout():
     return {"code": 200, "type": "success", "message": "ok"}
 
-
-def _user_to_dict(user: User) -> dict:
-    return {
-        "id": user.id,
-        "username": user.username,
-        "firstName": user.firstName,
-        "lastName": user.lastName,
-        "email": user.email,
-        "password": user.password,
-        "phone": user.phone,
-        "userStatus": user.userStatus,
-    }
