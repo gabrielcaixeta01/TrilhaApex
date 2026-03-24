@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.models import User
+from app.schemas.models import UserModel
 
 
 load_dotenv()
@@ -90,7 +90,7 @@ def decode_access_token(token: str) -> dict:
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
-) -> User:
+) -> UserModel:
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token ausente")
 
@@ -99,7 +99,7 @@ def get_current_user(
     if not username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
 
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário do token não existe")
     if user.userStatus != 1:
@@ -110,7 +110,7 @@ def get_current_user(
 def require_roles(allowed_roles: Iterable[str]):
     allowed = set(allowed_roles)
 
-    def _dependency(current_user: User = Depends(get_current_user)) -> User:
+    def _dependency(current_user: UserModel = Depends(get_current_user)) -> UserModel:
         if current_user.role not in allowed:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sem permissão")
         return current_user

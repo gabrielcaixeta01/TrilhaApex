@@ -11,14 +11,14 @@ from app.services.user_service import (
     logout,
     create_with_list
 )
-from app.schemas.schemas import UserResponse, UserCreate, TokenResponse
-from app.schemas.models import User
+from app.schemas.schemas import User, UserCreate, TokenResponse
+from app.schemas.models import UserModel
 from app.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
-@router.post("", status_code=201, response_model=UserResponse, summary="Criar novo usuário", 
+@router.post("", status_code=201, response_model=User, summary="Criar novo usuário", 
              description="Cria um novo usuário no sistema")
 def criar_user(
     username: str = Query(..., description="Nome de usuário único"),
@@ -30,7 +30,7 @@ def criar_user(
     userStatus: int = Query(1, ge=0, le=1, description="Status do usuário (0=inativo, 1=ativo)"),
     role: Literal["admin", "user", "viewer"] = Query("user", description="Função do usuário"),
     db: Session = Depends(get_db),
-) -> UserResponse:
+) -> User:
     created_user = create_user(
         db=db,
         username=username,
@@ -57,24 +57,24 @@ def login_user(
 
 @router.get("/logout", response_model=dict, summary="Logout de usuário",
             description="Realiza logout do usuário")
-def logout_user(current_user: User = Depends(get_current_user)) -> dict:
+def logout_user(current_user: UserModel = Depends(get_current_user)) -> dict:
     return logout()
 
 
-@router.post("/createWithList", response_model=list[UserResponse], summary="Criar múltiplos usuários",
+@router.post("/createWithList", response_model=list[User], summary="Criar múltiplos usuários",
              description="Cria uma lista de usuários de uma vez")
-def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[UserResponse]:
+def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[User]:
     payload = [user.model_dump() for user in users]
     return create_with_list(db, payload)
 
 
-@router.get("/{username}", response_model=UserResponse, summary="Buscar usuário",
+@router.get("/{username}", response_model=User, summary="Buscar usuário",
             description="Busca um usuário pelo nome de usuário")
-def buscar_user(username: str, db: Session = Depends(get_db)) -> UserResponse:
+def buscar_user(username: str, db: Session = Depends(get_db)) -> User:
     return get_user(db, username)
 
 
-@router.put("/{username}", response_model=UserResponse, summary="Atualizar usuário",
+@router.put("/{username}", response_model=User, summary="Atualizar usuário",
             description="Atualiza os dados de um usuário existente")
 def atualizar_user(
     username: str,
@@ -85,7 +85,7 @@ def atualizar_user(
     phone: str | None = Query(None, description="Número de telefone"),
     userStatus: int | None = Query(None, description="Status do usuário"),
     db: Session = Depends(get_db),
-) -> UserResponse:
+) -> User:
     return update_user(
         db=db,
         username=username,
@@ -103,6 +103,6 @@ def atualizar_user(
 def deletar_user(
     username: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["admin"])),
+    current_user: UserModel = Depends(require_roles(["admin"])),
 ) -> None:
     delete_user(db, username)

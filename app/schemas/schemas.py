@@ -65,13 +65,7 @@ class UserLogin(BaseModel):
     username: str = Field(..., description="Nome de usuário")
     password: str = Field(..., description="Senha do usuário")
 
-class User(UserCreate):
-    id: int = Field(..., description="ID único do usuário")
-    
-    class Config:
-        from_attributes = True
-
-class UserResponse(BaseModel):
+class User(BaseModel):
     id: int = Field(..., description="ID único do usuário")
     username: str = Field(..., description="Nome de usuário")
     firstName: Optional[str] = Field(None, description="Primeiro nome")

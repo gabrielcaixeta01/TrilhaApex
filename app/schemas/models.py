@@ -37,7 +37,7 @@ class Order(Base):
     status = Column(String, default="placed")
     complete = Column(Boolean, default=False)
 
-class User(Base):
+class UserModel(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)

@@ -1,7 +1,7 @@
 import time
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.models import User
+from app.schemas.models import UserModel
 from app.security import hash_password, verify_password, create_access_token
 
 
@@ -26,11 +26,11 @@ def create_user(
     if userStatus not in (0, 1):
         raise HTTPException(status_code=400, detail="userStatus deve ser 0 ou 1")
 
-    exists = db.query(User).filter(User.username == username).first()
+    exists = db.query(UserModel).filter(UserModel.username == username).first()
     if exists:
         raise HTTPException(status_code=400, detail="Usuário já existe")
 
-    db_user = User(
+    db_user = UserModel(
         username=username,
         firstName=firstName,
         lastName=lastName,
@@ -46,8 +46,8 @@ def create_user(
     return db_user
 
 
-def create_with_list(db: Session, users: list[dict]) -> list[User]:
-    created: list[User] = []
+def create_with_list(db: Session, users: list[dict]) -> list[UserModel]:
+    created: list[UserModel] = []
     for data in users:
         username = data.get("username")
         password = data.get("password")
@@ -62,11 +62,11 @@ def create_with_list(db: Session, users: list[dict]) -> list[User]:
         if user_status not in (0, 1):
             user_status = 1
 
-        exists = db.query(User).filter(User.username == username).first()
+        exists = db.query(UserModel).filter(UserModel.username == username).first()
         if exists:
             continue
 
-        db_user = User(
+        db_user = UserModel(
             username=username,
             firstName=data.get("firstName"),
             lastName=data.get("lastName"),
@@ -85,7 +85,7 @@ def create_with_list(db: Session, users: list[dict]) -> list[User]:
 
 
 def get_user(db: Session, username: str):
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return user
@@ -101,7 +101,7 @@ def update_user(
     phone: str | None = None,
     userStatus: int | None = None,
 ):
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
@@ -123,7 +123,7 @@ def update_user(
 
 
 def delete_user(db: Session, username: str):
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     db.delete(user)
@@ -131,7 +131,7 @@ def delete_user(db: Session, username: str):
 
 
 def login(db: Session, username: str, password: str):
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     if user.userStatus != 1:
