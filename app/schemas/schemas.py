@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from typing import Literal
 
 class CategoryCreate(BaseModel):
     name: str = Field(..., description="Nome da categoria")
@@ -55,9 +56,14 @@ class UserCreate(BaseModel):
     firstName: Optional[str] = Field(None, description="Primeiro nome")
     lastName: Optional[str] = Field(None, description="Último nome")
     email: Optional[str] = Field(None, description="Email do usuário")
-    password: str = Field(..., description="Senha do usuário")
+    password: str = Field(..., min_length=8, description="Senha do usuário")
     phone: Optional[str] = Field(None, description="Número de telefone")
-    userStatus: int = Field(default=1, description="Status do usuário (0=inativo, 1=ativo)")
+    userStatus: int = Field(default=1, ge=0, le=1, description="Status do usuário (0=inativo, 1=ativo)")
+    role: Literal["admin", "user", "viewer"] = Field(default="user", description="Função do usuário")
+
+class UserLogin(BaseModel):
+    username: str = Field(..., description="Nome de usuário")
+    password: str = Field(..., description="Senha do usuário")
 
 class User(UserCreate):
     id: int = Field(..., description="ID único do usuário")
@@ -73,6 +79,11 @@ class UserResponse(BaseModel):
     email: Optional[str] = Field(None, description="Email")
     phone: Optional[str] = Field(None, description="Telefone")
     userStatus: int = Field(default=1, description="Status do usuário")
+    role: Literal["admin", "user", "viewer"] = Field(default="user", description="Função do usuário")
     
     class Config:
         from_attributes = True
+
+class TokenResponse(BaseModel):
+    access_token: str = Field(..., description="Token de autenticação gerado no login")
+    token_type: str = Field(default="bearer", description="Tipo do token")

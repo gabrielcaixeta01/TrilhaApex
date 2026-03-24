@@ -45,6 +45,7 @@ class User(Base):
     firstName = Column(String, nullable=True)
     lastName = Column(String, nullable=True)
     email = Column(String, nullable=True)
-    password = Column(String)
+    password_hash = Column(String)
     phone = Column(String, nullable=True)
     userStatus = Column(Integer, default=1)
+    role = Column(String,default="user")

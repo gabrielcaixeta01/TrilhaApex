@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from typing import Literal
 from app.database import get_db
 from app.services.user_service import (
     create_user,
@@ -10,7 +11,9 @@ from app.services.user_service import (
     logout,
     create_with_list
 )
-from app.schemas.schemas import UserResponse, UserCreate
+from app.schemas.schemas import UserResponse, UserCreate, TokenResponse
+from app.schemas.models import User
+from app.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -24,7 +27,8 @@ def criar_user(
     lastName: str | None = Query(None, description="Último nome"),
     email: str | None = Query(None, description="Email do usuário"),
     phone: str | None = Query(None, description="Número de telefone"),
-    userStatus: int = Query(1, description="Status do usuário (0=inativo, 1=ativo)"),
+    userStatus: int = Query(1, ge=0, le=1, description="Status do usuário (0=inativo, 1=ativo)"),
+    role: Literal["admin", "user", "viewer"] = Query("user", description="Função do usuário"),
     db: Session = Depends(get_db),
 ) -> UserResponse:
     created_user = create_user(
@@ -35,25 +39,38 @@ def criar_user(
         lastName=lastName,
         email=email,
         phone=phone,
-        userStatus=userStatus
+        userStatus=userStatus,
+        role=role
     )
     return created_user
 
 
-@router.get("/login", response_model=dict, summary="Login de usuário",
+@router.post("/login", response_model=TokenResponse, summary="Login de usuário",
             description="Realiza login com username e password")
 def login_user(
     username: str = Query(..., description="Nome de usuário"),
     password: str = Query(..., description="Senha do usuário"),
     db: Session = Depends(get_db),
-) -> dict:
+) -> TokenResponse:
     return login(db, username, password)
 
 
 @router.get("/logout", response_model=dict, summary="Logout de usuário",
             description="Realiza logout do usuário")
-def logout_user() -> dict:
+def logout_user(current_user: User = Depends(get_current_user)) -> dict:
     return logout()
+
+
+@router.get("/me", response_model=UserResponse, summary="Usuário autenticado",
+            description="Retorna os dados do usuário do token")
+def user_me(current_user: User = Depends(get_current_user)) -> UserResponse:
+    return current_user
+
+
+@router.get("/admin-check", response_model=dict, summary="Teste de role admin",
+            description="Endpoint de validação de autorização por role")
+def admin_check(current_user: User = Depends(require_roles(["admin"]))) -> dict:
+    return {"message": f"Acesso admin liberado para {current_user.username}"}
 
 
 @router.post("/createWithList", response_model=list[UserResponse], summary="Criar múltiplos usuários",
@@ -95,5 +112,9 @@ def atualizar_user(
 
 @router.delete("/{username}", status_code=204, summary="Deletar usuário",
                description="Remove um usuário do sistema")
-def deletar_user(username: str, db: Session = Depends(get_db)) -> None:
+def deletar_user(
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles(["admin"])),
+) -> None:
     delete_user(db, username)
