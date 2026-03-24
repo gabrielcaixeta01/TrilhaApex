@@ -61,18 +61,6 @@ def logout_user(current_user: User = Depends(get_current_user)) -> dict:
     return logout()
 
 
-@router.get("/me", response_model=UserResponse, summary="Usuário autenticado",
-            description="Retorna os dados do usuário do token")
-def user_me(current_user: User = Depends(get_current_user)) -> UserResponse:
-    return current_user
-
-
-@router.get("/admin-check", response_model=dict, summary="Teste de role admin",
-            description="Endpoint de validação de autorização por role")
-def admin_check(current_user: User = Depends(require_roles(["admin"]))) -> dict:
-    return {"message": f"Acesso admin liberado para {current_user.username}"}
-
-
 @router.post("/createWithList", response_model=list[UserResponse], summary="Criar múltiplos usuários",
              description="Cria uma lista de usuários de uma vez")
 def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[UserResponse]:
