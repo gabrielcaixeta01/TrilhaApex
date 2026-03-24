@@ -40,6 +40,29 @@ def criar_user(
     return created_user
 
 
+@router.get("/login", response_model=dict, summary="Login de usuário",
+            description="Realiza login com username e password")
+def login_user(
+    username: str = Query(..., description="Nome de usuário"),
+    password: str = Query(..., description="Senha do usuário"),
+    db: Session = Depends(get_db),
+) -> dict:
+    return login(db, username, password)
+
+
+@router.get("/logout", response_model=dict, summary="Logout de usuário",
+            description="Realiza logout do usuário")
+def logout_user() -> dict:
+    return logout()
+
+
+@router.post("/createWithList", response_model=list[UserResponse], summary="Criar múltiplos usuários",
+             description="Cria uma lista de usuários de uma vez")
+def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[UserResponse]:
+    payload = [user.model_dump() for user in users]
+    return create_with_list(db, payload)
+
+
 @router.get("/{username}", response_model=UserResponse, summary="Buscar usuário",
             description="Busca um usuário pelo nome de usuário")
 def buscar_user(username: str, db: Session = Depends(get_db)) -> UserResponse:
@@ -74,21 +97,3 @@ def atualizar_user(
                description="Remove um usuário do sistema")
 def deletar_user(username: str, db: Session = Depends(get_db)) -> None:
     delete_user(db, username)
-
-
-@router.get("/login", response_model=dict, summary="Login de usuário",
-            description="Realiza login com username e password")
-def login_user(username: str, password: str, db: Session = Depends(get_db)) -> dict:
-    return login(db, username, password)
-
-
-@router.get("/logout", response_model=dict, summary="Logout de usuário",
-            description="Realiza logout do usuário")
-def logout_user() -> dict:
-    return logout()
-
-
-@router.post("/createWithList", response_model=list[dict], summary="Criar múltiplos usuários",
-             description="Cria uma lista de usuários de uma vez")
-def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[dict]:
-    return create_with_list(db, users)

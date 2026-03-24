@@ -33,8 +33,8 @@ def create_user(
     return db_user
 
 
-def create_with_list(db: Session, users: list[dict]) -> list[dict]:
-    created: list[dict] = []
+def create_with_list(db: Session, users: list[dict]) -> list[User]:
+    created: list[User] = []
     for data in users:
         username = data.get("username")
         if not username:
@@ -55,7 +55,7 @@ def create_with_list(db: Session, users: list[dict]) -> list[dict]:
         )
         db.add(db_user)
         db.flush()
-        created.append(db_user.__dict__)
+        created.append(db_user)
 
     db.commit()
     return created
