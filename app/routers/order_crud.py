@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import require_roles
+from app.schemas.models import UserModel
 from app.services.order_service import (
     create_order,
     get_order,
@@ -22,11 +23,10 @@ def criar_pedido(
     status: str = Query("placed"),
     complete: bool = Query(False),
     owner_id: int | None = Query(None),
-    current_user = Depends(require_roles(["admin", "user"])),
+    current_user: UserModel = Depends(require_roles(["admin", "user"])),
     db: Session = Depends(get_db),
 ):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    owner_id_final = owner_id if current_user.role == "admin" else current_user.id
     
     created_order = create_order(
         db=db,
@@ -35,7 +35,7 @@ def criar_pedido(
         shipDate=shipDate,
         status=status,
         complete=complete,
-        owner_id=owner_id
+        owner_id=owner_id_final
 
     )
     return created_order
@@ -47,10 +47,17 @@ def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
 
 
 @router.delete("/order/{id}", status_code=204)
-def deletar_pedido(id: int, db: Session = Depends(get_db), current_user = Depends(require_roles(["admin", "user"]))):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
-    
+def deletar_pedido(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(require_roles(["admin", "user"])),
+):
+    order = get_order(db, id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    if current_user.role != "admin" and order.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pedido pode deletar")
+
     delete_order(db, id)
 
 

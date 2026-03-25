@@ -118,6 +118,9 @@ def atualizar_user(
 def deletar_user(
     username: str,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["admin"]))
+    current_user: UserModel = Depends(require_roles(["admin", "user"]))
 ) -> None:
+    if current_user.role != "admin" and current_user.username != username:
+        raise HTTPException(status_code=403, detail="Apenas admin ou o próprio usuário podem deletar")
+
     delete_user(db, username)

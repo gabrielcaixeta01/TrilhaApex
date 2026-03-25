@@ -1,10 +1,10 @@
-from alembic.util import status
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import require_roles
 from app.services import pet_service
 from app.schemas.schemas import Pet
+from app.schemas.models import UserModel
 
 router = APIRouter(prefix="/pet", tags=["Pets"])
 
@@ -17,13 +17,12 @@ def criar_pet(
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
-    current_user = Depends(require_roles(["admin", "user"]))
+    current_user: UserModel = Depends(require_roles(["admin", "user"]))
 ):
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    owner_id_final = owner_id if current_user.role == "admin" else current_user.id
     
     created_pet = pet_service.create_pet(
-        db, name, photoUrls, status, category_id, owner_id
+        db, name, photoUrls, status, category_id, owner_id_final
     )
     return created_pet
 
@@ -46,18 +45,29 @@ def atualizar_pet(
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session =  Depends(get_db),
-    current_user = Depends(require_roles(["admin", "user"]))
+    current_user: UserModel = Depends(require_roles(["admin", "user"]))
 ):
-    if not (current_user):
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
-    
-    return pet_service.update_pet(db, pet_id, name=name, status=status, category_id=category_id, owner_id=owner_id)
+    pet = pet_service.get_pet(db, pet_id)
+    if pet is None:
+        raise HTTPException(status_code=404, detail="Pet não encontrado")
+    if current_user.role != "admin" and pet.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pet pode alterar")
+
+    owner_id_final = owner_id if current_user.role == "admin" else current_user.id
+
+    return pet_service.update_pet(db, pet_id, name=name, status=status, category_id=category_id, owner_id=owner_id_final)
 
 
 @router.delete("/{pet_id}", status_code=204)
-def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
-    current_user = require_roles(["admin", "user"])
-    if not current_user:
-        raise HTTPException(status_code=401, detail="Usuário não autenticado")
-    
+def deletar_pet(
+    pet_id: int,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(require_roles(["admin", "user"])),
+):
+    pet = pet_service.get_pet(db, pet_id)
+    if pet is None:
+        raise HTTPException(status_code=404, detail="Pet não encontrado")
+    if current_user.role != "admin" and pet.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pet pode deletar")
+
     pet_service.delete_pet(db, pet_id)

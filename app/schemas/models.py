@@ -39,6 +39,8 @@ class Order(Base):
     status = Column(String, default="placed")
     complete = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    owner = relationship("UserModel", back_populates="orders")
     
 
 class UserModel(Base):
@@ -55,3 +57,4 @@ class UserModel(Base):
     role = Column(String,default="user")
 
     pets = relationship("Pet", back_populates="owner")
+    orders = relationship("Order", back_populates="owner")
