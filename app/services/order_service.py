@@ -3,21 +3,8 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Order, Pet
 
 
-def create_order(
-    db: Session,
-    petId: int,
-    quantity: int | None,
-    shipDate,
-    status: str,
-    complete: bool,
-):
-    db_order = Order(
-        petId=petId,
-        quantity=quantity,
-        shipDate=shipDate,
-        status=status,
-        complete=complete,
-    )
+def create_order(db: Session, petId: int, quantity: int | None, shipDate, status: str, complete: bool, owner_id: int | None = None):
+    db_order = Order(petId=petId, quantity=quantity, shipDate=shipDate, status=status, complete=complete, owner_id=owner_id)
     db.add(db_order)
     db.commit()
     db.refresh(db_order)

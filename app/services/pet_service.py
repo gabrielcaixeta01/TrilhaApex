@@ -2,15 +2,9 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Pet
 
 
-def create_pet(db: Session, name: str, photoUrls: str | None = None,
-               status: str = "available", category_id: int | None = None):
+def create_pet(db: Session, name: str, photoUrls: str | None = None, status: str = "available", category_id: int | None = None, owner_id: int | None = None):
 
-    db_pet = Pet(
-        name=name,
-        photoUrls=photoUrls,
-        status=status,
-        category_id=category_id
-    )
+    db_pet = Pet(name=name, photoUrls=photoUrls, status=status, category_id=category_id, owner_id=owner_id)
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)

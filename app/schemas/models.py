@@ -24,8 +24,10 @@ class Pet(Base):
     photoUrls = Column(String, nullable=True)
     status = Column(String, default="available")
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     category = relationship("Category", back_populates="pets")
+    owner = relationship("UserModel", back_populates="pets")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -36,6 +38,8 @@ class Order(Base):
     shipDate = Column(DateTime, nullable=True)
     status = Column(String, default="placed")
     complete = Column(Boolean, default=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
 
 class UserModel(Base):
     __tablename__ = "users"
@@ -47,5 +51,7 @@ class UserModel(Base):
     email = Column(String, nullable=True)
     password_hash = Column(String)
     phone = Column(String, nullable=True)
-    userStatus = Column(Integer, default=1)
+    userStatus = Column(Integer,nullable=True)
     role = Column(String,default="user")
+
+    pets = relationship("Pet", back_populates="owner")

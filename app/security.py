@@ -61,7 +61,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         except (ValueError, TypeError):
             return False
 
-    # Transitional fallback for legacy rows stored as plaintext.
+    # Compatibilidade com hashes gravados sem prefixo de algoritmo.
+    if hashed_password.startswith("$"):
+        try:
+            _, iterations_str, salt_hex, stored_hash_hex = hashed_password.split("$", 3)
+            iterations = int(iterations_str)
+            candidate = hashlib.pbkdf2_hmac(
+                PBKDF2_ALGORITHM,
+                plain_password.encode("utf-8"),
+                bytes.fromhex(salt_hex),
+                iterations,
+            ).hex()
+            return hmac.compare_digest(candidate, stored_hash_hex)
+        except (ValueError, TypeError):
+            return False
+
+    # Compatibilidade transitória para registros antigos em texto puro.
     return hmac.compare_digest(plain_password, hashed_password)
 
 
@@ -93,6 +108,26 @@ def get_current_user(
 ) -> UserModel:
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token ausente")
+
+    payload = decode_access_token(credentials.credentials)
+    username = payload.get("sub")
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
+
+    user = db.query(UserModel).filter(UserModel.username == username).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário do token não existe")
+    if user.userStatus != 1:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário inativo")
+    return user
+
+
+def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> UserModel | None:
+    if credentials is None:
+        return None
 
     payload = decode_access_token(credentials.credentials)
     username = payload.get("sub")

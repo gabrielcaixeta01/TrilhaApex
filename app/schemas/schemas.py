@@ -28,10 +28,12 @@ class PetCreate(BaseModel):
     photoUrls: Optional[str] = Field(None)
     status: str = Field(default="available")
     category_id: Optional[int] = Field(None)
+    owner_id: Optional[int] = Field(None)
 
 class Pet(PetCreate):
     id: int = Field(...)
     category: Optional[Category] = Field(None)
+    owner: Optional[User] = Field(None)
 
     class Config:
         from_attributes = True
@@ -46,7 +48,7 @@ class OrderCreate(BaseModel):
 
 class Order(OrderCreate):
     id: int = Field(...)
-    
+    owner: Optional[User] = Field(None)
     class Config:
         from_attributes = True
 
@@ -58,7 +60,7 @@ class UserCreate(BaseModel):
     email: Optional[str] = Field(None)
     password: str = Field(..., min_length=8)
     phone: Optional[str] = Field(None)
-    userStatus: int = Field(default=1)
+    userStatus: int = Field(None)
     role: Literal["admin", "user", "viewer"] = Field(default="user")
 
 class UserLogin(BaseModel):
@@ -72,7 +74,7 @@ class User(BaseModel):
     lastName: Optional[str] = Field(None)
     email: Optional[str] = Field(None)
     phone: Optional[str] = Field(None)
-    userStatus: int = Field(default=1)
+    userStatus: int = Field(None)
     role: Literal["admin", "user", "viewer"] = Field(default="user")
     
     class Config:

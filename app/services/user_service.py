@@ -18,17 +18,25 @@ def create_user(
     email: str | None = None,
     phone: str | None = None,
     userStatus: int = 1,
+    current_user: UserModel | None = None,
 ):
     if not password or not password.strip():
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
+    
     if role not in ALLOWED_ROLES:
         raise HTTPException(status_code=400, detail="Role inválida")
+    
     if userStatus not in (0, 1):
         raise HTTPException(status_code=400, detail="userStatus deve ser 0 ou 1")
 
     exists = db.query(UserModel).filter(UserModel.username == username).first()
+
     if exists:
         raise HTTPException(status_code=400, detail="Usuário já existe")
+    
+    if (current_user is None or current_user.role != "admin") and role == "admin":
+        raise HTTPException(status_code=403, detail="Apenas admin pode criar usuário com role admin")
+       
 
     db_user = UserModel(
         username=username,
@@ -46,7 +54,11 @@ def create_user(
     return db_user
 
 
-def create_with_list(db: Session, users: list[dict]) -> list[UserModel]:
+def create_with_list(
+    db: Session,
+    users: list[dict],
+    current_user: UserModel | None = None,
+) -> list[UserModel]:
     created: list[UserModel] = []
     for data in users:
         username = data.get("username")
@@ -56,11 +68,11 @@ def create_with_list(db: Session, users: list[dict]) -> list[UserModel]:
 
         role = data.get("role", "user")
         if role not in ALLOWED_ROLES:
-            role = "user"
+            raise HTTPException(status_code=400, detail=f"Role inválida para usuário {username}")
 
         user_status = data.get("userStatus", 1)
         if user_status not in (0, 1):
-            user_status = 1
+            raise HTTPException(status_code=400, detail=f"userStatus inválido para usuário {username}")
 
         exists = db.query(UserModel).filter(UserModel.username == username).first()
         if exists:
@@ -76,6 +88,9 @@ def create_with_list(db: Session, users: list[dict]) -> list[UserModel]:
             userStatus=user_status,
             role=role,
         )
+        if (current_user is None or current_user.role != "admin") and role == "admin":
+            raise HTTPException(status_code=403, detail=f"Apenas admin pode criar usuário com role admin (usuário {username})")
+        
         db.add(db_user)
         db.flush()
         created.append(db_user)

@@ -1,7 +1,8 @@
 from alembic.util import status
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.security import require_roles
 from app.services import pet_service
 from app.schemas.schemas import Pet
 
@@ -14,10 +15,15 @@ def criar_pet(
     photoUrls: str | None = Query(None),
     status: str = Query("available"),
     category_id: int | None = Query(None),
+    owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
+    current_user = Depends(require_roles(["admin", "user"]))
 ):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    
     created_pet = pet_service.create_pet(
-        db, name, photoUrls, status, category_id
+        db, name, photoUrls, status, category_id, owner_id
     )
     return created_pet
 
@@ -38,11 +44,20 @@ def atualizar_pet(
     name: str | None = Query(None),
     status: str | None = Query(None),
     category_id: int | None = Query(None),
-    db: Session = Depends(get_db),
+    owner_id: int | None = Query(None),
+    db: Session =  Depends(get_db),
+    current_user = Depends(require_roles(["admin", "user"]))
 ):
-    return pet_service.update_pet(db, pet_id, name=name, status=status, category_id=category_id)
+    if not (current_user):
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    
+    return pet_service.update_pet(db, pet_id, name=name, status=status, category_id=category_id, owner_id=owner_id)
 
 
 @router.delete("/{pet_id}", status_code=204)
 def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
+    current_user = require_roles(["admin", "user"])
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    
     pet_service.delete_pet(db, pet_id)

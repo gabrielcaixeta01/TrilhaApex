@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Literal
 from app.database import get_db
@@ -13,7 +13,7 @@ from app.services.user_service import (
 )
 from app.schemas.schemas import User, UserCreate, TokenResponse
 from app.schemas.models import UserModel
-from app.security import get_current_user, require_roles
+from app.security import get_current_user, get_current_user_optional, require_roles
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -29,7 +29,12 @@ def criar_user(
     userStatus: int = Query(1, ge=0, le=1),
     role: Literal["admin", "user", "viewer"] = Query("user"),
     db: Session = Depends(get_db),
+    current_user: UserModel | None = Depends(get_current_user_optional),
 ) -> User:
+    
+    if role == "admin" and (current_user is None or current_user.role != "admin"):
+        raise HTTPException(status_code=403, detail="Apenas admin pode criar usuário com role admin")
+
     created_user = create_user(
         db=db,
         username=username,
@@ -39,7 +44,8 @@ def criar_user(
         email=email,
         phone=phone,
         userStatus=userStatus,
-        role=role
+        role=role,
+        current_user=current_user,
     )
     return created_user
 
@@ -59,9 +65,17 @@ def logout_user(current_user: UserModel = Depends(get_current_user)) -> dict:
 
 
 @router.post("/createWithList", response_model=list[User])
-def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[User]:
+def criar_lista_usuarios(
+    users: list[UserCreate],
+    db: Session = Depends(get_db),
+    current_user: UserModel | None = Depends(get_current_user_optional),
+) -> list[User]:
+    if any(user.role == "admin" for user in users):
+        if current_user is None or current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Apenas admin pode criar usuário com role admin")
+
     payload = [user.model_dump() for user in users]
-    return create_with_list(db, payload)
+    return create_with_list(db, payload, current_user=current_user)
 
 
 @router.get("/{username}", response_model=User)
@@ -77,9 +91,17 @@ def atualizar_user(
     email: str | None = Query(None),
     password: str | None = Query(None),
     phone: str | None = Query(None),
-    userStatus: int  = Query(1),
+    userStatus: int | None = Query(None, ge=0, le=1),
     db: Session = Depends(get_db),
+    current_user: UserModel = Depends(require_roles(["admin", "user"])),
 ) -> User:
+    
+    if password is not None and len(password) < 8:
+        raise HTTPException(status_code=400, detail="A senha deve ter pelo menos 8 caracteres")
+    
+    if not (current_user.role == "admin" or current_user.username == username):
+        raise HTTPException(status_code=403, detail="Apenas admin ou o próprio usuário podem atualizar os dados")
+    
     return update_user(
         db=db,
         username=username,
@@ -96,6 +118,6 @@ def atualizar_user(
 def deletar_user(
     username: str,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["admin"])),
+    current_user: UserModel = Depends(require_roles(["admin"]))
 ) -> None:
     delete_user(db, username)

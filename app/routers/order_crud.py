@@ -1,7 +1,8 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.security import require_roles
 from app.services.order_service import (
     create_order,
     get_order,
@@ -20,8 +21,12 @@ def criar_pedido(
     shipDate: datetime = Query(datetime.now()),
     status: str = Query("placed"),
     complete: bool = Query(False),
+    owner_id: int | None = Query(None),
+    current_user = Depends(require_roles(["admin", "user"])),
     db: Session = Depends(get_db),
 ):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
     
     created_order = create_order(
         db=db,
@@ -29,7 +34,9 @@ def criar_pedido(
         quantity=quantity,
         shipDate=shipDate,
         status=status,
-        complete=complete
+        complete=complete,
+        owner_id=owner_id
+
     )
     return created_order
 
@@ -40,7 +47,10 @@ def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
 
 
 @router.delete("/order/{id}", status_code=204)
-def deletar_pedido(id: int, db: Session = Depends(get_db)):
+def deletar_pedido(id: int, db: Session = Depends(get_db), current_user = Depends(require_roles(["admin", "user"]))):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
+    
     delete_order(db, id)
 
 
