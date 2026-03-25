@@ -1,8 +1,16 @@
 from sqlalchemy.orm import Session
 from app.schemas.models import Pet
+from app.schemas.schemas import PetStatus
 
 
-def create_pet(db: Session, name: str, photoUrls: str | None = None, status: str = "available", category_id: int | None = None, owner_id: int | None = None):
+def create_pet(
+    db: Session,
+    name: str,
+    photoUrls: str | None = None,
+    status: PetStatus | None = None,
+    category_id: int | None = None,
+    owner_id: int | None = None,
+):
 
     db_pet = Pet(name=name, photoUrls=photoUrls, status=status, category_id=category_id, owner_id=owner_id)
     db.add(db_pet)
@@ -18,12 +26,26 @@ def get_pet(db: Session, pet_id: int):
     return pet
 
 
-def update_pet(db: Session, pet_id: int, **kwargs):
+def update_pet(
+    db: Session,
+    pet_id: int,
+    name: str | None = None,
+    status: PetStatus | None = None,
+    category_id: int | None = None,
+    owner_id: int | None = None,
+):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
         return None
-    
-    for key, value in kwargs.items():
+
+    updates = {
+        "name": name,
+        "status": status,
+        "category_id": category_id,
+        "owner_id": owner_id,
+    }
+
+    for key, value in updates.items():
         if value is not None:
             setattr(pet, key, value)
     
@@ -39,7 +61,7 @@ def delete_pet(db: Session, pet_id: int):
         db.commit()
 
 
-def list_pets_by_status(db: Session, status: str):
+def list_pets_by_status(db: Session, status: PetStatus):
     pets = db.query(Pet).filter(Pet.status == status).all()
     return pets
 

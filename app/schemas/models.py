@@ -22,7 +22,7 @@ class Pet(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True)
     photoUrls = Column(String, nullable=True)
-    status = Column(String, default="available")
+    status = Column(String)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
@@ -53,7 +53,7 @@ class UserModel(Base):
     email = Column(String, nullable=True)
     password_hash = Column(String)
     phone = Column(String, nullable=True)
-    userStatus = Column(Integer,nullable=True)
+    user_active = Column(Boolean, nullable=False, default=True)
     role = Column(String,default="user")
 
     pets = relationship("Pet", back_populates="owner")

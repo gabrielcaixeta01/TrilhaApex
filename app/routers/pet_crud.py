@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import require_roles
 from app.services import pet_service
-from app.schemas.schemas import Pet
+from app.schemas.schemas import Pet, PetStatus
 from app.schemas.models import UserModel
 
 router = APIRouter(prefix="/pet", tags=["Pets"])
@@ -11,9 +11,9 @@ router = APIRouter(prefix="/pet", tags=["Pets"])
 
 @router.post("", status_code=201, response_model=Pet)
 def criar_pet(
-    name: str = Query(..., example="Rex"),
+    name: str = Query(...),
     photoUrls: str | None = Query(None),
-    status: str = Query("available"),
+    status: PetStatus = Query(...),
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
@@ -28,7 +28,7 @@ def criar_pet(
 
 
 @router.get("/findByStatus", response_model=list[Pet])
-def buscar_por_status(status: str = Query(...), db: Session = Depends(get_db)):
+def buscar_por_status(status: PetStatus = Query(...), db: Session = Depends(get_db)):
     return pet_service.list_pets_by_status(db, status)
 
 
@@ -41,7 +41,7 @@ def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
 def atualizar_pet(
     pet_id: int,
     name: str | None = Query(None),
-    status: str | None = Query(None),
+    status: PetStatus | None = Query(None),
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session =  Depends(get_db),

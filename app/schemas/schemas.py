@@ -2,6 +2,13 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from typing import Literal
+from enum import Enum
+
+
+class PetStatus(str, Enum):
+    available = "available"
+    pending = "pending"
+    sold = "sold"
 
 class CategoryCreate(BaseModel):
     name: str = Field(...)
@@ -26,7 +33,7 @@ class Tag(TagCreate):
 class PetCreate(BaseModel):
     name: str = Field(...)
     photoUrls: Optional[str] = Field(None)
-    status: str = Field(default="available")
+    status: PetStatus = Field(...)
     category_id: Optional[int] = Field(None)
     owner_id: Optional[int] = Field(None)
 
@@ -60,7 +67,7 @@ class UserCreate(BaseModel):
     email: Optional[str] = Field(None)
     password: str = Field(..., min_length=8)
     phone: Optional[str] = Field(None)
-    userStatus: int = Field(None)
+    user_active: bool = Field(default=True)
     role: Literal["admin", "user", "viewer"] = Field(default="user")
 
 class UserLogin(BaseModel):
@@ -74,7 +81,7 @@ class User(BaseModel):
     lastName: Optional[str] = Field(None)
     email: Optional[str] = Field(None)
     phone: Optional[str] = Field(None)
-    userStatus: int = Field(None)
+    user_active: bool = Field(default=True)
     role: Literal["admin", "user", "viewer"] = Field(default="user")
     
     class Config:

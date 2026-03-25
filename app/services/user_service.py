@@ -17,7 +17,7 @@ def create_user(
     lastName: str | None = None,
     email: str | None = None,
     phone: str | None = None,
-    userStatus: int = 1,
+    user_active: bool = True,
     current_user: UserModel | None = None,
 ):
     if not password or not password.strip():
@@ -26,9 +26,6 @@ def create_user(
     if role not in ALLOWED_ROLES:
         raise HTTPException(status_code=400, detail="Role inválida")
     
-    if userStatus not in (0, 1):
-        raise HTTPException(status_code=400, detail="userStatus deve ser 0 ou 1")
-
     exists = db.query(UserModel).filter(UserModel.username == username).first()
 
     if exists:
@@ -45,7 +42,7 @@ def create_user(
         email=email,
         password_hash=hash_password(password),
         phone=phone,
-        userStatus=userStatus,
+        user_active=user_active,
         role = role
     )
     db.add(db_user)
@@ -70,9 +67,9 @@ def create_with_list(
         if role not in ALLOWED_ROLES:
             raise HTTPException(status_code=400, detail=f"Role inválida para usuário {username}")
 
-        user_status = data.get("userStatus", 1)
-        if user_status not in (0, 1):
-            raise HTTPException(status_code=400, detail=f"userStatus inválido para usuário {username}")
+        user_active = data.get("user_active")
+        if user_active is None:
+            user_active = data.get("userStatus", 1) == 1
 
         exists = db.query(UserModel).filter(UserModel.username == username).first()
         if exists:
@@ -85,7 +82,7 @@ def create_with_list(
             email=data.get("email"),
             password_hash=hash_password(password),
             phone=data.get("phone"),
-            userStatus=user_status,
+            user_active=user_active,
             role=role,
         )
         if (current_user is None or current_user.role != "admin") and role == "admin":
@@ -114,7 +111,7 @@ def update_user(
     email: str | None = None,
     password: str | None = None,
     phone: str | None = None,
-    userStatus: int | None = None,
+    user_active: bool | None = None,
 ):
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
@@ -126,7 +123,7 @@ def update_user(
         "email": email,
         "password_hash": hash_password(password) if password is not None else None,
         "phone": phone,
-        "userStatus": userStatus,
+        "user_active": user_active,
     }
     for key, value in updates.items():
         if value is not None:
@@ -149,7 +146,7 @@ def login(db: Session, username: str, password: str):
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
-    if user.userStatus != 1:
+    if not user.user_active:
         raise HTTPException(status_code=403, detail="Usuário inativo")
     token = create_access_token(subject=user.username, role=user.role)
     return {

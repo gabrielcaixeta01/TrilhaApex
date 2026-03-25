@@ -26,7 +26,7 @@ def criar_user(
     lastName: str | None = Query(None),
     email: str | None = Query(None),
     phone: str | None = Query(None),
-    userStatus: int = Query(1, ge=0, le=1),
+    user_active: bool = Query(True),
     role: Literal["admin", "user", "viewer"] = Query("user"),
     db: Session = Depends(get_db),
     current_user: UserModel | None = Depends(get_current_user_optional),
@@ -43,7 +43,7 @@ def criar_user(
         lastName=lastName,
         email=email,
         phone=phone,
-        userStatus=userStatus,
+        user_active=user_active,
         role=role,
         current_user=current_user,
     )
@@ -91,7 +91,7 @@ def atualizar_user(
     email: str | None = Query(None),
     password: str | None = Query(None),
     phone: str | None = Query(None),
-    userStatus: int | None = Query(None, ge=0, le=1),
+    user_active: bool | None = Query(None),
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"])),
 ) -> User:
@@ -110,7 +110,7 @@ def atualizar_user(
         email=email,
         password=password,
         phone=phone,
-        userStatus=userStatus
+        user_active=user_active,
     )
 
 

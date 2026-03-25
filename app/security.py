@@ -117,7 +117,7 @@ def get_current_user(
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário do token não existe")
-    if user.userStatus != 1:
+    if not user.user_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário inativo")
     return user
 
@@ -137,7 +137,7 @@ def get_current_user_optional(
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário do token não existe")
-    if user.userStatus != 1:
+    if not user.user_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Usuário inativo")
     return user
 

@@ -45,7 +45,7 @@ USER_DATA = [
         "lastName": "Silva",
         "email": "ana.silva@example.com",
         "phone": "11911110001",
-        "userStatus": 1,
+        "user_active": True,
         "role": "admin",
     },
     {
@@ -55,7 +55,7 @@ USER_DATA = [
         "lastName": "Souza",
         "email": "bruno.souza@example.com",
         "phone": "11911110002",
-        "userStatus": 1,
+        "user_active": True,
         "role": "user",
     },
     {
@@ -65,7 +65,7 @@ USER_DATA = [
         "lastName": "Mendes",
         "email": "carla.mendes@example.com",
         "phone": "11911110003",
-        "userStatus": 1,
+        "user_active": True,
         "role": "viewer",
     },
     {
@@ -75,7 +75,7 @@ USER_DATA = [
         "lastName": "Lima",
         "email": "diego.lima@example.com",
         "phone": "11911110004",
-        "userStatus": 0,
+        "user_active": False,
         "role": "user",
     },
     {
@@ -85,7 +85,7 @@ USER_DATA = [
         "lastName": "Costa",
         "email": "elisa.costa@example.com",
         "phone": "11911110005",
-        "userStatus": 1,
+        "user_active": True,
         "role": "user",
     },
 ]
