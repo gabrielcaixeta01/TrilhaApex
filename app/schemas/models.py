@@ -16,6 +16,8 @@ class Tag(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True)
 
+    pets = relationship("Pet", back_populates="tag")
+
 class Pet(Base):
     __tablename__ = "pets"
     
@@ -24,9 +26,11 @@ class Pet(Base):
     photoUrls = Column(String, nullable=True)
     status = Column(String)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    tag_id = Column(Integer, ForeignKey("tags.id"), nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     category = relationship("Category", back_populates="pets")
+    tag = relationship("Tag", back_populates="pets")
     owner = relationship("UserModel", back_populates="pets")
 
 class Order(Base):

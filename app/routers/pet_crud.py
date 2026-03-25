@@ -15,6 +15,7 @@ def criar_pet(
     photoUrls: str | None = Query(None),
     status: PetStatus = Query(...),
     category_id: int | None = Query(None),
+    tag_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"]))
@@ -22,7 +23,7 @@ def criar_pet(
     owner_id_final = owner_id if current_user.role == "admin" else current_user.id
     
     created_pet = pet_service.create_pet(
-        db, name, photoUrls, status, category_id, owner_id_final
+        db, name, photoUrls, status, category_id, tag_id, owner_id_final
     )
     return created_pet
 
@@ -43,6 +44,7 @@ def atualizar_pet(
     name: str | None = Query(None),
     status: PetStatus | None = Query(None),
     category_id: int | None = Query(None),
+    tag_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session =  Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"]))
@@ -55,7 +57,15 @@ def atualizar_pet(
 
     owner_id_final = owner_id if current_user.role == "admin" else current_user.id
 
-    return pet_service.update_pet(db, pet_id, name=name, status=status, category_id=category_id, owner_id=owner_id_final)
+    return pet_service.update_pet(
+        db,
+        pet_id,
+        name=name,
+        status=status,
+        category_id=category_id,
+        tag_id=tag_id,
+        owner_id=owner_id_final,
+    )
 
 
 @router.delete("/{pet_id}", status_code=204)

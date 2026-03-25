@@ -22,11 +22,11 @@ TAG_DATA = [
 ]
 
 PET_DATA = [
-    {"id": 9301, "name": "Thor", "photoUrls": "https://pics.example/thor.jpg", "status": "available", "category_id": 9101},
-    {"id": 9302, "name": "Luna", "photoUrls": "https://pics.example/luna.jpg", "status": "pending", "category_id": 9102},
-    {"id": 9303, "name": "Pipoca", "photoUrls": "https://pics.example/pipoca.jpg", "status": "sold", "category_id": 9103},
-    {"id": 9304, "name": "Nino", "photoUrls": "https://pics.example/nino.jpg", "status": "available", "category_id": 9104},
-    {"id": 9305, "name": "Bidu", "photoUrls": "https://pics.example/bidu.jpg", "status": "pending", "category_id": 9105},
+    {"id": 9301, "name": "Thor", "photoUrls": "https://pics.example/thor.jpg", "status": "available", "category_id": 9101, "tag_id": 9201},
+    {"id": 9302, "name": "Luna", "photoUrls": "https://pics.example/luna.jpg", "status": "pending", "category_id": 9102, "tag_id": 9202},
+    {"id": 9303, "name": "Pipoca", "photoUrls": "https://pics.example/pipoca.jpg", "status": "sold", "category_id": 9103, "tag_id": 9203},
+    {"id": 9304, "name": "Nino", "photoUrls": "https://pics.example/nino.jpg", "status": "available", "category_id": 9104, "tag_id": 9204},
+    {"id": 9305, "name": "Bidu", "photoUrls": "https://pics.example/bidu.jpg", "status": "pending", "category_id": 9105, "tag_id": 9205},
 ]
 
 ORDER_DATA = [

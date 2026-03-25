@@ -9,10 +9,18 @@ def create_pet(
     photoUrls: str | None = None,
     status: PetStatus | None = None,
     category_id: int | None = None,
+    tag_id: int | None = None,
     owner_id: int | None = None,
 ):
 
-    db_pet = Pet(name=name, photoUrls=photoUrls, status=status, category_id=category_id, owner_id=owner_id)
+    db_pet = Pet(
+        name=name,
+        photoUrls=photoUrls,
+        status=status,
+        category_id=category_id,
+        tag_id=tag_id,
+        owner_id=owner_id,
+    )
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
@@ -32,6 +40,7 @@ def update_pet(
     name: str | None = None,
     status: PetStatus | None = None,
     category_id: int | None = None,
+    tag_id: int | None = None,
     owner_id: int | None = None,
 ):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -42,6 +51,7 @@ def update_pet(
         "name": name,
         "status": status,
         "category_id": category_id,
+        "tag_id": tag_id,
         "owner_id": owner_id,
     }
 
