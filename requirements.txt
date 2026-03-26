@@ -5,3 +5,4 @@ python-dotenv==1.0.0
 sqlalchemy>=2.0.37
 alembic>=1.14.1
 python-jose[cryptography]>=3.3.0
+psycopg[binary]>=3.2.1
