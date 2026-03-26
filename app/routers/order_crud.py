@@ -43,7 +43,10 @@ def criar_pedido(
 
 @router.get("/order/{id}", response_model=Order)
 def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
-    return get_order(db, id)
+    order = get_order(db, id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
+    return order
 
 
 @router.delete("/order/{id}", status_code=204)

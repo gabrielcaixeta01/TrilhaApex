@@ -42,6 +42,7 @@ def update_pet(
     category_id: int | None = None,
     tag_id: int | None = None,
     owner_id: int | None = None,
+    photoUrls: str | None = None
 ):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
@@ -53,6 +54,7 @@ def update_pet(
         "category_id": category_id,
         "tag_id": tag_id,
         "owner_id": owner_id,
+        "photoUrls": photoUrls
     }
 
     for key, value in updates.items():
