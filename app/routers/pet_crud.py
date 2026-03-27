@@ -35,8 +35,10 @@ def buscar_por_status(status: PetStatus = Query(...), db: Session = Depends(get_
 
 @router.get("/{pet_id}", response_model=Pet)
 def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
-    return pet_service.get_pet(db, pet_id)
-
+    pet = pet_service.get_pet(db, pet_id)
+    if pet is None:
+        raise HTTPException(status_code=404, detail="Pet não encontrado")
+    return pet
 
 @router.put("/{pet_id}", response_model=Pet)
 def atualizar_pet(
@@ -46,6 +48,7 @@ def atualizar_pet(
     category_id: int | None = Query(None),
     tag_id: int | None = Query(None),
     owner_id: int | None = Query(None),
+    photoUrls: str | None = Query(None),
     db: Session =  Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"]))
 ):
@@ -65,6 +68,7 @@ def atualizar_pet(
         category_id=category_id,
         tag_id=tag_id,
         owner_id=owner_id_final,
+        photoUrls=photoUrls
     )
 
 

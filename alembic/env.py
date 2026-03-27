@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 from alembic import context
 from app.database import Base
+from app.database import DEFAULT_SQLITE_URL, normalize_database_url
 from app.schemas import models  # noqa: F401
 
 # this is the Alembic Config object, which provides
@@ -14,9 +15,8 @@ from app.schemas import models  # noqa: F401
 config = context.config
 load_dotenv()
 
-database_url = os.getenv("DATABASE_URL")
-if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
+database_url = os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL).strip()
+config.set_main_option("sqlalchemy.url", normalize_database_url(database_url or DEFAULT_SQLITE_URL))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
