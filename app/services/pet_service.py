@@ -6,9 +6,9 @@ from app.schemas.schemas import PetStatus
 def create_pet(
     db: Session,
     name: str,
+    category_id: int,
     photoUrls: str | None = None,
     status: PetStatus | None = None,
-    category_id: int | None = None,
     tag_id: int | None = None,
     owner_id: int | None = None,
 ):
@@ -37,9 +37,9 @@ def get_pet(db: Session, pet_id: int):
 def update_pet(
     db: Session,
     pet_id: int,
+    category_id: int,
     name: str | None = None,
     status: PetStatus | None = None,
-    category_id: int | None = None,
     tag_id: int | None = None,
     owner_id: int | None = None,
     photoUrls: str | None = None

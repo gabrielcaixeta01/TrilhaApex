@@ -25,7 +25,7 @@ class Pet(Base):
     name = Column(String, index=True)
     photoUrls = Column(String, nullable=True)
     status = Column(String)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    category_id = Column(Integer, ForeignKey("categories.id"))
     tag_id = Column(Integer, ForeignKey("tags.id"), nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
