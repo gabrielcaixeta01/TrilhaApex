@@ -18,7 +18,6 @@ def create_user(
     email: str | None = None,
     phone: str | None = None,
     user_active: bool = True,
-    current_user: UserModel | None = None,
 ):
     if not password or not password.strip():
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
@@ -31,10 +30,6 @@ def create_user(
     if exists:
         raise HTTPException(status_code=400, detail="Usuário já existe")
     
-    if (current_user is None or current_user.role != "admin") and role == "admin":
-        raise HTTPException(status_code=403, detail="Apenas admin pode criar usuário com role admin")
-       
-
     db_user = UserModel(
         username=username,
         firstName=firstName,
@@ -85,8 +80,6 @@ def create_with_list(
             user_active=user_active,
             role=role,
         )
-        if (current_user is None or current_user.role != "admin") and role == "admin":
-            raise HTTPException(status_code=403, detail=f"Apenas admin pode criar usuário com role admin (usuário {username})")
         
         db.add(db_user)
         db.flush()
@@ -111,6 +104,7 @@ def update_user(
     email: str | None = None,
     password: str | None = None,
     phone: str | None = None,
+    role: str | None = None,
     user_active: bool | None = None,
 ):
     user = db.query(UserModel).filter(UserModel.username == username).first()
@@ -123,6 +117,7 @@ def update_user(
         "email": email,
         "password_hash": hash_password(password) if password is not None else None,
         "phone": phone,
+        "role": role if role in ALLOWED_ROLES else None,
         "user_active": user_active,
     }
     for key, value in updates.items():

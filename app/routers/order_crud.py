@@ -12,10 +12,10 @@ from app.services.order_service import (
 )
 from app.schemas.schemas import Order
 
-router = APIRouter(prefix="/store", tags=["Store"])
+router = APIRouter(prefix="/order", tags=["Order"])
 
 
-@router.post("/order", status_code=201, response_model=Order)
+@router.post("", status_code=201, response_model=Order)
 def criar_pedido(
     petId: int = Query(...),
     quantity: int = Query(1),
@@ -41,7 +41,12 @@ def criar_pedido(
     return created_order
 
 
-@router.get("/order/{id}", response_model=Order)
+@router.get("/inventory", response_model=dict)
+def buscar_inventario(db: Session = Depends(get_db)) -> dict:
+    return list_inventory(db)
+
+
+@router.get("/{id}", response_model=Order)
 def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
     order = get_order(db, id)
     if order is None:
@@ -49,7 +54,7 @@ def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
     return order
 
 
-@router.delete("/order/{id}", status_code=204)
+@router.delete("/{id}", status_code=204)
 def deletar_pedido(
     id: int,
     db: Session = Depends(get_db),
@@ -62,8 +67,3 @@ def deletar_pedido(
         raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pedido pode deletar")
 
     delete_order(db, id)
-
-
-@router.get("/inventory", response_model=dict)
-def buscar_inventario(db: Session = Depends(get_db)) -> dict:
-    return list_inventory(db)
