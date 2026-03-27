@@ -12,7 +12,7 @@ from app.services.category_service import (
     update_category,
 )
 
-router = APIRouter(prefix="/category", tags=["Category"])
+router = APIRouter(prefix="/category", tags=["CRUD de Categorias"])
 
 @router.post("", status_code=201, response_model=Category)
 def criar_categoria(

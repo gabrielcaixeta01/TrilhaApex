@@ -10,7 +10,7 @@ from app.services.tag_service import (
     update_tag,
 )
 
-router = APIRouter(prefix="/tag", tags=["Tag"])
+router = APIRouter(prefix="/tag", tags=["CRUD de Tags"])
 
 @router.post("", status_code=201, response_model=Tag)
 def criar_tag(

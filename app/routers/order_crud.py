@@ -12,7 +12,7 @@ from app.services.order_service import (
 )
 from app.schemas.schemas import Order
 
-router = APIRouter(prefix="/order", tags=["Order"])
+router = APIRouter(prefix="/order", tags=["CRUD de Pedidos"])
 
 
 @router.post("", status_code=201, response_model=Order)

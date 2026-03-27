@@ -13,9 +13,9 @@ from app.services.user_service import (
 )
 from app.schemas.schemas import User, UserCreate, TokenResponse
 from app.schemas.models import UserModel
-from app.security import get_current_user, get_current_user_optional, require_roles
+from app.security import get_current_user, require_roles
 
-router = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
 
 
 @router.post("", status_code=201, response_model=User)

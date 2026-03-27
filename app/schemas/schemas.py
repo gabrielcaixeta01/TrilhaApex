@@ -72,10 +72,6 @@ class UserCreate(BaseModel):
     user_active: bool = Field(default=True)
     role: Literal["admin", "user", "viewer"] = Field(default="user")
 
-class UserLogin(BaseModel):
-    username: str = Field(...)
-    password: str = Field(...)
-
 class User(BaseModel):
     id: int = Field(...)
     username: str = Field(...)

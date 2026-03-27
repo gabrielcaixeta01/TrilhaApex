@@ -8,9 +8,9 @@ app = FastAPI(title="Petstore da Apex")
 def root():
     return RedirectResponse(url="/docs")
 
+app.include_router(user_crud.router)
 app.include_router(pet_crud.router)
 app.include_router(order_crud.router)
-app.include_router(user_crud.router)
 app.include_router(category_crud.router)
 app.include_router(tag_crud.router)
 

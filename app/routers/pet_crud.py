@@ -6,7 +6,7 @@ from app.services import pet_service
 from app.schemas.schemas import Pet, PetStatus
 from app.schemas.models import UserModel
 
-router = APIRouter(prefix="/pet", tags=["Pets"])
+router = APIRouter(prefix="/pet", tags=["CRUD de Pets"])
 
 
 @router.post("", status_code=201, response_model=Pet)
@@ -18,12 +18,16 @@ def criar_pet(
     tag_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["admin", "user"]))
 ):
-    owner_id_final = owner_id if current_user.role == "admin" else current_user.id
     
     created_pet = pet_service.create_pet(
-        db, name, photoUrls, status, category_id, tag_id, owner_id_final
+        db=db,
+        name=name,
+        category_id=category_id,
+        photoUrls=photoUrls,
+        status=status,
+        tag_id=tag_id,
+        owner_id=owner_id,
     )
     return created_pet
 
@@ -50,16 +54,11 @@ def atualizar_pet(
     owner_id: int | None = Query(None),
     photoUrls: str | None = Query(None),
     db: Session =  Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["admin", "user"]))
 ):
     pet = pet_service.get_pet(db, pet_id)
     if pet is None:
         raise HTTPException(status_code=404, detail="Pet não encontrado")
-    if current_user.role != "admin" and pet.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pet pode alterar")
-
-    owner_id_final = owner_id if current_user.role == "admin" else current_user.id
-
+    
     return pet_service.update_pet(
         db,
         pet_id,
@@ -67,10 +66,9 @@ def atualizar_pet(
         status=status,
         category_id=category_id,
         tag_id=tag_id,
-        owner_id=owner_id_final,
+        owner_id=owner_id,
         photoUrls=photoUrls
     )
-
 
 @router.delete("/{pet_id}", status_code=204)
 def deletar_pet(

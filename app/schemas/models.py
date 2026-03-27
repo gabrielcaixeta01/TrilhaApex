@@ -14,7 +14,7 @@ class Tag(Base):
     __tablename__ = "tags"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column(String, index=True)
+    name = Column(String, index=True, unique=True)
 
     pets = relationship("Pet", back_populates="tag")
 
@@ -24,7 +24,7 @@ class Pet(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True)
     photoUrls = Column(String, nullable=True)
-    status = Column(String)
+    status = Column(String, default="available")
     category_id = Column(Integer, ForeignKey("categories.id"))
     tag_id = Column(Integer, ForeignKey("tags.id"), nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -38,11 +38,11 @@ class Order(Base):
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     petId = Column(Integer, ForeignKey("pets.id"))
-    quantity = Column(Integer, nullable=True)
-    shipDate = Column(DateTime, nullable=True)
+    quantity = Column(Integer, default=1)
+    shipDate = Column(DateTime)
     status = Column(String, default="placed")
     complete = Column(Boolean, default=False)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("UserModel", back_populates="orders")
     
@@ -54,10 +54,10 @@ class UserModel(Base):
     username = Column(String, unique=True, index=True)
     firstName = Column(String, nullable=True)
     lastName = Column(String, nullable=True)
-    email = Column(String, nullable=True)
+    email = Column(String, nullable=True, unique=True)
     password_hash = Column(String)
-    phone = Column(String, nullable=True)
-    user_active = Column(Boolean, nullable=False, default=True)
+    phone = Column(String, nullable=True, unique=True)
+    user_active = Column(Boolean, default=True)
     role = Column(String,default="user")
 
     pets = relationship("Pet", back_populates="owner")
