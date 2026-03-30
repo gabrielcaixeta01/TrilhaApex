@@ -29,10 +29,10 @@ class Pet(Base):
     __tablename__ = "pets"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column(String, index=True)
+    name = Column(String, index=True, nullable=False)
     photoUrls = Column(String, nullable=True)
-    status = Column(String, default="available")
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    status = Column(String, default="available", nullable=False)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     category = relationship("Category", back_populates="pets")
@@ -57,7 +57,7 @@ class UserModel(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    username = Column(String, unique=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
     firstName = Column(String, nullable=True)
     lastName = Column(String, nullable=True)
     email = Column(String, nullable=True, unique=True)
