@@ -15,7 +15,7 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True, unique=True)
     
-    pets = relationship("Pet", back_populates="category")
+    pets = relationship("Pet", back_populates="category", cascade="all, delete-orphan")
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -38,6 +38,7 @@ class Pet(Base):
     category = relationship("Category", back_populates="pets")
     tags = relationship("Tag", secondary=pet_tags, back_populates="pets")
     owner = relationship("UserModel", back_populates="pets")
+    orders = relationship("Order", back_populates="pet", cascade="all, delete-orphan")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -51,6 +52,7 @@ class Order(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("UserModel", back_populates="orders")
+    pet = relationship("Pet", back_populates="orders")
     
 
 class UserModel(Base):
