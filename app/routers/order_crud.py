@@ -26,7 +26,7 @@ def criar_pedido(
     current_user: UserModel = Depends(require_roles(["admin", "user"])),
     db: Session = Depends(get_db),
 ):
-    owner_id_final = owner_id if current_user.role == "admin" else current_user.id
+    owner_id_final = owner_id if current_user.role == "admin" and owner_id is not None else current_user.id
     
     created_order = create_order(
         db=db,

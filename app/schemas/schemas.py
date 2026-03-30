@@ -35,13 +35,13 @@ class PetCreate(BaseModel):
     photoUrls: Optional[str] = Field(None)
     status: PetStatus = Field(...)
     category_id: int = Field(...)
-    tag_id: Optional[int] = Field(None)
+    tag_ids: list[int] = Field(default_factory=list)
     owner_id: Optional[int] = Field(None)
 
 class Pet(PetCreate):
     id: int = Field(...)
     category: Category = Field(...)
-    tag: Optional[Tag] = Field(None)
+    tags: list[Tag] = Field(default_factory=list)
     owner: Optional[User] = Field(None)
 
     class Config:

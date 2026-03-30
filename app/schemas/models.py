@@ -1,6 +1,13 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from app.database import Base
+
+pet_tags = Table(
+    "pet_tags",
+    Base.metadata,
+    Column("pet_id", Integer, ForeignKey("pets.id"), primary_key=True),
+    Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
+)
 
 class Category(Base):
     __tablename__ = "categories"
@@ -16,7 +23,7 @@ class Tag(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, index=True, unique=True)
 
-    pets = relationship("Pet", back_populates="tag")
+    pets = relationship("Pet", secondary=pet_tags, back_populates="tags")
 
 class Pet(Base):
     __tablename__ = "pets"
@@ -26,11 +33,10 @@ class Pet(Base):
     photoUrls = Column(String, nullable=True)
     status = Column(String, default="available")
     category_id = Column(Integer, ForeignKey("categories.id"))
-    tag_id = Column(Integer, ForeignKey("tags.id"), nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     category = relationship("Category", back_populates="pets")
-    tag = relationship("Tag", back_populates="pets")
+    tags = relationship("Tag", secondary=pet_tags, back_populates="pets")
     owner = relationship("UserModel", back_populates="pets")
 
 class Order(Base):

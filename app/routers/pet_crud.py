@@ -15,7 +15,7 @@ def criar_pet(
     photoUrls: str | None = Query(None),
     status: PetStatus = Query(...),
     category_id: int = Query(...),
-    tag_id: int | None = Query(None),
+    tag_ids: list[int] | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
 ):
@@ -26,7 +26,7 @@ def criar_pet(
         category_id=category_id,
         photoUrls=photoUrls,
         status=status,
-        tag_id=tag_id,
+        tag_ids=tag_ids,
         owner_id=owner_id,
     )
     return created_pet
@@ -50,7 +50,7 @@ def atualizar_pet(
     name: str | None = Query(None),
     status: PetStatus | None = Query(None),
     category_id: int = Query(...),
-    tag_id: int | None = Query(None),
+    tag_ids: list[int] | None = Query(None),
     owner_id: int | None = Query(None),
     photoUrls: str | None = Query(None),
     db: Session =  Depends(get_db),
@@ -65,7 +65,7 @@ def atualizar_pet(
         name=name,
         status=status,
         category_id=category_id,
-        tag_id=tag_id,
+        tag_ids=tag_ids,
         owner_id=owner_id,
         photoUrls=photoUrls
     )

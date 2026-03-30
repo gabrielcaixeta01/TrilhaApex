@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.models import Pet
+from app.schemas.models import Pet, Tag
 from app.schemas.schemas import PetStatus
 
 
@@ -9,7 +9,7 @@ def create_pet(
     category_id: int,
     photoUrls: str | None = None,
     status: PetStatus | None = None,
-    tag_id: int | None = None,
+    tag_ids: list[int] | None = None,
     owner_id: int | None = None,
 ):
 
@@ -18,9 +18,13 @@ def create_pet(
         photoUrls=photoUrls,
         status=status,
         category_id=category_id,
-        tag_id=tag_id,
         owner_id=owner_id,
     )
+
+    if tag_ids is not None:
+        tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
+        db_pet.tags = tags
+
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
@@ -40,7 +44,7 @@ def update_pet(
     category_id: int,
     name: str | None = None,
     status: PetStatus | None = None,
-    tag_id: int | None = None,
+    tag_ids: list[int] | None = None,
     owner_id: int | None = None,
     photoUrls: str | None = None
 ):
@@ -52,7 +56,6 @@ def update_pet(
         "name": name,
         "status": status,
         "category_id": category_id,
-        "tag_id": tag_id,
         "owner_id": owner_id,
         "photoUrls": photoUrls
     }
@@ -60,6 +63,10 @@ def update_pet(
     for key, value in updates.items():
         if value is not None:
             setattr(pet, key, value)
+
+    if tag_ids is not None:
+        tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
+        pet.tags = tags
     
     db.commit()
     db.refresh(pet)
