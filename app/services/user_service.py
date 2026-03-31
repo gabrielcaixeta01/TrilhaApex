@@ -46,6 +46,14 @@ def create_user(
     return db_user
 
 
+def list_users(db: Session) -> list[UserModel]:
+    return db.query(UserModel).all()
+
+
+def get_user_by_id(db: Session, user_id: int) -> UserModel | None:
+    return db.query(UserModel).filter(UserModel.id == user_id).first()
+
+
 def create_with_list(
     db: Session,
     users: list[dict],
@@ -95,6 +103,52 @@ def get_user(db: Session, username: str):
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
+
+
+def update_user_by_id(
+    db: Session,
+    user_id: int,
+    username: str | None = None,
+    firstName: str | None = None,
+    lastName: str | None = None,
+    email: str | None = None,
+    password: str | None = None,
+    phone: str | None = None,
+    role: str | None = None,
+    user_active: bool | None = None,
+):
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+
+    if password is not None and len(password.strip()) < 8:
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
+
+    if role is not None and role not in ALLOWED_ROLES:
+        raise HTTPException(status_code=400, detail="Role inválida")
+
+    if username is not None and username != user.username:
+        username_exists = db.query(UserModel).filter(UserModel.username == username).first()
+        if username_exists:
+            raise HTTPException(status_code=400, detail="Username já está em uso")
+
+    updates = {
+        "username": username,
+        "firstName": firstName,
+        "lastName": lastName,
+        "email": email,
+        "password_hash": hash_password(password) if password is not None else None,
+        "phone": phone,
+        "role": role,
+        "user_active": user_active,
+    }
+    for key, value in updates.items():
+        if value is not None:
+            setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
     return user
 
 
@@ -151,6 +205,21 @@ def delete_user(db: Session, username: str):
     db.commit()
 
 
+def delete_user_by_id(db: Session, user_id: int) -> bool:
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return False
+
+    db.query(Pet).filter(Pet.owner_id == user.id).update(
+        {Pet.owner_id: None}, synchronize_session=False
+    )
+    db.query(Order).filter(Order.owner_id == user.id).delete(synchronize_session=False)
+
+    db.delete(user)
+    db.commit()
+    return True
+
+
 def login(db: Session, username: str, password: str):
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user or not verify_password(password, user.password_hash):
@@ -167,5 +236,5 @@ def login(db: Session, username: str, password: str):
 
 
 def logout():
-    return {"code": 200, "type": "success", "message": "ok"}
+    return {"message": "Logout realizado com sucesso"}
 

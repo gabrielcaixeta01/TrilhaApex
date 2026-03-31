@@ -18,6 +18,41 @@ def get_order(db: Session, order_id: int):
     return order
 
 
+def list_orders(db: Session):
+    return db.query(Order).all()
+
+
+def update_order(
+    db: Session,
+    order_id: int,
+    petId: int | None = None,
+    quantity: int | None = None,
+    shipDate=None,
+    status: str | None = None,
+    complete: bool | None = None,
+    owner_id: int | None = None,
+):
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        return None
+
+    updates = {
+        "petId": petId,
+        "quantity": quantity,
+        "shipDate": shipDate,
+        "status": status,
+        "complete": complete,
+        "owner_id": owner_id,
+    }
+    for key, value in updates.items():
+        if value is not None:
+            setattr(order, key, value)
+
+    db.commit()
+    db.refresh(order)
+    return order
+
+
 def delete_order(db: Session, order_id: int):
     order = db.query(Order).filter(Order.id == order_id).first()
     if order:

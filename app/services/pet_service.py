@@ -100,9 +100,18 @@ def delete_pet(db: Session, pet_id: int):
         db.query(Order).filter(Order.petId == pet_id).delete(synchronize_session=False)
         db.delete(pet)
         db.commit()
+        return True
+    return False
 
 
 def list_pets_by_status(db: Session, status: PetStatus):
     pets = db.query(Pet).filter(Pet.status == status).all()
     return pets
+
+
+def list_pets(db: Session, status: PetStatus | None = None):
+    query = db.query(Pet)
+    if status is not None:
+        query = query.filter(Pet.status == status)
+    return query.all()
 
