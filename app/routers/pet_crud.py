@@ -17,6 +17,11 @@ def listar_pets(
     return pet_service.list_pets(db, status)
 
 
+@router.get("/all", response_model=list[PetResponse])
+def listar_todos_pets(db: Session = Depends(get_db)) -> list[PetResponse]:
+    return pet_service.list_pets(db)
+
+
 @router.post("", status_code=201, response_model=PetResponse)
 def criar_pet(
     payload: PetCreate,
