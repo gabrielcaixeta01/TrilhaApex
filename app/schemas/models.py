@@ -39,6 +39,7 @@ class Pet(Base):
     tags = relationship("Tag", secondary=pet_tags, back_populates="pets")
     owner = relationship("UserModel", back_populates="pets")
     orders = relationship("Order", back_populates="pet", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="pet", cascade="all, delete-orphan")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -51,6 +52,7 @@ class Order(Base):
     complete = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
+    pet = relationship("Pet", back_populates="orders")
     owner = relationship("UserModel", back_populates="orders")
     pet = relationship("Pet", back_populates="orders")
     
@@ -68,5 +70,5 @@ class UserModel(Base):
     user_active = Column(Boolean, default=True)
     role = Column(String,default="user")
 
-    pets = relationship("Pet", back_populates="owner")
-    orders = relationship("Order", back_populates="owner")
+    pets = relationship("Pet", back_populates="owner", passive_deletes=True)
+    orders = relationship("Order", back_populates="owner", passive_deletes=True)
