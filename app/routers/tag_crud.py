@@ -44,13 +44,14 @@ def atualizar_tag(
 
 
 
-@router.delete("/{id}",status_code=204)
+@router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_tag(
     id: int,
     db: Session = Depends(get_db),
-):
+) -> dict:
     tag = get_tag(db, id)
     if tag is None:
         raise HTTPException(status_code=404, detail="Tag não encontrada")
     delete_tag(db, id)
+    return {"message": "Tag deletada com sucesso"}
     

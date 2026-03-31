@@ -99,13 +99,14 @@ def atualizar_user(
     )
 
 
-@router.delete("/{username}", status_code=204)
+@router.delete("/{username}", status_code=200, response_model=dict)
 def deletar_user(
     username: str,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"]))
-) -> None:
+) -> dict:
     if current_user.role != "admin" and current_user.username != username:
         raise HTTPException(status_code=403, detail="Apenas admin ou o próprio usuário podem deletar")
 
     delete_user(db, username)
+    return {"message": "Usuário deletado com sucesso"}

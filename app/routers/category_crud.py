@@ -48,14 +48,15 @@ def atualizar_categoria(
 
 
 
-@router.delete("/{id}",status_code=204)
+@router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_categoria(
     id: int,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin"])),
-):
+) -> dict:
     categoria = get_category(db, id)
     if categoria is None:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
     delete_category(db, id)
+    return {"message": "Categoria deletada com sucesso"}
     

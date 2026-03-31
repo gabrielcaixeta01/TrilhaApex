@@ -96,12 +96,12 @@ def atualizar_pet(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-@router.delete("/{pet_id}", status_code=204)
+@router.delete("/{pet_id}", status_code=200, response_model=dict)
 def deletar_pet(
     pet_id: int,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"])),
-):
+) -> dict:
     pet = pet_service.get_pet(db, pet_id)
     if pet is None:
         raise HTTPException(status_code=404, detail="Pet não encontrado")
@@ -109,3 +109,4 @@ def deletar_pet(
         raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pet pode deletar")
 
     pet_service.delete_pet(db, pet_id)
+    return {"message": "Pet deletado com sucesso"}

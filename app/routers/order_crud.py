@@ -54,12 +54,12 @@ def buscar_pedido(id: int, db: Session = Depends(get_db)) -> Order:
     return order
 
 
-@router.delete("/{id}", status_code=204)
+@router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_pedido(
     id: int,
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(require_roles(["admin", "user"])),
-):
+) -> dict:
     order = get_order(db, id)
     if order is None:
         raise HTTPException(status_code=404, detail="Pedido não encontrado")
@@ -67,3 +67,4 @@ def deletar_pedido(
         raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pedido pode deletar")
 
     delete_order(db, id)
+    return {"message": "Pedido deletado com sucesso"}
