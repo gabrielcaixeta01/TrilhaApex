@@ -54,7 +54,7 @@ def login_user(
     return login(db, username, password)
 
 
-@router.get("/logout", response_model=dict)
+@router.post("/logout", response_model=dict)
 def logout_user(current_user: UserModel = Depends(get_current_user)) -> dict:
     return logout()
 

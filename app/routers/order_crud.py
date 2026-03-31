@@ -19,7 +19,7 @@ router = APIRouter(prefix="/order", tags=["CRUD de Pedidos"])
 def criar_pedido(
     petId: int = Query(...),
     quantity: int = Query(1),
-    shipDate: datetime = Query(datetime.now()),
+    shipDate: datetime | None = Query(None),
     status: str = Query("placed"),
     complete: bool = Query(False),
     owner_id: int | None = Query(None),
@@ -27,12 +27,13 @@ def criar_pedido(
     db: Session = Depends(get_db),
 ):
     owner_id_final = owner_id if current_user.role == "admin" and owner_id is not None else current_user.id
+    ship_date_final = shipDate or datetime.now()
     
     created_order = create_order(
         db=db,
         petId=petId,
         quantity=quantity,
-        shipDate=shipDate,
+        shipDate=ship_date_final,
         status=status,
         complete=complete,
         owner_id=owner_id_final

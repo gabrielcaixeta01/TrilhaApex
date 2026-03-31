@@ -19,7 +19,7 @@ def create_user(
     phone: str | None = None,
     user_active: bool = True,
 ):
-    if not password or not password.strip():
+    if not password or len(password.strip()) < 8:
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
     
     if role not in ALLOWED_ROLES:
@@ -57,6 +57,8 @@ def create_with_list(
         password = data.get("password")
         if not username or not password:
             continue
+        if len(str(password).strip()) < 8:
+            raise HTTPException(status_code=400, detail=f"Senha inválida para usuário {username}")
 
         role = data.get("role", "user")
         if role not in ALLOWED_ROLES:
@@ -111,13 +113,19 @@ def update_user(
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
+    if password is not None and len(password.strip()) < 8:
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
+
+    if role is not None and role not in ALLOWED_ROLES:
+        raise HTTPException(status_code=400, detail="Role inválida")
+
     updates = {
         "firstName": firstName,
         "lastName": lastName,
         "email": email,
         "password_hash": hash_password(password) if password is not None else None,
         "phone": phone,
-        "role": role if role in ALLOWED_ROLES else None,
+        "role": role,
         "user_active": user_active,
     }
     for key, value in updates.items():
