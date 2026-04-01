@@ -11,6 +11,13 @@
 
 Representa qualquer pessoa com acesso ao sistema, seja cliente ou funcionario.
 
+Tipos de perfil aceitos no sistema:
+
+- cliente
+- funcionario
+- admin_loja
+- super_admin
+
 - id
 - nome
 - email
@@ -36,7 +43,26 @@ Extensao de Usuario para quem realiza os atendimentos.
 - cargo
 - data_inicio
 - salario ou faixa_salarial, se fizer sentido no negocio
-- loja_id
+- loja_id (pode ser nulo em periodo de alocacao)
+
+#### Admin de Loja
+
+Extensao de Usuario para perfil administrativo de uma unidade especifica.
+
+- cpf
+- cargo = admin_loja
+- data_inicio
+- loja_id (obrigatorio)
+
+#### Super Admin
+
+Extensao de Usuario para perfil administrativo de rede.
+
+- cpf
+- cargo = super_admin
+- data_inicio
+- escopo = rede
+- criado_via_bootstrap (indica se foi usuario inicial criado direto no banco)
 
 ### Pet
 
