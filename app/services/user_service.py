@@ -1,7 +1,7 @@
 import time
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.models import UserModel
+from app.schemas.models import Order, Pet, UserModel
 from app.security import hash_password, verify_password, create_access_token
 
 
@@ -141,6 +141,12 @@ def delete_user(db: Session, username: str):
     user = db.query(UserModel).filter(UserModel.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    db.query(Pet).filter(Pet.owner_id == user.id).update(
+        {Pet.owner_id: None}, synchronize_session=False
+    )
+    db.query(Order).filter(Order.owner_id == user.id).delete(synchronize_session=False)
+
     db.delete(user)
     db.commit()
 

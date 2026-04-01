@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.models import Pet, Tag
+from app.schemas.models import Order, Pet, Tag
 from app.schemas.schemas import PetStatus
 
 
@@ -97,6 +97,7 @@ def update_pet(
 def delete_pet(db: Session, pet_id: int):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if pet:
+        db.query(Order).filter(Order.petId == pet_id).delete(synchronize_session=False)
         db.delete(pet)
         db.commit()
 

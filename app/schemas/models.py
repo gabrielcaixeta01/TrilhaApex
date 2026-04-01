@@ -44,15 +44,15 @@ class Order(Base):
     __tablename__ = "orders"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    petId = Column(Integer, ForeignKey("pets.id"))
+    petId = Column(Integer, ForeignKey("pets.id"), nullable=False)
     quantity = Column(Integer, default=1)
     shipDate = Column(DateTime)
     status = Column(String, default="placed")
     complete = Column(Boolean, default=False)
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    owner = relationship("UserModel", back_populates="orders")
     pet = relationship("Pet", back_populates="orders")
+    owner = relationship("UserModel", back_populates="orders")
     
 
 class UserModel(Base):
@@ -68,5 +68,5 @@ class UserModel(Base):
     user_active = Column(Boolean, default=True)
     role = Column(String,default="user")
 
-    pets = relationship("Pet", back_populates="owner")
-    orders = relationship("Order", back_populates="owner")
+    pets = relationship("Pet", back_populates="owner", passive_deletes=True)
+    orders = relationship("Order", back_populates="owner", passive_deletes=True)
