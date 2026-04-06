@@ -87,3 +87,56 @@ Essas acoes podem virar tipos de servico no futuro:
 - avaliacao de comportamento
 - hospedagem temporaria
 - adestramento basico
+
+## Cardinalidades
+
+### Relacoes entre entidades
+
+| Relacao | Cardinalidade | Descricao |
+|---------|---------------|-----------|
+| Usuario (Cliente) → Pet | 1:N | Um cliente pode ter nenhum ou varios pets; um pet pertence a exatamente um cliente responsavel |
+| Pet → Categoria | N:1 | Varios pets podem estar na mesma categoria; um pet esta vinculado a exatamente uma categoria |
+| Pet ↔ Tag | N:M | Um pet pode ter nenhuma ou varias tags; uma tag pode estar associada a varios pets |
+| Pet → Atendimento | 1:N | Um pet pode ter nenhum ou varios atendimentos; um atendimento vincula-se a exatamente um pet |
+| Usuario (Cliente) → Atendimento | 1:N | Um cliente pode ter nenhum ou varios atendimentos; um atendimento vincula-se a exatamente um cliente |
+| Usuario (Funcionario) → Atendimento | 1:N | Um funcionario pode realizar nenhum ou varios atendimentos; um atendimento vincula-se a exatamente um funcionario |
+| Usuario (Funcionario) → Loja | N:1 (opcional) | Um funcionario atende em apenas uma loja (pode estar sem loja em periodo de alocacao); uma loja pode ter varios funcionarios |
+| Loja → Atendimento | 1:N | Uma loja pode ter varios atendimentos; um atendimento vincula-se a exatamente uma loja |
+| Usuario (Admin_Loja) → Loja | 1:1 | Um admin_loja gerencia exatamente uma loja; uma loja pode ter um admin_loja |
+
+### Diagrama de relacionamento simplificado
+
+```
+Usuario
+├── Cliente
+│   ├── 1:N → Pet
+│   │   ├── N:1 → Categoria
+│   │   ├── N:M ← → Tag
+│   │   └── 1:N → Atendimento
+│   │       ├── 1:N → Funcionario
+│   │       └── 1:N → Loja
+│   │
+│   └── 1:N → Atendimento
+│
+├── Funcionario
+│   ├── N:1 → Loja (opcional)
+│   └── 1:N → Atendimento
+│
+└── Admin_Loja
+    └── 1:1 → Loja
+
+Loja
+├── 1:N → Atendimento
+├── 1:N → Funcionario
+└── 1:1 ← Admin_Loja
+```
+
+### Notas importantes sobre cardinalidades
+
+- **Pet obrigatorio em Cliente**: Todo pet deve ter um cliente responsavel; a cardinalidade nao permite pets sem dono
+- **Atendimento vinculado**: Um atendimento sempre requer: cliente, pet, funcionario e loja
+- **Funcionario sem loja**: Um funcionario pode estar em periodo de alocacao sem estar vinculado a nenhuma loja (NULL permitido)
+- **Categoria obrigatoria**: Um pet deve estar em exatamente uma categoria; se a categoria for deletada, seus pets tambem serao
+- **Loja obrigatoria**: Uma loja deletada implica remocao de todos os seus funcionarios
+- **Tags opcionais**: Um pet pode ter nenhuma ou varias tags; tags nao sao obrigatorias
+
