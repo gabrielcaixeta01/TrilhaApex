@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import category_crud, order_crud, pet_crud, tag_crud, user_crud
+from app.routers import category_crud, pet_crud, service_crud, tag_crud, user_crud
 
 app = FastAPI(title="Petstore da Apex")
 
@@ -24,6 +24,6 @@ def root():
 
 app.include_router(user_crud.router)
 app.include_router(pet_crud.router)
-app.include_router(order_crud.router)
+app.include_router(service_crud.router)
 app.include_router(category_crud.router)
 app.include_router(tag_crud.router)
