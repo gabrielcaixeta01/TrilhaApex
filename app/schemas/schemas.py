@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
-from typing import Optional
-from datetime import datetime
-from typing import Literal
+from datetime import date, datetime
+from decimal import Decimal
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class PetStatus(str, Enum):
@@ -10,81 +11,97 @@ class PetStatus(str, Enum):
     pending = "pending"
     sold = "sold"
 
-class CategoryCreate(BaseModel):
-    name: str = Field(...)
 
-class Category(CategoryCreate):
-    id: int = Field(...)
-    
-    class Config:
-        from_attributes = True
-
-
-class TagCreate(BaseModel):
-    name: str = Field(...)
-
-class Tag(TagCreate):
-    id: int = Field(...)
-    
-    class Config:
-        from_attributes = True
-
-
-class PetCreate(BaseModel):
-    name: str = Field(...)
-    photoUrls: Optional[str] = Field(None)
-    status: PetStatus = Field(...)
-    category_id: int = Field(...)
-    tag_ids: list[int] = Field(default_factory=list)
-    owner_id: Optional[int] = Field(None)
-
-class Pet(PetCreate):
-    id: int = Field(...)
-    category: Category = Field(...)
-    tags: list[Tag] = Field(default_factory=list)
-    owner: Optional[User] = Field(None)
+class Store(BaseModel):
+    id: int
+    name: str
+    cnpj: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    cep: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    active: bool = True
+    created_at: datetime = Field(default_factory=datetime.now)
 
     class Config:
         from_attributes = True
 
-
-class OrderCreate(BaseModel):
-    petId: int = Field(...)
-    quantity: int = Field(default=1)
-    shipDate: datetime = Field(default_factory=datetime.now)
-    status: str = Field(default="placed")
-    complete: bool = Field(default=False)
-
-class Order(OrderCreate):
-    id: int = Field(...)
-    owner: Optional[User] = Field(None)
-    class Config:
-        from_attributes = True
-
-
-class UserCreate(BaseModel):
-    username: str = Field(...)
-    firstName: Optional[str] = Field(None)
-    lastName: Optional[str] = Field(None)
-    email: Optional[str] = Field(None)
-    password: str = Field(..., min_length=8)
-    phone: Optional[str] = Field(None)
-    user_active: bool = Field(default=True)
-    role: Literal["admin", "user", "viewer"] = Field(default="user")
 
 class User(BaseModel):
-    id: int = Field(...)
-    username: str = Field(...)
-    firstName: Optional[str] = Field(None)
-    lastName: Optional[str] = Field(None)
-    email: Optional[str] = Field(None)
-    phone: Optional[str] = Field(None)
-    user_active: bool = Field(default=True)
-    role: Literal["admin", "user", "viewer"] = Field(default="user")
-    
+    id: int
+    username: str
+    email: str
+    password_hash: Optional[str] = None
+    role: str
+    phone: Optional[str] = None
+    cpf: Optional[str] = None
+    cnpj: Optional[str] = None
+    client_type: Optional[str] = None
+    birth_date: Optional[date] = None
+    address: Optional[str] = None
+    job_title: Optional[str] = None
+    hired_at: Optional[date] = None
+    store_id: Optional[int] = None
+    user_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.now)
+
     class Config:
         from_attributes = True
 
-class TokenResponse(BaseModel):
-    access_token: str = Field(...)
-    token_type: str = Field(default="bearer")
+
+class Category(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class Tag(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class Pet(BaseModel):
+    id: int
+    name: str
+    species: Optional[str] = None
+    breed: Optional[str] = None
+    sex: Optional[str] = None
+    birth_date: Optional[date] = None
+    size: Optional[str] = None
+    weight: Optional[Decimal] = None
+    health_notes: Optional[str] = None
+    status: PetStatus
+    category_id: int
+    owner_id: int
+    active: bool = True
+
+    class Config:
+        from_attributes = True
+
+
+class Service(BaseModel):
+    id: int
+    service_type: str
+    description: Optional[str] = None
+    service_at: datetime
+    status: str
+    price: Optional[Decimal] = None
+    discount: Optional[Decimal] = Decimal("0")
+    payment_type: Optional[str] = None
+    observations: Optional[str] = None
+    store_id: int
+    pet_id: int
+    client_id: int
+    worker_id: int
+
+    class Config:
+        from_attributes = True

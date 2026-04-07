@@ -18,7 +18,7 @@ class Store(Base):
     city = Column(String)
     state = Column(String)
     active = Column(Boolean, nullable=False, default=True)
-    date_create = Column("data_cadastro", DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column("data_cadastro", DateTime, nullable=False, default=datetime.utcnow)
 
     users = relationship("UserModel", back_populates="store", passive_deletes=True)
     services = relationship("Service", back_populates="store", passive_deletes=True)
@@ -30,17 +30,18 @@ class UserModel(Base):
     username = Column("nome", String(120), unique=True, index=True, nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column("senha_hash", String(255), nullable=False)
-    profile = Column("perfil", String(20), nullable=False)
+    role = Column("perfil", String(20), nullable=False)
+    phone = Column("telefone", String)
     cpf = Column(String)
     cnpj = Column(String)
     client_type = Column("tipo_cliente", String(20))
     birth_date = Column("data_nascimento", Date)
     address = Column(String)
     job_title = Column("cargo", String(80))
-    start_date = Column("data_inicio", Date)
+    hired_at = Column("data_inicio", Date)
     store_id = Column("loja_id", Integer, ForeignKey("lojas.id", ondelete="CASCADE"), nullable=True)
-    active = Column(Boolean, nullable=False, default=True)
-    date_create = Column("data_cadastro", DateTime, nullable=False, default=datetime.utcnow)
+    user_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column("data_cadastro", DateTime, nullable=False, default=datetime.utcnow)
 
     store = relationship("Store", back_populates="users")
     pets = relationship("Pet", back_populates="owner", foreign_keys="Pet.owner_id")
@@ -79,13 +80,13 @@ class Pet(Base):
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column("nome", String(120), index=True, nullable=False)
-    specie = Column("especie", String(60))
+    species = Column("especie", String(60))
     breed = Column("raca", String(80))
     sex = Column("sexo", String(20))
     birth_date = Column("data_nascimento", Date)
     size = Column("porte", String(20))
     weight = Column("peso", Numeric(6, 2))
-    health_obs = Column("observacoes_saude", String(500))
+    health_notes = Column("observacoes_saude", String(500))
     status = Column(String(20), nullable=False, default="available")
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     owner_id = Column("dono_id", Integer, ForeignKey("users.id"), nullable=False)
@@ -110,10 +111,10 @@ class Service(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     service_type = Column("tipo_servico", String(80), nullable=False)
     description = Column("descricao", String(500))
-    date_hour = Column("data_hora", DateTime, nullable=False)
+    service_at = Column("data_hora", DateTime, nullable=False)
     status = Column(String(30), nullable=False)
     price = Column("valor", Numeric(10, 2))
-    descount = Column("desconto", Numeric(10, 2), default=0)
+    discount = Column("desconto", Numeric(10, 2), default=0)
     payment_type = Column("forma_pagamento", String(40))
     observations = Column("observacoes", String(500))
     store_id = Column("loja_id", Integer, ForeignKey("lojas.id"), nullable=False)
@@ -131,5 +132,5 @@ Index(
     "ux_admin_loja_por_loja",
     UserModel.store_id,
     unique=True,
-    sqlite_where=UserModel.profile == "admin_loja",
+    sqlite_where=UserModel.role == "admin_loja",
 )
