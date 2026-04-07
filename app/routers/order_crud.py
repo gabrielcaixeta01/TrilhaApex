@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import require_roles
 from app.schemas.models import UserModel
-from app.services.order_service import (
+from app.services.service_service import (
     create_order,
     get_order,
     delete_order,

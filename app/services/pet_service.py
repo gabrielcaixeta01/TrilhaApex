@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.models import Order, Pet, Tag
+from app.schemas.models import Service, Pet, Tag
 from app.schemas.schemas import PetStatus
 
 
@@ -10,7 +10,7 @@ def _resolve_tags(db: Session, tag_ids: list[int] | None) -> list[Tag] | None:
     if not tag_ids:
         return []
 
-    # Preserve order and remove duplicates from incoming ids.
+    # Preserve Service and remove duplicates from incoming ids.
     unique_tag_ids = list(dict.fromkeys(tag_ids))
     tags = db.query(Tag).filter(Tag.id.in_(unique_tag_ids)).all()
     found_ids = {tag.id for tag in tags}
@@ -97,7 +97,7 @@ def update_pet(
 def delete_pet(db: Session, pet_id: int):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if pet:
-        db.query(Order).filter(Order.petId == pet_id).delete(synchronize_session=False)
+        db.query(Service).filter(Service.petId == pet_id).delete(synchronize_session=False)
         db.delete(pet)
         db.commit()
 

@@ -23,11 +23,11 @@ class Store(Base):
     users = relationship("UserModel", back_populates="store", passive_deletes=True)
     services = relationship("Service", back_populates="store", passive_deletes=True)
 
-class UserModel(Base):
+class User(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    username = Column("nome", String(120), unique=True, index=True, nullable=False)
+    name = Column("nome", String(120), unique=True, index=True, nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column("senha_hash", String(255), nullable=False)
     role = Column("perfil", String(20), nullable=False)
@@ -130,7 +130,7 @@ class Service(Base):
 
 Index(
     "ux_admin_loja_por_loja",
-    UserModel.store_id,
+    User.store_id,
     unique=True,
-    sqlite_where=UserModel.role == "admin_loja",
+    sqlite_where=User.role == "admin_loja",
 )

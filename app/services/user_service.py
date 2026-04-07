@@ -1,98 +1,63 @@
 import time
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.models import Order, Pet, UserModel
+from app.schemas.models import Service, Pet, User
 from app.security import hash_password, verify_password, create_access_token
 
-
-ALLOWED_ROLES = {"admin", "user", "viewer"}
-
+ALLOWED_ROLES = {"cliente", "funcionario", "admin_loja", "super_admin"}
 
 def create_user(
     db: Session,
-    username: str,
+    name: str,
+    email: str,
     password: str,
     role: str,
-    firstName: str | None = None,
-    lastName: str | None = None,
-    email: str | None = None,
     phone: str | None = None,
+    cpf: str | None = None,
+    cnpj: str | None = None,
+    client_type: str | None = None,
+    birth_date: str | None = None,
+    address: str | None = None,
+    job_title: str | None = None,
+    hired_at: str | None = None,
+    store_id: int | None = None,
     user_active: bool = True,
+    created_at: str | None = None,
 ):
-    if not password or len(password.strip()) < 8:
-        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
     
+    if len(password.strip()) < 8:
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
     if role not in ALLOWED_ROLES:
         raise HTTPException(status_code=400, detail="Role inválida")
-    
-    exists = db.query(UserModel).filter(UserModel.username == username).first()
-
+    exists = db.query(User).filter(User.name == name).first()
     if exists:
         raise HTTPException(status_code=400, detail="Usuário já existe")
-    
-    db_user = UserModel(
-        username=username,
-        firstName=firstName,
-        lastName=lastName,
+    db_user = User(
+        name=name,
         email=email,
         password_hash=hash_password(password),
+        role=role,
         phone=phone,
+        cpf=cpf,
+        cnpj=cnpj,
+        client_type=client_type,
+        birth_date=birth_date,
+        address=address,
+        job_title=job_title,
+        hired_at=hired_at,
+        store_id=store_id,
         user_active=user_active,
-        role = role
+        created_at=created_at,
     )
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
-def create_with_list(
-    db: Session,
-    users: list[dict],
-    current_user: UserModel | None = None,
-) -> list[UserModel]:
-    created: list[UserModel] = []
-    for data in users:
-        username = data.get("username")
-        password = data.get("password")
-        if not username or not password:
-            continue
-        if len(str(password).strip()) < 8:
-            raise HTTPException(status_code=400, detail=f"Senha inválida para usuário {username}")
-
-        role = data.get("role", "user")
-        if role not in ALLOWED_ROLES:
-            raise HTTPException(status_code=400, detail=f"Role inválida para usuário {username}")
-
-        user_active = data.get("user_active")
-        if user_active is None:
-            user_active = data.get("userStatus", 1) == 1
-
-        exists = db.query(UserModel).filter(UserModel.username == username).first()
-        if exists:
-            continue
-
-        db_user = UserModel(
-            username=username,
-            firstName=data.get("firstName"),
-            lastName=data.get("lastName"),
-            email=data.get("email"),
-            password_hash=hash_password(password),
-            phone=data.get("phone"),
-            user_active=user_active,
-            role=role,
-        )
-        
-        db.add(db_user)
-        db.flush()
-        created.append(db_user)
-
-    db.commit()
-    return created
-
-
-def get_user(db: Session, username: str):
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+def get_user(db: Session, user_id: str):
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return user
@@ -100,72 +65,46 @@ def get_user(db: Session, username: str):
 
 def update_user(
     db: Session,
-    username: str,
-    firstName: str | None = None,
-    lastName: str | None = None,
-    email: str | None = None,
+    email: str,
+    name: str | None = None,
     password: str | None = None,
-    phone: str | None = None,
     role: str | None = None,
+    phone: str | None = None,
     user_active: bool | None = None,
+
 ):
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
-    if password is not None and len(password.strip()) < 8:
-        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
-
-    if role is not None and role not in ALLOWED_ROLES:
-        raise HTTPException(status_code=400, detail="Role inválida")
-
-    updates = {
-        "firstName": firstName,
-        "lastName": lastName,
-        "email": email,
-        "password_hash": hash_password(password) if password is not None else None,
-        "phone": phone,
-        "role": role,
-        "user_active": user_active,
-    }
-    for key, value in updates.items():
-        if value is not None:
-            setattr(user, key, value)
+    if name is not None:
+        user.name = name
+    if password is not None:
+        if len(password.strip()) < 8:
+            raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
+        user.password_hash = hash_password(password)
+    if role is not None:
+        if role not in ALLOWED_ROLES:
+            raise HTTPException(status_code=400, detail="Role inválida")
+        user.role = role
+    if phone is not None:
+        user.phone = phone
+    if user_active is not None:
+        user.user_active = user_active
 
     db.commit()
     db.refresh(user)
     return user
 
 
-def delete_user(db: Session, username: str):
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+def delete_user(db: Session, user_id: str):
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        raise HTTPException(status_code=404, detail="Usu'ário não encontrado")
 
     db.query(Pet).filter(Pet.owner_id == user.id).update(
         {Pet.owner_id: None}, synchronize_session=False
     )
-    db.query(Order).filter(Order.owner_id == user.id).delete(synchronize_session=False)
+    db.query(Service).filter(Service.owner_id == user.id).delete(synchronize_session=False)
 
     db.delete(user)
     db.commit()
-
-
-def login(db: Session, username: str, password: str):
-    user = db.query(UserModel).filter(UserModel.username == username).first()
-    if not user or not verify_password(password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
-    if not user.user_active:
-        raise HTTPException(status_code=403, detail="Usuário inativo")
-    token = create_access_token(subject=user.username, role=user.role)
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "expires_in": 1800,
-        "session": int(time.time()),
-    }
-
-
-def logout():
-    return {"code": 200, "type": "success", "message": "ok"}
-
