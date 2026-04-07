@@ -1,5 +1,7 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.models import Service, Pet, Tag
+
+from app.schemas.models import Pet, Service, Tag
 from app.schemas.schemas import PetStatus
 
 
@@ -10,7 +12,6 @@ def _resolve_tags(db: Session, tag_ids: list[int] | None) -> list[Tag] | None:
     if not tag_ids:
         return []
 
-    # Preserve Service and remove duplicates from incoming ids.
     unique_tag_ids = list(dict.fromkeys(tag_ids))
     tags = db.query(Tag).filter(Tag.id.in_(unique_tag_ids)).all()
     found_ids = {tag.id for tag in tags}
@@ -31,14 +32,18 @@ def create_pet(
     tag_ids: list[int] | None = None,
     owner_id: int | None = None,
 ):
+    if owner_id is None:
+        raise HTTPException(status_code=400, detail="owner_id é obrigatório para criar pet")
 
-    db_pet = Pet(
-        name=name,
-        photoUrls=photoUrls,
-        status=status,
-        category_id=category_id,
-        owner_id=owner_id,
-    )
+    pet_data: dict = {
+        "name": name,
+        "category_id": category_id,
+        "owner_id": owner_id,
+    }
+    if status is not None:
+        pet_data["status"] = status
+
+    db_pet = Pet(**pet_data)
 
     tags = _resolve_tags(db, tag_ids)
     if tags is not None:
@@ -65,7 +70,7 @@ def update_pet(
     status: PetStatus | None = None,
     tag_ids: list[int] | None = None,
     owner_id: int | None = None,
-    photoUrls: str | None = None
+    photoUrls: str | None = None,
 ):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
@@ -75,7 +80,6 @@ def update_pet(
         "name": name,
         "status": status,
         "owner_id": owner_id,
-        "photoUrls": photoUrls
     }
 
     if category_id is not None:
@@ -97,12 +101,7 @@ def update_pet(
 def delete_pet(db: Session, pet_id: int):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if pet:
-        db.query(Service).filter(Service.petId == pet_id).delete(synchronize_session=False)
+        db.query(Service).filter(Service.pet_id == pet_id).delete(synchronize_session=False)
         db.delete(pet)
         db.commit()
-
-
-def list_pets_by_status(db: Session, status: PetStatus):
-    pets = db.query(Pet).filter(Pet.status == status).all()
-    return pets
 

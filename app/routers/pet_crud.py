@@ -53,11 +53,6 @@ def criar_pet(
     return created_pet
 
 
-@router.get("/findByStatus", response_model=list[Pet])
-def buscar_por_status(status: PetStatus = Query(...), db: Session = Depends(get_db)):
-    return pet_service.list_pets_by_status(db, status)
-
-
 @router.get("/{pet_id}", response_model=Pet)
 def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
     pet = pet_service.get_pet(db, pet_id)
