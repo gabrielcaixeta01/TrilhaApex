@@ -29,12 +29,10 @@ class Store(BaseModel):
         from_attributes = True
 
 
-class User(BaseModel):
-    id: int
-    username: str
+class UserBase(BaseModel):
+    name: str
     email: str
-    password_hash: Optional[str] = None
-    role: str
+    role: str = "cliente"
     phone: Optional[str] = None
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
@@ -45,10 +43,24 @@ class User(BaseModel):
     hired_at: Optional[date] = None
     store_id: Optional[int] = None
     user_active: bool = True
+
+
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=8)
+
+
+class User(UserBase):
+    id: int
+    password_hash: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
 
     class Config:
         from_attributes = True
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
 
 class Category(BaseModel):

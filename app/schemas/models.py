@@ -23,7 +23,7 @@ class Store(Base):
     users = relationship("UserModel", back_populates="store", passive_deletes=True)
     services = relationship("Service", back_populates="store", passive_deletes=True)
 
-class User(Base):
+class UserModel(Base):
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -130,7 +130,7 @@ class Service(Base):
 
 Index(
     "ux_admin_loja_por_loja",
-    User.store_id,
+    UserModel.store_id,
     unique=True,
-    sqlite_where=User.role == "admin_loja",
+    sqlite_where=UserModel.role == "admin_loja",
 )

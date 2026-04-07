@@ -17,10 +17,11 @@ router = APIRouter(prefix="/category", tags=["CRUD de Categorias"])
 @router.post("", status_code=201, response_model=Category)
 def criar_categoria(
     name: str = Query(...),
-    current_user: UserModel = Depends(require_roles(["admin"])),
+    description: str | None = Query(None),
+    current_user: UserModel = Depends(require_roles(["super_admin"])),
     db: Session = Depends(get_db),
 ):
-    created_category = create_category(db=db, name=name)
+    created_category = create_category(db=db, name=name, description=description)
     return created_category
 
 @router.get("/categories", response_model=list[Category])
@@ -38,13 +39,14 @@ def buscar_categoria(id: int, db: Session = Depends(get_db)):
 def atualizar_categoria(
     id: int,
     name: str = Query(...),
-    current_user: UserModel = Depends(require_roles(["admin"])),
+    description: str | None = Query(None),
+    current_user: UserModel = Depends(require_roles(["super_admin"])),
     db: Session = Depends(get_db),
 ):
     categoria = get_category(db, id)
     if categoria is None:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
-    return update_category(db, id, name=name)
+    return update_category(db, id, name=name, description=description)
 
 
 
@@ -52,7 +54,7 @@ def atualizar_categoria(
 def deletar_categoria(
     id: int,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["admin"])),
+    current_user: UserModel = Depends(require_roles(["super_admin"])),
 ) -> dict:
     categoria = get_category(db, id)
     if categoria is None:

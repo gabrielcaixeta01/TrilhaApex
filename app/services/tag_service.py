@@ -3,13 +3,13 @@ from fastapi import HTTPException
 from app.schemas.models import Tag
 
 
-def create_tag(db: Session, name: str):
+def create_tag(db: Session, name: str, description: str | None = None):
     exists = db.query(Tag).filter(Tag.name == name).first()
 
     if exists:
         raise HTTPException(status_code=400, detail="Tag já existe")
     
-    db_tag = Tag(name=name)
+    db_tag = Tag(name=name, description=description )
     db.add(db_tag)
     db.commit()
     db.refresh(db_tag)
@@ -21,12 +21,13 @@ def get_tag(db: Session, tag_id: int):
         return None
     return tag
 
-def update_tag(db: Session, tag_id: int, name: str):
+def update_tag(db: Session, tag_id: int, name: str, description: str | None = None):
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
     if not tag:
         return None
 
     tag.name = name
+    tag.description = description
 
     db.commit()
     db.refresh(tag)

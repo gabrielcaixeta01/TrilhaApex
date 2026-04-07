@@ -35,12 +35,13 @@ def buscar_tag(id: int, db: Session = Depends(get_db)):
 def atualizar_tag(
     id: int,
     name: str = Query(...),
+    description: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
     tag = get_tag(db, id)
     if tag is None:
         raise HTTPException(status_code=404, detail="Tag não encontrada")
-    return update_tag(db, id, name=name)
+    return update_tag(db, id, name=name, description=description)
 
 
 

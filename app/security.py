@@ -110,11 +110,11 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token ausente")
 
     payload = decode_access_token(credentials.credentials)
-    username = payload.get("sub")
-    if not username:
+    name = payload.get("sub")
+    if not name:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
 
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+    user = db.query(UserModel).filter(UserModel.name == name).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário do token não existe")
     if not user.user_active:
@@ -130,11 +130,11 @@ def get_current_user_optional(
         return None
 
     payload = decode_access_token(credentials.credentials)
-    username = payload.get("sub")
-    if not username:
+    name = payload.get("sub")
+    if not name:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
 
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+    user = db.query(UserModel).filter(UserModel.name == name).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário do token não existe")
     if not user.user_active:
