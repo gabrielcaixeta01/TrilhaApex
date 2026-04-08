@@ -92,6 +92,3 @@ def delete_store(db: Session, store_id: int):
         db.delete(store)
         db.commit()
     return store
-
-def list_stores(db: Session):
-    return db.query(Store).all()

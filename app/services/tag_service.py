@@ -18,13 +18,13 @@ def create_tag(db: Session, name: str, description: str | None = None):
 def get_tag(db: Session, tag_id: int):
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
     if not tag:
-        return None
+        raise HTTPException(status_code=404, detail="Tag não encontrada")
     return tag
 
 def update_tag(db: Session, tag_id: int, name: str, description: str | None = None):
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
     if not tag:
-        return None
+        raise HTTPException(status_code=404, detail="Tag não encontrada")
 
     tag.name = name
     tag.description = description
@@ -36,9 +36,11 @@ def update_tag(db: Session, tag_id: int, name: str, description: str | None = No
 
 def delete_tag(db: Session, tag_id: int):
     tag = db.query(Tag).filter(Tag.id == tag_id).first()
-    if tag:
-        db.delete(tag)
-        db.commit()
+    if not tag:
+        raise HTTPException(status_code=404, detail="Tag não encontrada")
+
+    db.delete(tag)
+    db.commit()
     return tag
 
 def list_tags(db: Session):

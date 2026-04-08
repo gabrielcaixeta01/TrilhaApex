@@ -18,13 +18,13 @@ def create_category(db: Session, name: str, description: str | None = None):
 def get_category(db: Session, category_id: int):
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
-        return None
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
     return category
 
 def update_category(db: Session, category_id: int, name: str, description: str | None = None):
     category = db.query(Category).filter(Category.id == category_id).first()
     if not category:
-        return None
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
 
     category.name = name
     category.description = description
@@ -36,9 +36,11 @@ def update_category(db: Session, category_id: int, name: str, description: str |
 
 def delete_category(db: Session, category_id: int):
     category = db.query(Category).filter(Category.id == category_id).first()
-    if category:
-        db.delete(category)
-        db.commit()
+    if not category:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+
+    db.delete(category)
+    db.commit()
     return category
 
 def list_categories(db: Session):

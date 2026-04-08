@@ -1,15 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-
 from app.schemas.models import UserModel
 from app.security import create_access_token, hash_password, verify_password
 
 ALLOWED_ROLES = {"cliente", "funcionario", "admin_loja", "super_admin"}
-
-
-def _find_user(db: Session, name: str) -> UserModel | None:
-    return db.query(UserModel).filter(UserModel.name == name).first()
-
 
 def create_user(
     db: Session,
@@ -73,38 +67,29 @@ def get_user(db: Session, email: str):
 
 def update_user(
     db: Session,
-    name: str,
-    new_name: str | None = None,
     email: str | None = None,
-    password: str | None = None,
-    phone: str | None = None,
-    role: str | None = None,
+    new_name: str | None = None,
+    new_password: str | None = None,
+    new_phone: str | None = None,
     user_active: bool | None = None,
 ):
-    user = _find_user(db, name)
+    user = get_user(db, email)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     if new_name is not None:
-        if not new_name.strip():
-            raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
-        user.name = new_name.strip()
+       user.name = new_name
 
     if email is not None:
         user.email = email
 
-    if password is not None:
-        if len(password.strip()) < 8:
+    if new_password is not None:
+        if len(new_password.strip()) < 8:
             raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
-        user.password_hash = hash_password(password)
+        user.password_hash = hash_password(new_password)
 
-    if role is not None:
-        if role not in ALLOWED_ROLES:
-            raise HTTPException(status_code=400, detail="Role inválida")
-        user.role = role
-
-    if phone is not None:
-        user.phone = phone
+    if new_phone is not None:
+        user.phone = new_phone
 
     if user_active is not None:
         user.user_active = user_active
@@ -115,7 +100,7 @@ def update_user(
 
 
 def delete_user(db: Session, name: str):
-    user = _find_user(db, name)
+    user = get_user(db, email=name)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
@@ -123,8 +108,8 @@ def delete_user(db: Session, name: str):
     db.commit()
 
 
-def login(db: Session, name_or_email: str, password: str):
-    user = _find_user(db, name_or_email) or db.query(UserModel).filter(UserModel.email == name_or_email).first()
+"""def login(db: Session, name_or_email: str, password: str):
+    user = get_user(db, email=name_or_email)
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
     if not user.user_active:
@@ -139,3 +124,4 @@ def login(db: Session, name_or_email: str, password: str):
 
 def logout():
     return {"message": "ok"}
+"""
