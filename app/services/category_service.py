@@ -26,8 +26,14 @@ def update_category(db: Session, category_id: int, name: str, description: str |
     if not category:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
 
-    category.name = name
-    category.description = description
+    if name is not None:
+        if db.query(Category).filter(Category.name == name, Category.id != category_id).first():
+            raise HTTPException(status_code=400, detail="Outra categoria já existe com esse nome")
+        
+        category.name = name
+    
+    if description is not None:
+        category.description = description
 
     db.commit()
     db.refresh(category)

@@ -18,7 +18,7 @@ router = APIRouter(prefix="/category", tags=["CRUD de Categorias"])
 def criar_categoria(
     name: str = Query(...),
     description: str | None = Query(None),
-    current_user: UserModel = Depends(require_roles(["super_admin"])),
+    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja"])),
     db: Session = Depends(get_db),
 ):
     created_category = create_category(db=db, name=name, description=description)
@@ -40,7 +40,7 @@ def atualizar_categoria(
     id: int,
     name: str = Query(...),
     description: str | None = Query(None),
-    current_user: UserModel = Depends(require_roles(["super_admin"])),
+    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja"])),
     db: Session = Depends(get_db),
 ):
     categoria = get_category(db, id)
@@ -54,7 +54,7 @@ def atualizar_categoria(
 def deletar_categoria(
     id: int,
     db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["super_admin"])),
+    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja"])),
 ) -> dict:
     categoria = get_category(db, id)
     if categoria is None:
