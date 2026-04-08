@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.models import UserModel
-from app.security import create_access_token, hash_password, verify_password
 
 ALLOWED_ROLES = {"cliente", "funcionario", "admin_loja", "super_admin"}
 
@@ -38,7 +37,7 @@ def create_user(
     db_user = UserModel(
         name=name.strip(),
         email=email,
-        password_hash=hash_password(password),
+        password_hash=password,
         role=role,
         phone=phone,
         cpf=cpf,
@@ -86,7 +85,7 @@ def update_user(
     if new_password is not None:
         if len(new_password.strip()) < 8:
             raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
-        user.password_hash = hash_password(new_password)
+        user.password_hash = new_password
 
     if new_phone is not None:
         user.phone = new_phone
@@ -106,22 +105,3 @@ def delete_user(db: Session, name: str):
 
     db.delete(user)
     db.commit()
-
-
-"""def login(db: Session, name_or_email: str, password: str):
-    user = get_user(db, email=name_or_email)
-    if not user or not verify_password(password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
-    if not user.user_active:
-        raise HTTPException(status_code=403, detail="Usuário inativo")
-
-    token = create_access_token(subject=user.name, role=user.role)
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-    }
-
-
-def logout():
-    return {"message": "ok"}
-"""

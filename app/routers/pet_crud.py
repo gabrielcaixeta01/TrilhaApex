@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.security import get_current_user
 from app.services import pet_service
 from app.schemas.schemas import Pet, PetStatus
 from app.schemas.models import UserModel
@@ -62,16 +61,11 @@ def atualizar_pet(
     status: PetStatus | None = Query(None),
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
-    current_user: UserModel = Depends(get_current_user),
     db: Session =  Depends(get_db),
 ):
     pet = pet_service.get_pet(db, pet_id)
     if pet is None:
         raise HTTPException(status_code=404, detail="Pet não encontrado")
-
-    if current_user.role not in {"super_admin", "admin_loja", "funcionario"}:
-        if pet.owner_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pet pode atualizar")
         
     updated_pet = pet_service.update_pet(
         db=db,
