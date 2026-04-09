@@ -18,6 +18,7 @@ CREATE TABLE clientes (
 	end_cep VARCHAR(9) NOT NULL,
 	end_estado CHAR(2) NOT NULL,
 	end_cidade VARCHAR(120) NOT NULL,
+	PRIMARY KEY (usuario_id),
 	CONSTRAINT fk_clientes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
@@ -38,13 +39,13 @@ CREATE TABLE lojas (
 	telefone VARCHAR(20) NOT NULL,
 	email VARCHAR(255) NOT NULL UNIQUE,
 	ativo BOOLEAN NOT NULL DEFAULT TRUE,
-	data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+	data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	end_cep VARCHAR(9) NOT NULL,
 	end_cidade VARCHAR(120) NOT NULL,
 	end_estado CHAR(2) NOT NULL,
 	end_rua VARCHAR(255) NOT NULL,
 	end_bairro VARCHAR(120) NOT NULL,
-	end_numero VARCHAR(20) NOT NULL,
+	end_numero VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE atendimentos (
@@ -54,24 +55,30 @@ CREATE TABLE atendimentos (
 	forma_pagamento VARCHAR(20) NOT NULL,
 	status VARCHAR(20) NOT NULL,
 	online BOOLEAN NOT NULL DEFAULT FALSE,
-	observacoes VARCHAR(500),
+	observacoes VARCHAR(500)
 );
 
 CREATE TABLE servicos (
 	id INTEGER PRIMARY KEY,
 	nome VARCHAR(120) NOT NULL,
 	descricao VARCHAR(500),
-	preco DECIMAL(10,2) NOT NULL,
+	preco DECIMAL(10,2) NOT NULL
 );
 
 CREATE TABLE atendimento_servicos (
 	atendimento_id INTEGER NOT NULL,
 	servico_id INTEGER NOT NULL,
 	valor_cobrado DECIMAL(10,2) NOT NULL,
-	obervacoes VARCHAR(500),
+	observacoes VARCHAR(500),
 	PRIMARY KEY (atendimento_id, servico_id),
 	CONSTRAINT fk_atendimento_servicos_atendimento FOREIGN KEY (atendimento_id) REFERENCES atendimentos(id) ON DELETE CASCADE,
 	CONSTRAINT fk_atendimento_servicos_servico FOREIGN KEY (servico_id) REFERENCES servicos(id) ON DELETE CASCADE
+);
+
+CREATE TABLE categorias (
+	id INTEGER PRIMARY KEY,
+	nome VARCHAR(80) NOT NULL UNIQUE,
+	descricao VARCHAR(255)
 );
 
 CREATE TABLE pets (
@@ -85,7 +92,7 @@ CREATE TABLE pets (
 	categoria_id INTEGER NOT NULL,
 	dono_id INTEGER NOT NULL,
 	CONSTRAINT fk_pets_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE,
-	CONSTRAINT fk_pets_dono FOREIGN KEY (dono_id) REFERENCES clientes(usuario_id) ON DELETE CASCADE,
+	CONSTRAINT fk_pets_dono FOREIGN KEY (dono_id) REFERENCES clientes(usuario_id) ON DELETE CASCADE
 );
 
 CREATE TABLE tags (
@@ -102,8 +109,3 @@ CREATE TABLE pet_tags (
 	CONSTRAINT fk_pet_tags_tag FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
-CREATE TABLE categorias (
-	id INTEGER PRIMARY KEY,
-	nome VARCHAR(80) NOT NULL UNIQUE,
-	descricao VARCHAR(255)
-);
