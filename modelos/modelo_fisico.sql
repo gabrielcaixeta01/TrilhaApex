@@ -1,79 +1,97 @@
-BEGIN TRANSACTION;
-
-CREATE TABLE lojas (
-	id INTEGER PRIMARY KEY,
-	nome VARCHAR(120) NOT NULL,
-	cnpj VARCHAR(18) NOT NULL UNIQUE,
-	telefone VARCHAR(20),
-	email VARCHAR(255),
-	cep VARCHAR(9),
-	endereco VARCHAR(255),
-	cidade VARCHAR(120),
-	estado CHAR(2),
-	ativo BOOLEAN NOT NULL DEFAULT TRUE,
-	data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE usuarios (
 	id INTEGER PRIMARY KEY,
 	nome VARCHAR(120) NOT NULL,
 	email VARCHAR(255) NOT NULL UNIQUE,
 	senha_hash VARCHAR(255) NOT NULL,
-	telefone VARCHAR(20),
-	perfil VARCHAR(20) NOT NULL,
+	telefone VARCHAR(20) NOT NULL,
+	tipo_perfil VARCHAR(20) NOT NULL,
 	cpf VARCHAR(14),
 	cnpj VARCHAR(18),
-	tipo_cliente VARCHAR(20),
-	data_nascimento DATE,
-	endereco VARCHAR(255),
-	cargo VARCHAR(80),
-	data_inicio DATE,
-	loja_id INTEGER,
 	ativo BOOLEAN NOT NULL DEFAULT TRUE,
-	data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	CONSTRAINT ck_usuarios_perfil CHECK (perfil IN ('cliente', 'funcionario', 'admin_loja', 'super_admin')),
-	CONSTRAINT fk_usuarios_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE CASCADE,
-	CONSTRAINT ck_usuario_loja_por_perfil CHECK (
-		(perfil = 'funcionario')
-		OR (perfil = 'admin_loja' AND loja_id IS NOT NULL)
-		OR (perfil IN ('cliente', 'super_admin') AND loja_id IS NULL)
-	),
-	CONSTRAINT ck_cliente_documento CHECK (
-		perfil <> 'cliente'
-		OR (
-			(cpf IS NOT NULL AND cnpj IS NULL)
-			OR (cpf IS NULL AND cnpj IS NOT NULL)
-		)
-	)
+	is_superuser BOOLEAN NOT NULL DEFAULT FALSE,
+	data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE categorias (
+CREATE TABLE clientes (
+	usuario_id INTEGER NOT NULL,
+	tipo_cliente VARCHAR(20) NOT NULL,
+	end_cep VARCHAR(9) NOT NULL,
+	end_estado CHAR(2) NOT NULL,
+	end_cidade VARCHAR(120) NOT NULL,
+	CONSTRAINT fk_clientes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE funcionarios (
+	usuario_id INTEGER NOT NULL,
+	matricula VARCHAR(20) NOT NULL UNIQUE,
+	cargo VARCHAR(80) NOT NULL,
+	salario DECIMAL(10,2) NOT NULL,
+	data_contratacao DATE NOT NULL,
+	CONSTRAINT fk_funcionarios_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE lojas (
 	id INTEGER PRIMARY KEY,
-	nome VARCHAR(80) NOT NULL UNIQUE,
-	descricao VARCHAR(255)
+	nome VARCHAR(120) NOT NULL,
+	cnpj VARCHAR(18) NOT NULL UNIQUE,
+	telefone VARCHAR(20) NOT NULL,
+	email VARCHAR(255) NOT NULL UNIQUE,
+	ativo BOOLEAN NOT NULL DEFAULT TRUE,
+	data_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+	end_cep VARCHAR(9) NOT NULL,
+	end_cidade VARCHAR(120) NOT NULL,
+	end_estado CHAR(2) NOT NULL,
+	end_rua VARCHAR(255) NOT NULL,
+	end_bairro VARCHAR(120) NOT NULL,
+	end_numero VARCHAR(20) NOT NULL,
+);
+
+CREATE TABLE atendimentos (
+	id INTEGER PRIMARY KEY,
+	valor_final DECIMAL(10,2) NOT NULL,
+	data_atendimento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	forma_pagamento VARCHAR(20) NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	online BOOLEAN NOT NULL DEFAULT FALSE,
+	observacoes VARCHAR(500),
+);
+
+CREATE TABLE servicos (
+	id INTEGER PRIMARY KEY,
+	nome VARCHAR(120) NOT NULL,
+	descricao VARCHAR(500),
+	preco DECIMAL(10,2) NOT NULL,
+);
+
+CREATE TABLE atendimento_servicos (
+	atendimento_id INTEGER NOT NULL,
+	servico_id INTEGER NOT NULL,
+	valor_cobrado DECIMAL(10,2) NOT NULL,
+	obervacoes VARCHAR(500),
+	PRIMARY KEY (atendimento_id, servico_id),
+	CONSTRAINT fk_atendimento_servicos_atendimento FOREIGN KEY (atendimento_id) REFERENCES atendimentos(id) ON DELETE CASCADE,
+	CONSTRAINT fk_atendimento_servicos_servico FOREIGN KEY (servico_id) REFERENCES servicos(id) ON DELETE CASCADE
+);
+
+CREATE TABLE pets (
+	id INTEGER PRIMARY KEY,
+	nome VARCHAR(120),
+	raca VARCHAR(80),
+	sexo VARCHAR(20),
+	porte VARCHAR(20),
+	peso DECIMAL(6,2),
+	observacoes_saude VARCHAR(500),
+	categoria_id INTEGER NOT NULL,
+	dono_id INTEGER NOT NULL,
+	CONSTRAINT fk_pets_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE,
+	CONSTRAINT fk_pets_dono FOREIGN KEY (dono_id) REFERENCES clientes(usuario_id) ON DELETE CASCADE,
 );
 
 CREATE TABLE tags (
 	id INTEGER PRIMARY KEY,
 	nome VARCHAR(80) NOT NULL UNIQUE,
 	descricao VARCHAR(255)
-);
-
-CREATE TABLE pets (
-	id INTEGER PRIMARY KEY,
-	nome VARCHAR(120) NOT NULL,
-	especie VARCHAR(60),
-	raca VARCHAR(80),
-	sexo VARCHAR(20),
-	data_nascimento DATE,
-	porte VARCHAR(20),
-	peso DECIMAL(6,2),
-	observacoes_saude VARCHAR(500),
-	categoria_id INTEGER NOT NULL,
-	dono_id INTEGER NOT NULL,
-	ativo BOOLEAN NOT NULL DEFAULT TRUE,
-	CONSTRAINT fk_pets_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE,
-	CONSTRAINT fk_pets_dono FOREIGN KEY (dono_id) REFERENCES usuarios(id)
 );
 
 CREATE TABLE pet_tags (
@@ -84,34 +102,8 @@ CREATE TABLE pet_tags (
 	CONSTRAINT fk_pet_tags_tag FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
 );
 
-CREATE TABLE atendimentos (
+CREATE TABLE categorias (
 	id INTEGER PRIMARY KEY,
-	tipo_servico VARCHAR(80) NOT NULL,
-	descricao VARCHAR(500),
-	data_hora TIMESTAMP NOT NULL,
-	status VARCHAR(30) NOT NULL,
-	valor DECIMAL(10,2),
-	desconto DECIMAL(10,2) DEFAULT 0,
-	forma_pagamento VARCHAR(40),
-	observacoes VARCHAR(500),
-	loja_id INTEGER NOT NULL,
-	pet_id INTEGER NOT NULL,
-	cliente_id INTEGER NOT NULL,
-	funcionario_id INTEGER NOT NULL,
-	CONSTRAINT fk_atendimentos_loja FOREIGN KEY (loja_id) REFERENCES lojas(id),
-	CONSTRAINT fk_atendimentos_pet FOREIGN KEY (pet_id) REFERENCES pets(id),
-	CONSTRAINT fk_atendimentos_cliente FOREIGN KEY (cliente_id) REFERENCES usuarios(id),
-	CONSTRAINT fk_atendimentos_funcionario FOREIGN KEY (funcionario_id) REFERENCES usuarios(id)
+	nome VARCHAR(80) NOT NULL UNIQUE,
+	descricao VARCHAR(255)
 );
-
-CREATE UNIQUE INDEX ux_admin_loja_por_loja ON usuarios(loja_id) WHERE perfil = 'admin_loja';
-CREATE INDEX ix_usuarios_perfil ON usuarios(perfil);
-CREATE INDEX ix_pets_dono_id ON pets(dono_id);
-CREATE INDEX ix_pets_categoria_id ON pets(categoria_id);
-CREATE INDEX ix_atendimentos_pet_id ON atendimentos(pet_id);
-CREATE INDEX ix_atendimentos_loja_id ON atendimentos(loja_id);
-CREATE INDEX ix_atendimentos_cliente_id ON atendimentos(cliente_id);
-CREATE INDEX ix_atendimentos_funcionario_id ON atendimentos(funcionario_id);
-
-COMMIT;
-
