@@ -22,16 +22,6 @@ CREATE TABLE clientes (
 	CONSTRAINT fk_clientes_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
-CREATE TABLE funcionarios (
-	usuario_id INTEGER NOT NULL,
-	matricula VARCHAR(20) NOT NULL UNIQUE,
-	cargo VARCHAR(80) NOT NULL,
-	salario DECIMAL(10,2) NOT NULL,
-	data_contratacao DATE NOT NULL,
-	CONSTRAINT fk_funcionarios_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-);
-
-
 CREATE TABLE lojas (
 	id INTEGER PRIMARY KEY,
 	nome VARCHAR(120) NOT NULL,
@@ -48,6 +38,17 @@ CREATE TABLE lojas (
 	end_numero VARCHAR(20) NOT NULL
 );
 
+CREATE TABLE funcionarios (
+	usuario_id INTEGER NOT NULL,
+	matricula VARCHAR(20) NOT NULL UNIQUE,
+	cargo VARCHAR(80) NOT NULL,
+	salario DECIMAL(10,2) NOT NULL,
+	data_contratacao DATE NOT NULL,
+	loja_id INTEGER NOT NULL,
+	CONSTRAINT fk_funcionarios_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE CASCADE,
+	CONSTRAINT fk_funcionarios_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
 CREATE TABLE atendimentos (
 	id INTEGER PRIMARY KEY,
 	valor_final DECIMAL(10,2) NOT NULL,
@@ -55,7 +56,13 @@ CREATE TABLE atendimentos (
 	forma_pagamento VARCHAR(20) NOT NULL,
 	status VARCHAR(20) NOT NULL,
 	online BOOLEAN NOT NULL DEFAULT FALSE,
-	observacoes VARCHAR(500)
+	observacoes VARCHAR(500),
+	loja_id INTEGER NOT NULL,
+	cliente_id INTEGER NOT NULL,
+	funcionario_id INTEGER NOT NULL,
+	CONSTRAINT fk_atendimentos_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE CASCADE,
+	CONSTRAINT fk_atendimentos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(usuario_id),
+	CONSTRAINT fk_atendimentos_funcionario FOREIGN KEY (funcionario_id) REFERENCES funcionarios(usuario_id)
 );
 
 CREATE TABLE servicos (
