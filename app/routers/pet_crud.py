@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services import pet_service
-from app.schemas.schemas import Pet, PetStatus
-from app.schemas.models import UserModel
+from app.schemas.schemas import Pet
 
 router = APIRouter(prefix="/pet", tags=["CRUD de Pets"])
 
@@ -11,14 +10,11 @@ router = APIRouter(prefix="/pet", tags=["CRUD de Pets"])
 @router.post("", status_code=201, response_model=Pet)
 def criar_pet(
     name: str = Query(...),
-    species: str | None = Query(None),
     breed: str | None = Query(None),
     sex: str | None = Query(None),
-    birth_date: str | None = Query(None),
     size: str | None = Query(None),
     weight: float | None = Query(None),
     health_notes: str | None = Query(None),
-    status: PetStatus | None = Query(None),
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session = Depends(get_db),
@@ -26,14 +22,11 @@ def criar_pet(
     created_pet = pet_service.create_pet(
         db=db,
         name=name,
-        species=species,
         breed=breed,
         sex=sex,
-        birth_date=birth_date,
         size=size,
         weight=weight,
         health_notes=health_notes,
-        status=status,
         category_id=category_id,
         owner_id=owner_id,
     )
@@ -51,14 +44,11 @@ def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
 def atualizar_pet(
     pet_id: int,
     name: str | None = Query(None),
-    species: str | None = Query(None),
     breed: str | None = Query(None),
     sex: str | None = Query(None),
-    birth_date: str | None = Query(None),
     size: str | None = Query(None),
     weight: float | None = Query(None),
     health_notes: str | None = Query(None),
-    status: PetStatus | None = Query(None),
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     db: Session =  Depends(get_db),
@@ -71,14 +61,11 @@ def atualizar_pet(
         db=db,
         pet_id=pet_id,
         name=name,
-        species=species,
         breed=breed,
         sex=sex,
-        birth_date=birth_date,
         size=size,
         weight=weight,
         health_notes=health_notes,
-        status=status,
         category_id=category_id,
         owner_id=owner_id
     )

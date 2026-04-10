@@ -6,12 +6,9 @@ from app.services.user_service import (
     get_user,
     update_user,
     delete_user,
-    login,
-    logout,
     create_with_list
 )
-from app.schemas.schemas import User, UserCreate, TokenResponse
-from app.schemas.models import UserModel
+from app.schemas.schemas import User, UserCreate
 
 router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
 
@@ -45,15 +42,15 @@ def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db))
     return create_with_list(db, payload)
 
 
-@router.get("/{name}", response_model=User)
-def buscar_user(name: str, db: Session = Depends(get_db)) -> User:
-    return get_user(db, name)
+@router.get("/{user_id}", response_model=User)
+def buscar_user(user_id: int, db: Session = Depends(get_db)) -> User:
+    return get_user(db, user_id)
 
 
-@router.put("/{name}", response_model=User)
+@router.put("/{user_id}", response_model=User)
 def atualizar_user(
-    name: str,
-    new_name: str | None = Query(None),
+    user_id: int,
+    name: str | None = Query(None),
     email: str | None = Query(None),
     password: str | None = Query(None),
     phone: str | None = Query(None),
@@ -67,8 +64,8 @@ def atualizar_user(
         
     return update_user(
         db=db,
+        user_id=user_id,
         name=name,
-        new_name=new_name,
         email=email,
         password=password,
         phone=phone,
@@ -77,7 +74,7 @@ def atualizar_user(
     )
 
 
-@router.delete("/{name}", status_code=200, response_model=dict)
-def deletar_user( name: str, db: Session = Depends(get_db)) -> dict:
-    delete_user(db, name)
+@router.delete("/{user_id}", status_code=200, response_model=dict)
+def deletar_user(user_id: int, db: Session = Depends(get_db)) -> dict:
+    delete_user(db, user_id)
     return {"message": "Usuário deletado com sucesso"}

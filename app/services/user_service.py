@@ -90,8 +90,8 @@ def create_user(
     return db_user
 
 
-def get_user(db: Session, email: str):
-    user = db.query(UserModel).filter(UserModel.name == email).first()
+def get_user(db: Session, user_id: int):
+    user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return user
@@ -106,8 +106,8 @@ def get_user_by_email(db: Session, email: str):
 
 def update_user(
     db: Session,
+    user_id: int,
     name: str | None = None,
-    new_name: str | None = None,
     email: str | None = None,
     password: str | None = None,
     new_password: str | None = None,
@@ -117,12 +117,12 @@ def update_user(
     user_active: bool | None = None,
     is_superuser: bool | None = None,
 ):
-    user = get_user(db, name)
+    user = get_user(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    if new_name is not None:
-        user.name = new_name
+    if name is not None:
+        user.name = name
 
     if email is not None:
         user.email = email
@@ -153,8 +153,8 @@ def update_user(
     return user
 
 
-def delete_user(db: Session, name: str):
-    user = get_user(db, email=name)
+def delete_user(db: Session, user_id: int):
+    user = get_user(db, user_id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
