@@ -2,9 +2,26 @@ from datetime import datetime
 from decimal import Decimal
 
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.schemas.models import Service
+from app.schemas.models import AttendanceService, Service
+
+
+def _calculate_attendance_total(db: Session, attendance_id: int) -> Decimal:
+    total = (
+        db.query(func.coalesce(func.sum(AttendanceService.charged_value), 0))
+        .filter(AttendanceService.attendance_id == attendance_id)
+        .scalar()
+    )
+    return Decimal(total)
+
+
+def _sync_attendance_total(db: Session, service: Service) -> Service:
+    service.value_final = _calculate_attendance_total(db, service.id)
+    db.commit()
+    db.refresh(service)
+    return service
 
 
 def create_service(
@@ -24,14 +41,8 @@ def create_service(
     discount: Decimal | None = Decimal("0"),
     pet_id: int | None = None,
 ):
-    if value_final is None and price is not None:
-        value_final = price
-
-    if value_final is None:
-        value_final = Decimal("0")
-
     db_service = Service(
-        value_final=value_final,
+        value_final=Decimal("0"),
         service_at=service_at or datetime.utcnow(),
         payment_type=payment_type or "",
         status=status,
@@ -44,14 +55,14 @@ def create_service(
     db.add(db_service)
     db.commit()
     db.refresh(db_service)
-    return db_service
+    return _sync_attendance_total(db, db_service)
 
 
 def get_service(db: Session, service_id: int):
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
-    return service
+    return _sync_attendance_total(db, service)
 
 
 def list_services(
@@ -73,7 +84,11 @@ def list_services(
     if status is not None:
         query = query.filter(Service.status == status)
 
-    return query.order_by(Service.service_at.desc()).all()
+    services = query.order_by(Service.service_at.desc()).all()
+    for service in services:
+        service.value_final = _calculate_attendance_total(db, service.id)
+    db.commit()
+    return services
 
 
 def update_service(
@@ -99,7 +114,6 @@ def update_service(
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
 
     updates = {
-        "value_final": value_final if value_final is not None else price,
         "service_at": service_at,
         "status": status,
         "store_id": store_id,
@@ -115,7 +129,7 @@ def update_service(
 
     db.commit()
     db.refresh(service)
-    return service
+    return _sync_attendance_total(db, service)
 
 
 def delete_service(db: Session, service_id: int):
