@@ -12,7 +12,6 @@ from app.services.user_service import (
 )
 from app.schemas.schemas import User, UserCreate, TokenResponse
 from app.schemas.models import UserModel
-from app.security import get_current_user, require_roles
 
 router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
 
@@ -38,20 +37,6 @@ def criar_user(
         role=role,
     )
     return created_user
-
-
-@router.post("/login", response_model=TokenResponse)
-def login_user(
-    name: str = Query(...),
-    password: str = Query(...),
-    db: Session = Depends(get_db),
-) -> TokenResponse:
-    return login(db, name, password)
-
-
-@router.post("/logout", response_model=dict)
-def logout_user(current_user: UserModel = Depends(get_current_user)) -> dict:
-    return logout()
 
 
 @router.post("/createWithList", response_model=list[User])
@@ -93,13 +78,6 @@ def atualizar_user(
 
 
 @router.delete("/{name}", status_code=200, response_model=dict)
-def deletar_user(
-    name: str,
-    db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["cliente", "funcionario", "admin_loja", "super_admin"]))
-) -> dict:
-    if current_user.role != "super_admin" and current_user.name != name:
-        raise HTTPException(status_code=403, detail="Apenas admin ou o próprio usuário podem deletar")
-
+def deletar_user( name: str, db: Session = Depends(get_db)) -> dict:
     delete_user(db, name)
     return {"message": "Usuário deletado com sucesso"}

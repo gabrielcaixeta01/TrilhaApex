@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.schemas.schemas import Category
-from app.security import require_roles
 from app.database import get_db
 from app.schemas.models import UserModel
 from sqlalchemy.orm import Session
@@ -18,7 +17,6 @@ router = APIRouter(prefix="/category", tags=["CRUD de Categorias"])
 def criar_categoria(
     name: str = Query(...),
     description: str | None = Query(None),
-    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja"])),
     db: Session = Depends(get_db),
 ):
     created_category = create_category(db=db, name=name, description=description)
@@ -40,7 +38,6 @@ def atualizar_categoria(
     id: int,
     name: str = Query(...),
     description: str | None = Query(None),
-    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja"])),
     db: Session = Depends(get_db),
 ):
     categoria = get_category(db, id)
@@ -51,11 +48,7 @@ def atualizar_categoria(
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
-def deletar_categoria(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja"])),
-) -> dict:
+def deletar_categoria( id: int, db: Session = Depends(get_db)) -> dict:
     categoria = get_category(db, id)
     if categoria is None:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")

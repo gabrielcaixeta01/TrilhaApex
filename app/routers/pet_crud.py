@@ -85,16 +85,12 @@ def atualizar_pet(
     return updated_pet
 
 @router.delete("/{pet_id}", status_code=200, response_model=dict)
-def deletar_pet(pet_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_current_user)):
+def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
 
     pet = pet_service.get_pet(db, pet_id)
 
     if pet is None:
         raise HTTPException(status_code=404, detail="Pet não encontrado")
-    
-    if current_user.role not in {"super_admin", "admin_loja", "funcionario"}:
-        if pet.owner_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Apenas admin ou o dono do pet pode deletar")
 
     pet_service.delete_pet(db, pet_id)
     return {"message": "Pet deletado com sucesso"}

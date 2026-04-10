@@ -2,7 +2,6 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.security import require_roles
 from app.schemas.models import UserModel
 from app.services.service_service import (
     create_service,
@@ -30,7 +29,6 @@ def criar_atendimento(
     discount: float = Query(0),
     payment_type: str | None = Query(None),
     observations: str | None = Query(None),
-    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja", "funcionario"])),
     db: Session = Depends(get_db),
 ):
     service_at_final = service_at or datetime.now()
@@ -95,7 +93,6 @@ def atualizar_atendimento(
     discount: float | None = Query(None),
     payment_type: str | None = Query(None),
     observations: str | None = Query(None),
-    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja", "funcionario"])),
     db: Session = Depends(get_db),
 ) -> Service:
     service = get_service(db, id)
@@ -121,11 +118,7 @@ def atualizar_atendimento(
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
-def deletar_atendimento(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: UserModel = Depends(require_roles(["super_admin", "admin_loja", "funcionario"])),
-) -> dict:
+def deletar_atendimento(id: int, db: Session = Depends(get_db)) -> dict:
     service = get_service(db, id)
     if service is None:
         raise HTTPException(status_code=404, detail="Atendimento não encontrado")
