@@ -41,16 +41,25 @@ def create_service(
     discount: Decimal | None = Decimal("0"),
     pet_id: int | None = None,
 ):
+    if store_id is None:
+        raise HTTPException(status_code=400, detail="Loja é obrigatória")
+    if client_id is None:
+        raise HTTPException(status_code=400, detail="Cliente é obrigatório")
+    if worker_id is None:
+        raise HTTPException(status_code=400, detail="Funcionário é obrigatório")
+    if not payment_type:
+        raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
+
     db_service = Service(
         value_final=Decimal("0"),
         service_at=service_at or datetime.utcnow(),
-        payment_type=payment_type or "",
+        payment_type=payment_type,
         status=status,
         online=online,
         observations=observations,
-        store_id=store_id or 1,
-        client_id=client_id or 1,
-        worker_id=worker_id or 1,
+        store_id=store_id,
+        client_id=client_id,
+        worker_id=worker_id,
     )
     db.add(db_service)
     db.commit()
@@ -65,36 +74,9 @@ def get_service(db: Session, service_id: int):
     return _sync_attendance_total(db, service)
 
 
-def list_services(
-    db: Session,
-    client_id: int | None = None,
-    store_id: int | None = None,
-    pet_id: int | None = None,
-    worker_id: int | None = None,
-    status: str | None = None,
-):
-    query = db.query(Service)
-
-    if client_id is not None:
-        query = query.filter(Service.client_id == client_id)
-    if store_id is not None:
-        query = query.filter(Service.store_id == store_id)
-    if worker_id is not None:
-        query = query.filter(Service.worker_id == worker_id)
-    if status is not None:
-        query = query.filter(Service.status == status)
-
-    services = query.order_by(Service.service_at.desc()).all()
-    for service in services:
-        service.value_final = _calculate_attendance_total(db, service.id)
-    db.commit()
-    return services
-
-
 def update_service(
     db: Session,
     service_id: int,
-    value_final: Decimal | None = None,
     service_at: datetime | None = None,
     status: str | None = None,
     store_id: int | None = None,
@@ -103,11 +85,7 @@ def update_service(
     payment_type: str | None = None,
     observations: str | None = None,
     online: bool | None = None,
-    service_type: str | None = None,
-    description: str | None = None,
-    price: Decimal | None = None,
-    discount: Decimal | None = None,
-    pet_id: int | None = None,
+    
 ):
     service = get_service(db, service_id)
     if not service:

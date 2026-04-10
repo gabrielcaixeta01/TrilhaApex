@@ -111,7 +111,7 @@ class Pet(Base):
     __tablename__ = "pets"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column("nome", String(120), index=True, nullable=False)
+    name = Column("nome", String(120), index=True)
     breed = Column("raca", String(80))
     sex = Column("sexo", String(20))
     size = Column("porte", String(20))
@@ -137,7 +137,7 @@ class ServiceCatalog(Base):
     __tablename__ = "servicos"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column("nome", String(120), nullable=False, unique=True)
+    name = Column("nome", String(120), nullable=False)
     description = Column("descricao", String(500))
     price = Column("preco", Numeric(10, 2), nullable=False)
 
@@ -175,6 +175,8 @@ class AttendanceService(Base):
     )
     service_id = Column("servico_id", Integer, ForeignKey("servicos.id", ondelete="CASCADE"), primary_key=True)
     charged_value = Column("valor_cobrado", Numeric(10, 2), nullable=False)
+    order_date = Column("data_pedido", DateTime, nullable=False, default=datetime.utcnow)
+    delivery_date = Column("data_entrega", DateTime)
     observations = Column("observacoes", String(500))
 
     attendance = relationship("Service", back_populates="items")

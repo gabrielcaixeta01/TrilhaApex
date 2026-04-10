@@ -17,6 +17,22 @@ def create_store(
     number: str | None = None,
     active: bool = True,
 ):
+    required_fields = {
+        "name": name,
+        "cnpj": cnpj,
+        "phone": phone,
+        "email": email,
+        "cep": cep,
+        "city": city,
+        "state": state,
+        "address": address,
+        "neighborhood": neighborhood,
+        "number": number,
+    }
+    missing = [field for field, value in required_fields.items() if value in (None, "")]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Campos obrigatórios ausentes: {', '.join(missing)}")
+
     exists_name = db.query(Store).filter(Store.name == name).first()
     exists_cnpj = db.query(Store).filter(Store.cnpj == cnpj).first()
 

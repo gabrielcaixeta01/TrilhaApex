@@ -288,6 +288,8 @@ class AttendanceService(BaseModel):
     attendance_id: int
     service_id: int
     charged_value: Decimal
+    order_date: datetime
+    delivery_date: Optional[datetime] = None
     observations: Optional[str] = None
 
     class Config:
@@ -298,9 +300,13 @@ class AttendanceServiceCreate(BaseModel):
     attendance_id: int
     service_id: int
     charged_value: Decimal
+    order_date: Optional[datetime] = None
+    delivery_date: Optional[datetime] = None
     observations: Optional[str] = None
 
 
 class AttendanceServiceUpdate(BaseModel):
     charged_value: Optional[Decimal] = None
+    order_date: Optional[datetime] = None
+    delivery_date: Optional[datetime] = None
     observations: Optional[str] = None

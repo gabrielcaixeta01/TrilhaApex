@@ -39,9 +39,10 @@ def create_user(
     if not name.strip():
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
 
-    exists = db.query(UserModel).filter(UserModel.name == name).first()
-    if exists:
-        raise HTTPException(status_code=400, detail="Usuário já existe")
+   
+    exists_email = db.query(UserModel).filter(UserModel.email == email).first()
+    if exists_email:
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
     if user_active is not None:
         active = user_active
@@ -111,6 +112,7 @@ def update_user(
     password: str | None = None,
     new_password: str | None = None,
     new_phone: str | None = None,
+    phone: str | None = None,
     role: str | None = None,
     user_active: bool | None = None,
     is_superuser: bool | None = None,
@@ -136,8 +138,9 @@ def update_user(
             raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
         user.password_hash = password_to_use
 
-    if new_phone is not None:
-        user.phone = new_phone
+    phone_to_use = new_phone if new_phone is not None else phone
+    if phone_to_use is not None:
+        user.phone = phone_to_use
 
     if user_active is not None:
         user.active = user_active

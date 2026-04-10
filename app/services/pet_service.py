@@ -14,11 +14,13 @@ def create_pet(
     health_notes: str | None = None,
     category_id: int | None = None,
     owner_id: int | None = None,
-    species: str | None = None,
-    birth_date: str | None = None,
-    status: PetStatus | None = None,
-    active: bool = True,
 ):
+    if not name.strip():
+        raise HTTPException(status_code=400, detail="Nome do pet é obrigatório")
+
+    if category_id is None:
+        raise HTTPException(status_code=400, detail="Categoria do pet é obrigatória")
+
     if owner_id is None:
         raise HTTPException(status_code=400, detail="Dono do pet é obrigatório para criar pet")
 
@@ -58,10 +60,6 @@ def update_pet(
     health_notes: str | None = None,
     category_id: int | None = None,
     owner_id: int | None = None,
-    species: str | None = None,
-    birth_date: str | None = None,
-    status: PetStatus | None = None,
-    active: bool | None = None,
 ):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
@@ -81,6 +79,12 @@ def update_pet(
     for key, value in updates.items():
         if value is not None:
             setattr(pet, key, value)
+
+    if pet.category_id is None:
+        raise HTTPException(status_code=400, detail="Categoria do pet é obrigatória")
+
+    if pet.owner_id is None:
+        raise HTTPException(status_code=400, detail="Dono do pet é obrigatório")
 
   
     db.commit()
