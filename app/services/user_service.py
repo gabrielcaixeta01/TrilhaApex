@@ -97,11 +97,6 @@ def get_user(db: Session, user_id: int):
     return user
 
 
-def get_user_by_email(db: Session, email: str):
-    user = db.query(UserModel).filter(UserModel.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    return user
 
 
 def update_user(
@@ -190,14 +185,3 @@ def create_with_list(db: Session, users: list[dict]):
         )
     return created_users
 
-
-def login(db: Session, email: str, password: str):
-    user = get_user_by_email(db, email)
-    if user.password_hash != password:
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
-    return {"access_token": f"fake-token-{user.id}", "token_type": "bearer"}
-
-
-def logout(db: Session, email: str):
-    get_user_by_email(db, email)
-    return {"message": "Logout realizado com sucesso"}

@@ -36,12 +36,6 @@ def criar_user(
     return created_user
 
 
-@router.post("/createWithList", response_model=list[User])
-def criar_lista_usuarios(users: list[UserCreate], db: Session = Depends(get_db)) -> list[User]:
-    payload = [user.model_dump() for user in users]
-    return create_with_list(db, payload)
-
-
 @router.get("/{user_id}", response_model=User)
 def buscar_user(user_id: int, db: Session = Depends(get_db)) -> User:
     return get_user(db, user_id)
