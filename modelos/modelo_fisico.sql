@@ -76,6 +76,8 @@ CREATE TABLE atendimento_servicos (
 	atendimento_id INTEGER NOT NULL,
 	servico_id INTEGER NOT NULL,
 	valor_cobrado DECIMAL(10,2) NOT NULL,
+	data_pedido TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	data_entrega TIMESTAMP,
 	observacoes VARCHAR(500),
 	PRIMARY KEY (atendimento_id, servico_id),
 	CONSTRAINT fk_atendimento_servicos_atendimento FOREIGN KEY (atendimento_id) REFERENCES atendimentos(id) ON DELETE CASCADE,
