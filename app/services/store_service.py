@@ -10,9 +10,11 @@ def create_store(
     phone: str | None = None,
     email: str | None = None,
     cep: str | None = None,
-    address: str | None = None,
     city: str | None = None,
     state: str | None = None,
+    address: str | None = None,
+    neighborhood: str | None = None,
+    number: str | None = None,
     active: bool = True,
 ):
     exists_name = db.query(Store).filter(Store.name == name).first()
@@ -29,9 +31,11 @@ def create_store(
         phone=phone,
         email=email,
         cep=cep,
-        address=address,
         city=city,
         state=state,
+        address=address,
+        neighborhood=neighborhood,
+        number=number,
         active=active,
     )
     db.add(db_store)
@@ -53,9 +57,11 @@ def update_store(
     phone: str | None = None,
     email: str | None = None,
     cep: str | None = None,
-    address: str | None = None,
     city: str | None = None,
     state: str | None = None,
+    address: str | None = None,
+    neighborhood: str | None = None,
+    number: str | None = None,
     active: bool | None = None,
 ):
     store = db.query(Store).filter(Store.id == store_id).first()
@@ -72,12 +78,16 @@ def update_store(
         store.email = email
     if cep is not None:
         store.cep = cep
-    if address is not None:
-        store.address = address
     if city is not None:
         store.city = city
     if state is not None:
         store.state = state
+    if address is not None:
+        store.address = address
+    if neighborhood is not None:
+        store.neighborhood = neighborhood
+    if number is not None:
+        store.number = number
     if active is not None:
         store.active = active
 

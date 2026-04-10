@@ -1,22 +1,22 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.models import Pet, Service
+from app.schemas.models import Pet
 from app.schemas.schemas import PetStatus
 
 
 def create_pet(
     db: Session,
     name: str,
-    species: str | None = None,
     breed: str | None = None,
     sex: str | None = None,
-    birth_date: str | None = None,
     size: str | None = None,
     weight: float | None = None,
     health_notes: str | None = None,
-    status: PetStatus | None = None,
     category_id: int | None = None,
     owner_id: int | None = None,
+    species: str | None = None,
+    birth_date: str | None = None,
+    status: PetStatus | None = None,
     active: bool = True,
 ):
     if owner_id is None:
@@ -24,17 +24,13 @@ def create_pet(
 
     pet_data = {
         "name": name,
-        "species": species,
         "breed": breed,
         "sex": sex,
-        "birth_date": birth_date,
         "size": size,
         "weight": weight,
         "health_notes": health_notes,
-        "status": status,
         "category_id": category_id,
         "owner_id": owner_id,
-        "active": active,
     }
 
     db_pet = Pet(**pet_data)
@@ -55,16 +51,16 @@ def update_pet(
     db: Session,
     pet_id: int,
     name: str | None = None,
-    species: str | None = None,
     breed: str | None = None,
     sex: str | None = None,
-    birth_date: str | None = None,
     size: str | None = None,
     weight: float | None = None,
     health_notes: str | None = None,
-    status: PetStatus | None = None,
     category_id: int | None = None,
     owner_id: int | None = None,
+    species: str | None = None,
+    birth_date: str | None = None,
+    status: PetStatus | None = None,
     active: bool | None = None,
 ):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -73,17 +69,13 @@ def update_pet(
 
     updates = {
         "name": name,
-        "species": species,
         "breed": breed,
         "sex": sex,
-        "birth_date": birth_date,
         "size": size,
         "weight": weight,
         "health_notes": health_notes,
-        "status": status,
         "category_id": category_id,
         "owner_id": owner_id,
-        "active": active,
     }
 
     for key, value in updates.items():
@@ -100,8 +92,7 @@ def delete_pet(db: Session, pet_id: int):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
         raise HTTPException(status_code=404, detail="Pet não encontrado")
-    
-    db.query(Service).filter(Service.pet_id == pet_id).delete(synchronize_session=False)
+
     db.delete(pet)
     db.commit()
 

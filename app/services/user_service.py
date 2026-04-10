@@ -1,6 +1,10 @@
+from datetime import date
+from decimal import Decimal
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.models import UserModel
+
+from app.schemas.models import ClientModel, EmployeeModel, UserModel
 
 ALLOWED_ROLES = {"cliente", "funcionario", "admin_loja", "super_admin"}
 
@@ -14,12 +18,17 @@ def create_user(
     cpf: str | None = None,
     cnpj: str | None = None,
     client_type: str | None = None,
-    birth_date: str | None = None,
-    address: str | None = None,
+    client_cep: str | None = None,
+    client_state: str | None = None,
+    client_city: str | None = None,
+    matricula: str | None = None,
     job_title: str | None = None,
-    hired_at: str | None = None,
+    salary: Decimal | None = None,
+    hired_at: date | None = None,
     store_id: int | None = None,
-    user_active: bool = True,
+    active: bool = True,
+    is_superuser: bool = False,
+    user_active: bool | None = None,
 ):
     if len(password.strip()) < 8:
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
@@ -34,30 +43,60 @@ def create_user(
     if exists:
         raise HTTPException(status_code=400, detail="Usuário já existe")
 
+    if user_active is not None:
+        active = user_active
+
     db_user = UserModel(
         name=name.strip(),
         email=email,
         password_hash=password,
         role=role,
-        phone=phone,
+        phone=phone or "",
         cpf=cpf,
         cnpj=cnpj,
-        client_type=client_type,
-        birth_date=birth_date,
-        address=address,
-        job_title=job_title,
-        hired_at=hired_at,
-        store_id=store_id,
-        user_active=user_active,
+        active=active,
+        is_superuser=is_superuser,
     )
 
     db.add(db_user)
+    db.flush()
+
+    if role == "cliente" or client_type is not None:
+        db.add(
+            ClientModel(
+                user_id=db_user.id,
+                client_type=client_type or "cliente",
+                cep=client_cep or "",
+                state=client_state or "",
+                city=client_city or "",
+            )
+        )
+
+    if role in {"funcionario", "admin_loja"} or job_title is not None or store_id is not None:
+        db.add(
+            EmployeeModel(
+                user_id=db_user.id,
+                matricula=matricula or f"USR-{db_user.id}",
+                job_title=job_title or role,
+                salary=salary or Decimal("0"),
+                hired_at=hired_at or date.today(),
+                store_id=store_id or 1,
+            )
+        )
+
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
 def get_user(db: Session, email: str):
+    user = db.query(UserModel).filter(UserModel.name == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
+
+
+def get_user_by_email(db: Session, email: str):
     user = db.query(UserModel).filter(UserModel.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
@@ -66,32 +105,45 @@ def get_user(db: Session, email: str):
 
 def update_user(
     db: Session,
-    email: str | None = None,
+    name: str | None = None,
     new_name: str | None = None,
+    email: str | None = None,
+    password: str | None = None,
     new_password: str | None = None,
     new_phone: str | None = None,
+    role: str | None = None,
     user_active: bool | None = None,
+    is_superuser: bool | None = None,
 ):
-    user = get_user(db, email)
+    user = get_user(db, name)
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     if new_name is not None:
-       user.name = new_name
+        user.name = new_name
 
     if email is not None:
         user.email = email
 
-    if new_password is not None:
-        if len(new_password.strip()) < 8:
+    if role is not None:
+        if role not in ALLOWED_ROLES:
+            raise HTTPException(status_code=400, detail="Role inválida")
+        user.role = role
+
+    password_to_use = new_password or password
+    if password_to_use is not None:
+        if len(password_to_use.strip()) < 8:
             raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
-        user.password_hash = new_password
+        user.password_hash = password_to_use
 
     if new_phone is not None:
         user.phone = new_phone
 
     if user_active is not None:
-        user.user_active = user_active
+        user.active = user_active
+
+    if is_superuser is not None:
+        user.is_superuser = is_superuser
 
     db.commit()
     db.refresh(user)
@@ -105,3 +157,44 @@ def delete_user(db: Session, name: str):
 
     db.delete(user)
     db.commit()
+
+
+def create_with_list(db: Session, users: list[dict]):
+    created_users = []
+    for user_data in users:
+        created_users.append(
+            create_user(
+                db=db,
+                name=user_data["name"],
+                password=user_data["password"],
+                email=user_data["email"],
+                role=user_data.get("role", "cliente"),
+                phone=user_data.get("phone"),
+                cpf=user_data.get("cpf"),
+                cnpj=user_data.get("cnpj"),
+                client_type=user_data.get("client_type"),
+                client_cep=user_data.get("client_cep"),
+                client_state=user_data.get("client_state"),
+                client_city=user_data.get("client_city"),
+                matricula=user_data.get("matricula"),
+                job_title=user_data.get("job_title"),
+                salary=user_data.get("salary"),
+                hired_at=user_data.get("hired_at"),
+                store_id=user_data.get("store_id"),
+                active=user_data.get("active", True),
+                is_superuser=user_data.get("is_superuser", False),
+            )
+        )
+    return created_users
+
+
+def login(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+    if user.password_hash != password:
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    return {"access_token": f"fake-token-{user.id}", "token_type": "bearer"}
+
+
+def logout(db: Session, email: str):
+    get_user_by_email(db, email)
+    return {"message": "Logout realizado com sucesso"}
