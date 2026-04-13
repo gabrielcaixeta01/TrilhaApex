@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.schemas.models import ServiceCatalog
+from app.schemas.models import Service
 
 
 def create_service(
@@ -17,7 +17,7 @@ def create_service(
     if price < 0:
         raise HTTPException(status_code=400, detail="Preço do serviço não pode ser negativo")
 
-    service = ServiceCatalog(name=name.strip(), description=description, price=price)
+    service = Service(name=name.strip(), description=description, price=price)
     db.add(service)
     db.commit()
     db.refresh(service)
@@ -25,7 +25,7 @@ def create_service(
 
 
 def get_service(db: Session, service_id: int):
-    service = db.query(ServiceCatalog).filter(ServiceCatalog.id == service_id).first()
+    service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
     return service
@@ -35,10 +35,10 @@ def list_services(
     db: Session,
     name: str | None = None,
 ):
-    query = db.query(ServiceCatalog)
+    query = db.query(Service)
     if name:
-        query = query.filter(ServiceCatalog.name.ilike(f"%{name}%"))
-    return query.order_by(ServiceCatalog.name.asc()).all()
+        query = query.filter(Service.name.ilike(f"%{name}%"))
+    return query.order_by(Service.name.asc()).all()
 
 
 def update_service(

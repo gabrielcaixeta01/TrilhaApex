@@ -4,19 +4,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.schemas import Service
-from app.services.attendance_service import (
-	create_attendance,
-	delete_attendance,
-	get_attendance,
-	list_attendances,
-	update_attendance,
+from app.schemas.schemas import Appointment
+from app.services.appointment_service import (
+	create_appointment,
+	delete_appointment,
+	get_appointment,
+	list_appointments,
+	update_appointment,
 )
 
-router = APIRouter(prefix="/attendance", tags=["CRUD de Atendimentos"])
+router = APIRouter(prefix="/appointment", tags=["CRUD de Atendimentos"])
 
 
-@router.post("", status_code=201, response_model=Service)
+@router.post("", status_code=201, response_model=Appointment)
 def criar_atendimento(
 	service_at: datetime | None = Query(None),
 	status: str = Query("agendado"),
@@ -28,7 +28,7 @@ def criar_atendimento(
 	online: bool = Query(False),
 	db: Session = Depends(get_db),
 ):
-	return create_attendance(
+	return create_appointment(
 		db=db,
 		service_at=service_at,
 		status=status,
@@ -41,15 +41,15 @@ def criar_atendimento(
 	)
 
 
-@router.get("", response_model=list[Service])
+@router.get("", response_model=list[Appointment])
 def listar_atendimentos(
 	client_id: int | None = Query(None),
 	store_id: int | None = Query(None),
 	worker_id: int | None = Query(None),
 	status: str | None = Query(None),
 	db: Session = Depends(get_db),
-) -> list[Service]:
-	return list_attendances(
+) -> list[Appointment]:
+	return list_appointments(
 		db,
 		client_id=client_id,
 		store_id=store_id,
@@ -58,15 +58,15 @@ def listar_atendimentos(
 	)
 
 
-@router.get("/{id}", response_model=Service)
-def buscar_atendimento(id: int, db: Session = Depends(get_db)) -> Service:
-	attendance = get_attendance(db, id)
-	if attendance is None:
+@router.get("/{id}", response_model=Appointment)
+def buscar_atendimento(id: int, db: Session = Depends(get_db)) -> Appointment:
+	appointment = get_appointment(db, id)
+	if appointment is None:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-	return attendance
+	return appointment
 
 
-@router.put("/{id}", response_model=Service)
+@router.put("/{id}", response_model=Appointment)
 def atualizar_atendimento(
 	id: int,
 	service_at: datetime | None = Query(None),
@@ -78,14 +78,14 @@ def atualizar_atendimento(
 	observations: str | None = Query(None),
 	online: bool | None = Query(None),
 	db: Session = Depends(get_db),
-) -> Service:
-	attendance = get_attendance(db, id)
-	if attendance is None:
+) -> Appointment:
+	appointment = get_appointment(db, id)
+	if appointment is None:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 
-	return update_attendance(
+	return update_appointment(
 		db=db,
-		attendance_id=id,
+		appointment_id=id,
 		service_at=service_at,
 		status=status,
 		store_id=store_id,
@@ -99,9 +99,9 @@ def atualizar_atendimento(
 
 @router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_atendimento(id: int, db: Session = Depends(get_db)) -> dict:
-	attendance = get_attendance(db, id)
-	if attendance is None:
+	appointment = get_appointment(db, id)
+	if appointment is None:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 
-	delete_attendance(db, id)
+	delete_appointment(db, id)
 	return {"message": "Atendimento deletado com sucesso"}

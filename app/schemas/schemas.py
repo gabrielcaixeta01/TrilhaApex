@@ -222,7 +222,7 @@ class PetUpdate(BaseModel):
     owner_id: Optional[int] = None
 
 
-class ServiceCatalog(BaseModel):
+class Service(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
@@ -232,19 +232,19 @@ class ServiceCatalog(BaseModel):
         from_attributes = True
 
 
-class ServiceCatalogCreate(BaseModel):
+class ServiceCreate(BaseModel):
     name: str
     description: Optional[str] = None
     price: Decimal
 
 
-class ServiceCatalogUpdate(BaseModel):
+class ServiceUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[Decimal] = None
 
 
-class Service(BaseModel):
+class Appointment(BaseModel):
     id: int
     value_final: Decimal
     service_at: datetime
@@ -260,7 +260,7 @@ class Service(BaseModel):
         from_attributes = True
 
 
-class ServiceCreate(BaseModel):
+class AppointmentCreate(BaseModel):
     value_final: Decimal
     service_at: Optional[datetime] = None
     payment_type: str
@@ -272,7 +272,7 @@ class ServiceCreate(BaseModel):
     worker_id: int
 
 
-class ServiceUpdate(BaseModel):
+class AppointmentUpdate(BaseModel):
     value_final: Optional[Decimal] = None
     service_at: Optional[datetime] = None
     payment_type: Optional[str] = None
@@ -284,8 +284,8 @@ class ServiceUpdate(BaseModel):
     worker_id: Optional[int] = None
 
 
-class AttendanceService(BaseModel):
-    attendance_id: int
+class AppointmentService(BaseModel):
+    appointment_id: int
     service_id: int
     charged_value: Decimal
     order_date: datetime
@@ -296,8 +296,8 @@ class AttendanceService(BaseModel):
         from_attributes = True
 
 
-class AttendanceServiceCreate(BaseModel):
-    attendance_id: int
+class AppointmentServiceCreate(BaseModel):
+    appointment_id: int
     service_id: int
     charged_value: Decimal
     order_date: Optional[datetime] = None
@@ -305,7 +305,7 @@ class AttendanceServiceCreate(BaseModel):
     observations: Optional[str] = None
 
 
-class AttendanceServiceUpdate(BaseModel):
+class AppointmentServiceUpdate(BaseModel):
     charged_value: Optional[Decimal] = None
     order_date: Optional[datetime] = None
     delivery_date: Optional[datetime] = None

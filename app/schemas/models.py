@@ -24,7 +24,7 @@ class Store(Base):
     number = Column("end_numero", String(20), nullable=False)
 
     employees = relationship("EmployeeModel", back_populates="store", passive_deletes=True)
-    services = relationship("Service", back_populates="store", passive_deletes=True)
+    appointments = relationship("Appointment", back_populates="store", passive_deletes=True)
 
 
 class UserModel(Base):
@@ -69,7 +69,7 @@ class ClientModel(Base):
 
     user = relationship("UserModel", back_populates="client_profile")
     pets = relationship("Pet", back_populates="owner", passive_deletes=True)
-    client_services = relationship("Service", back_populates="client", passive_deletes=True)
+    appointments = relationship("Appointment", back_populates="client", passive_deletes=True)
 
 
 class EmployeeModel(Base):
@@ -84,7 +84,7 @@ class EmployeeModel(Base):
 
     user = relationship("UserModel", back_populates="employee_profile")
     store = relationship("Store", back_populates="employees")
-    worker_services = relationship("Service", back_populates="worker", passive_deletes=True)
+    appointments = relationship("Appointment", back_populates="worker", passive_deletes=True)
 
 
 class Category(Base):
@@ -133,7 +133,7 @@ pet_tags = Table(
 )
 
 
-class ServiceCatalog(Base):
+class Service(Base):
     __tablename__ = "servicos"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -141,10 +141,10 @@ class ServiceCatalog(Base):
     description = Column("descricao", String(500))
     price = Column("preco", Numeric(10, 2), nullable=False)
 
-    attendance_links = relationship("AttendanceService", back_populates="service", passive_deletes=True)
+    appointment_links = relationship("AppointmentService", back_populates="service", passive_deletes=True)
 
 
-class Service(Base):
+class Appointment(Base):
     __tablename__ = "atendimentos"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -158,16 +158,16 @@ class Service(Base):
     client_id = Column("cliente_id", Integer, ForeignKey("clientes.usuario_id"), nullable=False)
     worker_id = Column("funcionario_id", Integer, ForeignKey("funcionarios.usuario_id"), nullable=False)
 
-    store = relationship("Store", back_populates="services")
-    client = relationship("ClientModel", back_populates="client_services")
-    worker = relationship("EmployeeModel", back_populates="worker_services")
-    items = relationship("AttendanceService", back_populates="attendance", cascade="all, delete-orphan")
+    store = relationship("Store", back_populates="appointments")
+    client = relationship("ClientModel", back_populates="appointments")
+    worker = relationship("EmployeeModel", back_populates="appointments")
+    items = relationship("AppointmentService", back_populates="appointment", cascade="all, delete-orphan")
 
 
-class AttendanceService(Base):
+class AppointmentService(Base):
     __tablename__ = "atendimento_servicos"
 
-    attendance_id = Column(
+    appointment_id = Column(
         "atendimento_id",
         Integer,
         ForeignKey("atendimentos.id", ondelete="CASCADE"),
@@ -179,5 +179,5 @@ class AttendanceService(Base):
     delivery_date = Column("data_entrega", DateTime)
     observations = Column("observacoes", String(500))
 
-    attendance = relationship("Service", back_populates="items")
-    service = relationship("ServiceCatalog", back_populates="attendance_links")
+    appointment = relationship("Appointment", back_populates="items")
+    service = relationship("Service", back_populates="appointment_links")

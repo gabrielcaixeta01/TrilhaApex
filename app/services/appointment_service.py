@@ -5,26 +5,26 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.schemas.models import AttendanceService, Service
+from app.schemas.models import Appointment, AppointmentService
 
 
-def _calculate_attendance_total(db: Session, attendance_id: int) -> Decimal:
+def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
 	total = (
-		db.query(func.coalesce(func.sum(AttendanceService.charged_value), 0))
-		.filter(AttendanceService.attendance_id == attendance_id)
+		db.query(func.coalesce(func.sum(AppointmentService.charged_value), 0))
+		.filter(AppointmentService.appointment_id == appointment_id)
 		.scalar()
 	)
 	return Decimal(total)
 
 
-def _sync_attendance_total(db: Session, attendance: Service) -> Service:
-	attendance.value_final = _calculate_attendance_total(db, attendance.id)
+def _sync_appointment_total(db: Session, appointment: Appointment) -> Appointment:
+	appointment.value_final = _calculate_appointment_total(db, appointment.id)
 	db.commit()
-	db.refresh(attendance)
-	return attendance
+	db.refresh(appointment)
+	return appointment
 
 
-def create_attendance(
+def create_appointment(
 	db: Session,
 	service_at: datetime | None = None,
 	status: str = "agendado",
@@ -44,7 +44,7 @@ def create_attendance(
 	if not payment_type:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
 
-	attendance = Service(
+	appointment = Appointment(
 		value_final=Decimal("0"),
 		service_at=service_at or datetime.utcnow(),
 		payment_type=payment_type,
@@ -55,46 +55,46 @@ def create_attendance(
 		client_id=client_id,
 		worker_id=worker_id,
 	)
-	db.add(attendance)
+	db.add(appointment)
 	db.commit()
-	db.refresh(attendance)
-	return _sync_attendance_total(db, attendance)
+	db.refresh(appointment)
+	return _sync_appointment_total(db, appointment)
 
 
-def get_attendance(db: Session, attendance_id: int):
-	attendance = db.query(Service).filter(Service.id == attendance_id).first()
-	if not attendance:
+def get_appointment(db: Session, appointment_id: int):
+	appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+	if not appointment:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-	return _sync_attendance_total(db, attendance)
+	return _sync_appointment_total(db, appointment)
 
 
-def list_attendances(
+def list_appointments(
 	db: Session,
 	client_id: int | None = None,
 	store_id: int | None = None,
 	worker_id: int | None = None,
 	status: str | None = None,
 ):
-	query = db.query(Service)
+	query = db.query(Appointment)
 	if client_id is not None:
-		query = query.filter(Service.client_id == client_id)
+		query = query.filter(Appointment.client_id == client_id)
 	if store_id is not None:
-		query = query.filter(Service.store_id == store_id)
+		query = query.filter(Appointment.store_id == store_id)
 	if worker_id is not None:
-		query = query.filter(Service.worker_id == worker_id)
+		query = query.filter(Appointment.worker_id == worker_id)
 	if status is not None:
-		query = query.filter(Service.status == status)
+		query = query.filter(Appointment.status == status)
 
-	attendances = query.order_by(Service.service_at.desc()).all()
-	for attendance in attendances:
-		attendance.value_final = _calculate_attendance_total(db, attendance.id)
+	appointments = query.order_by(Appointment.service_at.desc()).all()
+	for appointment in appointments:
+		appointment.value_final = _calculate_appointment_total(db, appointment.id)
 	db.commit()
-	return attendances
+	return appointments
 
 
-def update_attendance(
+def update_appointment(
 	db: Session,
-	attendance_id: int,
+	appointment_id: int,
 	service_at: datetime | None = None,
 	status: str | None = None,
 	store_id: int | None = None,
@@ -104,7 +104,7 @@ def update_attendance(
 	observations: str | None = None,
 	online: bool | None = None,
 ):
-	attendance = get_attendance(db, attendance_id)
+	appointment = get_appointment(db, appointment_id)
 
 	updates = {
 		"service_at": service_at,
@@ -118,14 +118,14 @@ def update_attendance(
 	}
 	for key, value in updates.items():
 		if value is not None:
-			setattr(attendance, key, value)
+			setattr(appointment, key, value)
 
 	db.commit()
-	db.refresh(attendance)
-	return _sync_attendance_total(db, attendance)
+	db.refresh(appointment)
+	return _sync_appointment_total(db, appointment)
 
 
-def delete_attendance(db: Session, attendance_id: int):
-	attendance = get_attendance(db, attendance_id)
-	db.delete(attendance)
+def delete_appointment(db: Session, appointment_id: int):
+	appointment = get_appointment(db, appointment_id)
+	db.delete(appointment)
 	db.commit()

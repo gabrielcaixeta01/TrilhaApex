@@ -8,12 +8,12 @@ from app.services.service_service import (
     update_service,
     delete_service,
 )
-from app.schemas.schemas import ServiceCatalog
+from app.schemas.schemas import Service
 
 router = APIRouter(prefix="/service", tags=["CRUD de Serviços"])
 
 
-@router.post("", status_code=201, response_model=ServiceCatalog)
+@router.post("", status_code=201, response_model=Service)
 def criar_servico(
     name: str = Query(...),
     description: str | None = Query(None),
@@ -29,33 +29,33 @@ def criar_servico(
     return created
 
 
-@router.get("", response_model=list[ServiceCatalog])
+@router.get("", response_model=list[Service])
 def listar_servicos(
     name: str | None = Query(None),
     db: Session = Depends(get_db),
-) -> list[ServiceCatalog]:
+) -> list[Service]:
     return list_services(
         db,
         name=name,
     )
 
 
-@router.get("/{id}", response_model=ServiceCatalog)
-def buscar_servico(id: int, db: Session = Depends(get_db)) -> ServiceCatalog:
+@router.get("/{id}", response_model=Service)
+def buscar_servico(id: int, db: Session = Depends(get_db)) -> Service:
     service = get_service(db, id)
     if service is None:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
     return service
 
 
-@router.put("/{id}", response_model=ServiceCatalog)
+@router.put("/{id}", response_model=Service)
 def atualizar_servico(
     id: int,
     name: str | None = Query(None),
     description: str | None = Query(None),
     price: float | None = Query(None),
     db: Session = Depends(get_db),
-) -> ServiceCatalog:
+) -> Service:
     service = get_service(db, id)
     if service is None:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
