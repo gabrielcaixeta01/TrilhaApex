@@ -62,6 +62,6 @@ def deletar_servico(id: int, db: Session = Depends(get_db)) -> dict:
     return {"message": "Serviço deletado com sucesso"}
 
 
-@router.get("", response_model=list[Service])
+@router.get("/services", response_model=list[Service])
 def listar_servicos(db: Session = Depends(get_db)) -> list[Service]:
     return service_service.list_services(db)

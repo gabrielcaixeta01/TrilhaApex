@@ -20,9 +20,6 @@ def criar_tag(
     created_tag = create_tag(db=db, name=name)
     return created_tag
 
-@router.get("/tags", response_model=list[Tag])
-def listar_tags(db: Session = Depends(get_db)):
-    return list_tags(db)
 
 @router.get("/{id}", response_model=Tag)
 def buscar_tag(id: int, db: Session = Depends(get_db)):
@@ -56,3 +53,7 @@ def deletar_tag(
     delete_tag(db, id)
     return {"message": "Tag deletada com sucesso"}
     
+
+@router.get("/tags", response_model=list[Tag])
+def listar_tags(db: Session = Depends(get_db)):
+    return list_tags(db)

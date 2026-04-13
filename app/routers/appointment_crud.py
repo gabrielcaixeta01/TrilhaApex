@@ -84,6 +84,6 @@ def deletar_atendimento(id: int, db: Session = Depends(get_db)) -> dict:
 	return {"message": "Atendimento deletado com sucesso"}
 
 
-@router.get("", response_model=list[Appointment])
+@router.get("/appointments", response_model=list[Appointment])
 def listar_atendimentos(db: Session = Depends(get_db)) -> list[Appointment]:
 	return appointment_service.list_appointments(db)

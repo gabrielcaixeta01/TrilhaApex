@@ -68,6 +68,6 @@ def deletar_user(user_id: int, db: Session = Depends(get_db)) -> dict:
     return {"message": "Usuário deletado com sucesso"}
 
 
-@router.get("", response_model=list[User])
+@router.get("/users", response_model=list[User])
 def listar_users(db: Session = Depends(get_db)):
     return user_service.list_users(db)

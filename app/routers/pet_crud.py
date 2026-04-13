@@ -83,6 +83,6 @@ def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
     return {"message": "Pet deletado com sucesso"}
 
 
-@router.get("", response_model=list[Pet])
+@router.get("/pets", response_model=list[Pet])
 def listar_pets(db: Session = Depends(get_db)):
     return pet_service.list_pets(db)

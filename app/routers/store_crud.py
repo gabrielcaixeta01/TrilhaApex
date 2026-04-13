@@ -91,6 +91,6 @@ def deletar_loja(store_id: int, db: Session = Depends(get_db)) -> dict:
 	return {"message": "Loja deletada com sucesso"}
 
 
-@router.get("", response_model=list[Store])
+@router.get("/stores", response_model=list[Store])
 def listar_lojas(db: Session = Depends(get_db)) -> list[Store]:
 	return store_service.list_stores(db)
