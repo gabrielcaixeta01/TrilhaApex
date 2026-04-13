@@ -35,6 +35,11 @@ def criar_atendimento(
 	)
 
 
+@router.get("/appointments", response_model=list[Appointment])
+def listar_atendimentos(db: Session = Depends(get_db)) -> list[Appointment]:
+	return appointment_service.list_appointments(db)
+
+
 @router.get("/{id}", response_model=Appointment)
 def buscar_atendimento(id: int, db: Session = Depends(get_db)) -> Appointment:
 	appointment = appointment_service.get_appointment(db, id)
@@ -82,8 +87,3 @@ def deletar_atendimento(id: int, db: Session = Depends(get_db)) -> dict:
 
 	appointment_service.delete_appointment(db, id)
 	return {"message": "Atendimento deletado com sucesso"}
-
-
-@router.get("/appointments", response_model=list[Appointment])
-def listar_atendimentos(db: Session = Depends(get_db)) -> list[Appointment]:
-	return appointment_service.list_appointments(db)

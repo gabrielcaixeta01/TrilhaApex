@@ -39,6 +39,11 @@ def criar_loja(
 	)
 
 
+@router.get("/stores", response_model=list[Store])
+def listar_lojas(db: Session = Depends(get_db)) -> list[Store]:
+	return store_service.list_stores(db)
+
+
 @router.get("/{store_id}", response_model=Store)
 def buscar_loja(store_id: int, db: Session = Depends(get_db)) -> Store:
 	store = store_service.get_store(db, store_id)
@@ -89,8 +94,3 @@ def deletar_loja(store_id: int, db: Session = Depends(get_db)) -> dict:
 	if store is None:
 		raise HTTPException(status_code=404, detail="Loja não encontrada")
 	return {"message": "Loja deletada com sucesso"}
-
-
-@router.get("/stores", response_model=list[Store])
-def listar_lojas(db: Session = Depends(get_db)) -> list[Store]:
-	return store_service.list_stores(db)

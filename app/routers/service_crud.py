@@ -23,6 +23,11 @@ def criar_servico(
     return created
 
 
+@router.get("/services", response_model=list[Service])
+def listar_servicos(db: Session = Depends(get_db)) -> list[Service]:
+    return service_service.list_services(db)
+
+
 @router.get("/{id}", response_model=Service)
 def buscar_servico(id: int, db: Session = Depends(get_db)) -> Service:
     service = service_service.get_service(db, id)
@@ -60,8 +65,3 @@ def deletar_servico(id: int, db: Session = Depends(get_db)) -> dict:
 
     service_service.delete_service(db, id)
     return {"message": "Serviço deletado com sucesso"}
-
-
-@router.get("/services", response_model=list[Service])
-def listar_servicos(db: Session = Depends(get_db)) -> list[Service]:
-    return service_service.list_services(db)

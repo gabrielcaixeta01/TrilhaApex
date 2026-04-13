@@ -30,6 +30,11 @@ def criar_user(
     return created_user
 
 
+@router.get("/users", response_model=list[User])
+def listar_users(db: Session = Depends(get_db)):
+    return user_service.list_users(db)
+
+
 @router.get("/{user_id}", response_model=User)
 def buscar_user(user_id: int, db: Session = Depends(get_db)) -> User:
     return user_service.get_user(db, user_id)
@@ -66,8 +71,3 @@ def atualizar_user(
 def deletar_user(user_id: int, db: Session = Depends(get_db)) -> dict:
     user_service.delete_user(db, user_id)
     return {"message": "Usuário deletado com sucesso"}
-
-
-@router.get("/users", response_model=list[User])
-def listar_users(db: Session = Depends(get_db)):
-    return user_service.list_users(db)

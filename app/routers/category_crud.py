@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.schemas.schemas import Category
 from app.database import get_db
-from app.schemas.models import UserModel
 from sqlalchemy.orm import Session
 from app.services.category_service import (
     create_category,
@@ -21,6 +20,11 @@ def criar_categoria(
 ):
     created_category = create_category(db=db, name=name, description=description)
     return created_category
+
+
+@router.get("/categories", response_model=list[Category])
+def listar_categorias(db: Session = Depends(get_db)):
+    return list_categories(db)
 
 
 @router.get("/{id}", response_model=Category)
@@ -51,8 +55,3 @@ def deletar_categoria( id: int, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=404, detail="Categoria não encontrada")
     delete_category(db, id)
     return {"message": "Categoria deletada com sucesso"}
-
-
-@router.get("/categories", response_model=list[Category])
-def listar_categorias(db: Session = Depends(get_db)):
-    return list_categories(db)

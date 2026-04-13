@@ -33,6 +33,11 @@ def criar_pet(
     return created_pet
 
 
+@router.get("/pets", response_model=list[Pet])
+def listar_pets(db: Session = Depends(get_db)):
+    return pet_service.list_pets(db)
+
+
 @router.get("/{pet_id}", response_model=Pet)
 def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
     pet = pet_service.get_pet(db, pet_id)
@@ -81,8 +86,3 @@ def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
 
     pet_service.delete_pet(db, pet_id)
     return {"message": "Pet deletado com sucesso"}
-
-
-@router.get("/pets", response_model=list[Pet])
-def listar_pets(db: Session = Depends(get_db)):
-    return pet_service.list_pets(db)

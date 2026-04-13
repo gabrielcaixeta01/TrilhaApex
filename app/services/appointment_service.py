@@ -19,8 +19,6 @@ def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
 
 def _sync_appointment_total(db: Session, appointment: Appointment) -> Appointment:
 	appointment.value_final = _calculate_appointment_total(db, appointment.id)
-	db.commit()
-	db.refresh(appointment)
 	return appointment
 
 

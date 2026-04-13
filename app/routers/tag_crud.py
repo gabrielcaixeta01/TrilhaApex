@@ -21,6 +21,11 @@ def criar_tag(
     return created_tag
 
 
+@router.get("/tags", response_model=list[Tag])
+def listar_tags(db: Session = Depends(get_db)):
+    return list_tags(db)
+
+
 @router.get("/{id}", response_model=Tag)
 def buscar_tag(id: int, db: Session = Depends(get_db)):
     tag = get_tag(db, id)
@@ -52,8 +57,3 @@ def deletar_tag(
         raise HTTPException(status_code=404, detail="Tag não encontrada")
     delete_tag(db, id)
     return {"message": "Tag deletada com sucesso"}
-    
-
-@router.get("/tags", response_model=list[Tag])
-def listar_tags(db: Session = Depends(get_db)):
-    return list_tags(db)
