@@ -1,13 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.services.service_service import (
-    create_service,
-    get_service,
-    list_services,
-    update_service,
-    delete_service,
-)
+from app.services import service_service
 from app.schemas.schemas import Service
 
 router = APIRouter(prefix="/service", tags=["CRUD de Serviços"])
@@ -20,7 +14,7 @@ def criar_servico(
     price: float | None = Query(None),
     db: Session = Depends(get_db),
 ):
-    created = create_service(
+    created = service_service.create_service(
         db=db,
         name=name,
         description=description,
@@ -29,20 +23,9 @@ def criar_servico(
     return created
 
 
-@router.get("", response_model=list[Service])
-def listar_servicos(
-    name: str | None = Query(None),
-    db: Session = Depends(get_db),
-) -> list[Service]:
-    return list_services(
-        db,
-        name=name,
-    )
-
-
 @router.get("/{id}", response_model=Service)
 def buscar_servico(id: int, db: Session = Depends(get_db)) -> Service:
-    service = get_service(db, id)
+    service = service_service.get_service(db, id)
     if service is None:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
     return service
@@ -56,11 +39,11 @@ def atualizar_servico(
     price: float | None = Query(None),
     db: Session = Depends(get_db),
 ) -> Service:
-    service = get_service(db, id)
+    service = service_service.get_service(db, id)
     if service is None:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
 
-    return update_service(
+    return service_service.update_service(
         db=db,
         service_id=id,
         name=name,
@@ -71,9 +54,14 @@ def atualizar_servico(
 
 @router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_servico(id: int, db: Session = Depends(get_db)) -> dict:
-    service = get_service(db, id)
+    service = service_service.get_service(db, id)
     if service is None:
         raise HTTPException(status_code=404, detail="Serviço não encontrado")
 
-    delete_service(db, id)
+    service_service.delete_service(db, id)
     return {"message": "Serviço deletado com sucesso"}
+
+
+@router.get("", response_model=list[Service])
+def listar_servicos(db: Session = Depends(get_db)) -> list[Service]:
+    return service_service.list_services(db)

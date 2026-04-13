@@ -84,28 +84,21 @@ def update_store(
     if not store:
         return None
 
-    if name is not None:
-        store.name = name
-    if cnpj is not None:
-        store.cnpj = cnpj
-    if phone is not None:
-        store.phone = phone
-    if email is not None:
-        store.email = email
-    if cep is not None:
-        store.cep = cep
-    if city is not None:
-        store.city = city
-    if state is not None:
-        store.state = state
-    if address is not None:
-        store.address = address
-    if neighborhood is not None:
-        store.neighborhood = neighborhood
-    if number is not None:
-        store.number = number
-    if active is not None:
-        store.active = active
+    for field, value in {
+        "name": name,
+        "cnpj": cnpj,
+        "phone": phone,
+        "email": email,
+        "cep": cep,
+        "city": city,
+        "state": state,
+        "address": address,
+        "neighborhood": neighborhood,
+        "number": number,
+        "active": active,
+    }.items():
+        if value is not None:
+            setattr(store, field, value)
 
     db.commit()
     db.refresh(store)
@@ -118,3 +111,7 @@ def delete_store(db: Session, store_id: int):
         db.delete(store)
         db.commit()
     return store
+
+
+def list_stores(db: Session):
+    return db.query(Store).all()

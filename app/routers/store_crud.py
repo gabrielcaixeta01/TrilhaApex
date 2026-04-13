@@ -3,12 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.schemas import Store
-from app.services.store_service import (
-	create_store,
-	delete_store,
-	get_store,
-	update_store,
-)
+from app.services import store_service
 
 router = APIRouter(prefix="/store", tags=["CRUD de Lojas"])
 
@@ -28,7 +23,7 @@ def criar_loja(
 	active: bool = Query(True),
 	db: Session = Depends(get_db),
 ) -> Store:
-	return create_store(
+	return store_service.create_store(
 		db=db,
 		name=name,
 		cnpj=cnpj,
@@ -46,7 +41,7 @@ def criar_loja(
 
 @router.get("/{store_id}", response_model=Store)
 def buscar_loja(store_id: int, db: Session = Depends(get_db)) -> Store:
-	store = get_store(db, store_id)
+	store = store_service.get_store(db, store_id)
 	if store is None:
 		raise HTTPException(status_code=404, detail="Loja não encontrada")
 	return store
@@ -68,7 +63,7 @@ def atualizar_loja(
 	active: bool | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Store:
-	store = update_store(
+	store = store_service.update_store(
 		db=db,
 		store_id=store_id,
 		name=name,
@@ -90,7 +85,12 @@ def atualizar_loja(
 
 @router.delete("/{store_id}", status_code=200, response_model=dict)
 def deletar_loja(store_id: int, db: Session = Depends(get_db)) -> dict:
-	store = delete_store(db, store_id)
+	store = store_service.delete_store(db, store_id)
 	if store is None:
 		raise HTTPException(status_code=404, detail="Loja não encontrada")
 	return {"message": "Loja deletada com sucesso"}
+
+
+@router.get("", response_model=list[Store])
+def listar_lojas(db: Session = Depends(get_db)) -> list[Store]:
+	return store_service.list_stores(db)

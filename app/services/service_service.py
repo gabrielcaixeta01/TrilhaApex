@@ -31,16 +31,6 @@ def get_service(db: Session, service_id: int):
     return service
 
 
-def list_services(
-    db: Session,
-    name: str | None = None,
-):
-    query = db.query(Service)
-    if name:
-        query = query.filter(Service.name.ilike(f"%{name}%"))
-    return query.order_by(Service.name.asc()).all()
-
-
 def update_service(
     db: Session,
     service_id: int,
@@ -72,3 +62,5 @@ def delete_service(db: Session, service_id: int):
     db.commit()
 
 
+def list_services(db: Session) -> list[Service]:
+    return db.query(Service).all()
