@@ -117,7 +117,7 @@ class Pet(Base):
     size = Column("porte", String(20))
     weight = Column("peso", Numeric(6, 2))
     health_notes = Column("observacoes_saude", String(500))
-    category_id = Column(Integer, ForeignKey("categorias.id", ondelete="CASCADE"), nullable=False)
+    category_id = Column("categoria_id", Integer, ForeignKey("categorias.id", ondelete="CASCADE"), nullable=False)
     owner_id = Column("dono_id", Integer, ForeignKey("clientes.usuario_id", ondelete="CASCADE"), nullable=False)
 
     category = relationship("Category", back_populates="pets")

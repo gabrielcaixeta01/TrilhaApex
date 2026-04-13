@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.models import Pet
-from app.schemas.schemas import PetStatus
 
 
 def create_pet(
@@ -102,5 +101,5 @@ def delete_pet(db: Session, pet_id: int):
 
 
 def list_pets( db: Session) -> list[Pet]:
-    return db.query(Pet).order_by(Pet.name.asc()).all()
+    return db.query(Pet).order_by(Pet.id).all()
 
