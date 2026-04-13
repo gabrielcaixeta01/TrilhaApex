@@ -156,32 +156,5 @@ def delete_user(db: Session, user_id: int):
     db.delete(user)
     db.commit()
 
-
-def create_with_list(db: Session, users: list[dict]):
-    created_users = []
-    for user_data in users:
-        created_users.append(
-            create_user(
-                db=db,
-                name=user_data["name"],
-                password=user_data["password"],
-                email=user_data["email"],
-                role=user_data.get("role", "cliente"),
-                phone=user_data.get("phone"),
-                cpf=user_data.get("cpf"),
-                cnpj=user_data.get("cnpj"),
-                client_type=user_data.get("client_type"),
-                client_cep=user_data.get("client_cep"),
-                client_state=user_data.get("client_state"),
-                client_city=user_data.get("client_city"),
-                matricula=user_data.get("matricula"),
-                job_title=user_data.get("job_title"),
-                salary=user_data.get("salary"),
-                hired_at=user_data.get("hired_at"),
-                store_id=user_data.get("store_id"),
-                active=user_data.get("active", True),
-                is_superuser=user_data.get("is_superuser", False),
-            )
-        )
-    return created_users
-
+def list_users(db: Session) -> list[UserModel]:
+    return db.query(UserModel).order_by(UserModel.name.asc()).all()

@@ -6,9 +6,10 @@ from app.services.user_service import (
     get_user,
     update_user,
     delete_user,
-    create_with_list
+    list_users,
+   
 )
-from app.schemas.schemas import User, UserCreate
+from app.schemas.schemas import User
 
 router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
 
@@ -72,3 +73,8 @@ def atualizar_user(
 def deletar_user(user_id: int, db: Session = Depends(get_db)) -> dict:
     delete_user(db, user_id)
     return {"message": "Usuário deletado com sucesso"}
+
+
+@router.get("", response_model=list[User])
+def listar_users(db: Session = Depends(get_db)):
+    return list_users(db)
