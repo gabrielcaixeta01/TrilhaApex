@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services import pet_service
@@ -40,10 +40,7 @@ def listar_pets(db: Session = Depends(get_db)):
 
 @router.get("/{pet_id}", response_model=Pet)
 def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
-    pet = pet_service.get_pet(db, pet_id)
-    if pet is None:
-        raise HTTPException(status_code=404, detail="Pet não encontrado")
-    return pet
+    return pet_service.get_pet(db, pet_id)
 
 @router.put("/{pet_id}", response_model=Pet)
 def atualizar_pet(
@@ -58,10 +55,6 @@ def atualizar_pet(
     owner_id: int | None = Query(None),
     db: Session =  Depends(get_db),
 ):
-    pet = pet_service.get_pet(db, pet_id)
-    if pet is None:
-        raise HTTPException(status_code=404, detail="Pet não encontrado")
-        
     updated_pet = pet_service.update_pet(
         db=db,
         pet_id=pet_id,
@@ -78,11 +71,5 @@ def atualizar_pet(
 
 @router.delete("/{pet_id}", status_code=200, response_model=dict)
 def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
-
-    pet = pet_service.get_pet(db, pet_id)
-
-    if pet is None:
-        raise HTTPException(status_code=404, detail="Pet não encontrado")
-
     pet_service.delete_pet(db, pet_id)
     return {"message": "Pet deletado com sucesso"}

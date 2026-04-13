@@ -52,10 +52,7 @@ def atualizar_user(
     db: Session = Depends(get_db),
 ) -> User:
     
-    if password is not None and len(password) < 8:
-        raise HTTPException(status_code=400, detail="A senha deve ter pelo menos 8 caracteres")
-        
-    return user_service.update_user(
+    updated_user = user_service.update_user(
         db=db,
         user_id=user_id,
         name=name,
@@ -65,6 +62,7 @@ def atualizar_user(
         role=role,
         user_active=user_active,
     )
+    return updated_user
 
 
 @router.delete("/{user_id}", status_code=200, response_model=dict)

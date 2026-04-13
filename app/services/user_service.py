@@ -105,7 +105,6 @@ def update_user(
     name: str | None = None,
     email: str | None = None,
     password: str | None = None,
-    new_password: str | None = None,
     new_phone: str | None = None,
     phone: str | None = None,
     role: str | None = None,
@@ -113,35 +112,36 @@ def update_user(
     is_superuser: bool | None = None,
 ):
     user = get_user(db, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
-    if name is not None:
-        user.name = name
+    if password is not None and len(password.strip()) < 8:
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
+
+    if role is not None and role not in ALLOWED_ROLES:
+        raise HTTPException(status_code=400, detail="Role inválida")
+
+    if name is not None and not name.strip():
+        raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
 
     if email is not None:
-        user.email = email
-
-    if role is not None:
-        if role not in ALLOWED_ROLES:
-            raise HTTPException(status_code=400, detail="Role inválida")
-        user.role = role
-
-    password_to_use = new_password or password
-    if password_to_use is not None:
-        if len(password_to_use.strip()) < 8:
-            raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
-        user.password_hash = password_to_use
-
-    phone_to_use = new_phone if new_phone is not None else phone
-    if phone_to_use is not None:
-        user.phone = phone_to_use
-
-    if user_active is not None:
-        user.active = user_active
-
-    if is_superuser is not None:
-        user.is_superuser = is_superuser
+        exists_email = (
+            db.query(UserModel)
+            .filter(UserModel.email == email, UserModel.id != user_id)
+            .first()
+        )
+        if exists_email:
+            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+    
+    for field, value in {
+        "name": name.strip() if name is not None else None,
+        "email": email,
+        "password_hash": password,
+        "phone": new_phone or phone,
+        "role": role,
+        "active": user_active,
+        "is_superuser": is_superuser,
+    }.items():
+        if value is not None:
+            setattr(user, field, value)
 
     db.commit()
     db.refresh(user)
@@ -150,9 +150,6 @@ def update_user(
 
 def delete_user(db: Session, user_id: int):
     user = get_user(db, user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-
     db.delete(user)
     db.commit()
 

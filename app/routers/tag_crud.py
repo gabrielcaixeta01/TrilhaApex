@@ -1,14 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from app.schemas.schemas import Tag
 from app.database import get_db
 from sqlalchemy.orm import Session
-from app.services.tag_service import (
-    create_tag,
-    delete_tag,
-    get_tag,
-    list_tags,
-    update_tag,
-)
+from app.services import tag_service
 
 router = APIRouter(prefix="/tag", tags=["CRUD de Tags"])
 
@@ -17,22 +11,18 @@ def criar_tag(
     name: str = Query(...),
     db: Session = Depends(get_db),
 ):
-    created_tag = create_tag(db=db, name=name)
+    created_tag = tag_service.create_tag(db=db, name=name)
     return created_tag
 
 
 @router.get("/tags", response_model=list[Tag])
 def listar_tags(db: Session = Depends(get_db)):
-    return list_tags(db)
+    return tag_service.list_tags(db)
 
 
 @router.get("/{id}", response_model=Tag)
 def buscar_tag(id: int, db: Session = Depends(get_db)):
-    tag = get_tag(db, id)
-    if tag is None:
-        raise HTTPException(status_code=404, detail="Tag não encontrada")
-    return tag
-
+    return tag_service.get_tag(db, id)
 @router.put("/{id}", response_model=Tag)
 def atualizar_tag(
     id: int,
@@ -40,20 +30,12 @@ def atualizar_tag(
     description: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
-    tag = get_tag(db, id)
-    if tag is None:
-        raise HTTPException(status_code=404, detail="Tag não encontrada")
-    return update_tag(db, id, name=name, description=description)
+    updated_tag = tag_service.update_tag(db=db, tag_id=id, name=name, description=description)
+    return updated_tag
 
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
-def deletar_tag(
-    id: int,
-    db: Session = Depends(get_db),
-) -> dict:
-    tag = get_tag(db, id)
-    if tag is None:
-        raise HTTPException(status_code=404, detail="Tag não encontrada")
-    delete_tag(db, id)
+def deletar_tag( id: int, db: Session = Depends(get_db)) -> dict:
+    tag_service.delete_tag(db, id)
     return {"message": "Tag deletada com sucesso"}

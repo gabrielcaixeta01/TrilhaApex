@@ -62,7 +62,7 @@ def create_store(
 def get_store(db: Session, store_id: int):
     store = db.query(Store).filter(Store.id == store_id).first()
     if not store:
-        return None
+        raise HTTPException(status_code=404, detail="Loja não encontrada")
     return store
 
 def update_store(
@@ -80,10 +80,7 @@ def update_store(
     number: str | None = None,
     active: bool | None = None,
 ):
-    store = db.query(Store).filter(Store.id == store_id).first()
-    if not store:
-        return None
-
+    store = get_store(db, store_id)
     for field, value in {
         "name": name,
         "cnpj": cnpj,
@@ -106,11 +103,10 @@ def update_store(
 
 
 def delete_store(db: Session, store_id: int):
-    store = db.query(Store).filter(Store.id == store_id).first()
-    if store:
-        db.delete(store)
-        db.commit()
-    return store
+    store = get_store(db, store_id)
+    db.delete(store)
+    db.commit()
+   
 
 
 def list_stores(db: Session):

@@ -46,10 +46,7 @@ def listar_lojas(db: Session = Depends(get_db)) -> list[Store]:
 
 @router.get("/{store_id}", response_model=Store)
 def buscar_loja(store_id: int, db: Session = Depends(get_db)) -> Store:
-	store = store_service.get_store(db, store_id)
-	if store is None:
-		raise HTTPException(status_code=404, detail="Loja não encontrada")
-	return store
+	return store_service.get_store(db, store_id)
 
 
 @router.put("/{store_id}", response_model=Store)
@@ -68,7 +65,7 @@ def atualizar_loja(
 	active: bool | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Store:
-	store = store_service.update_store(
+	updated_store = store_service.update_store(
 		db=db,
 		store_id=store_id,
 		name=name,
@@ -83,14 +80,10 @@ def atualizar_loja(
 		number=number,
 		active=active,
 	)
-	if store is None:
-		raise HTTPException(status_code=404, detail="Loja não encontrada")
-	return store
+	return updated_store
 
 
 @router.delete("/{store_id}", status_code=200, response_model=dict)
 def deletar_loja(store_id: int, db: Session = Depends(get_db)) -> dict:
-	store = store_service.delete_store(db, store_id)
-	if store is None:
-		raise HTTPException(status_code=404, detail="Loja não encontrada")
+	store_service.delete_store(db, store_id)
 	return {"message": "Loja deletada com sucesso"}

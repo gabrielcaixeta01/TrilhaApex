@@ -42,10 +42,7 @@ def listar_atendimentos(db: Session = Depends(get_db)) -> list[Appointment]:
 
 @router.get("/{id}", response_model=Appointment)
 def buscar_atendimento(id: int, db: Session = Depends(get_db)) -> Appointment:
-	appointment = appointment_service.get_appointment(db, id)
-	if appointment is None:
-		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-	return appointment
+	return appointment_service.get_appointment(db, id)
 
 
 @router.put("/{id}", response_model=Appointment)
@@ -61,11 +58,7 @@ def atualizar_atendimento(
 	online: bool | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Appointment:
-	appointment = appointment_service.get_appointment(db, id)
-	if appointment is None:
-		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-
-	return appointment_service.update_appointment(
+	updated_appointment = appointment_service.update_appointment(
 		db=db,
 		appointment_id=id,
 		service_at=service_at,
@@ -77,13 +70,10 @@ def atualizar_atendimento(
 		observations=observations,
 		online=online,
 	)
+	return updated_appointment
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_atendimento(id: int, db: Session = Depends(get_db)) -> dict:
-	appointment = appointment_service.get_appointment(db, id)
-	if appointment is None:
-		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
-
 	appointment_service.delete_appointment(db, id)
 	return {"message": "Atendimento deletado com sucesso"}

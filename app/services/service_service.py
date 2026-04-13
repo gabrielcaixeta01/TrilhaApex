@@ -41,14 +41,10 @@ def update_service(
     service = get_service(db, service_id)
 
     if name is not None:
-        if not name.strip():
-            raise HTTPException(status_code=400, detail="Nome do serviço é obrigatório")
-        service.name = name.strip()
+       service.name = name
     if description is not None:
         service.description = description
     if price is not None:
-        if price < 0:
-            raise HTTPException(status_code=400, detail="Preço do serviço não pode ser negativo")
         service.price = price
 
     db.commit()

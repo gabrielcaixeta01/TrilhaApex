@@ -30,10 +30,7 @@ def listar_servicos(db: Session = Depends(get_db)) -> list[Service]:
 
 @router.get("/{id}", response_model=Service)
 def buscar_servico(id: int, db: Session = Depends(get_db)) -> Service:
-    service = service_service.get_service(db, id)
-    if service is None:
-        raise HTTPException(status_code=404, detail="Serviço não encontrado")
-    return service
+   return service_service.get_service(db, id)
 
 
 @router.put("/{id}", response_model=Service)
@@ -44,24 +41,17 @@ def atualizar_servico(
     price: float | None = Query(None),
     db: Session = Depends(get_db),
 ) -> Service:
-    service = service_service.get_service(db, id)
-    if service is None:
-        raise HTTPException(status_code=404, detail="Serviço não encontrado")
-
-    return service_service.update_service(
+    updated_service = service_service.update_service(
         db=db,
         service_id=id,
         name=name,
         description=description,
         price=price,
     )
+    return updated_service
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_servico(id: int, db: Session = Depends(get_db)) -> dict:
-    service = service_service.get_service(db, id)
-    if service is None:
-        raise HTTPException(status_code=404, detail="Serviço não encontrado")
-
     service_service.delete_service(db, id)
     return {"message": "Serviço deletado com sucesso"}
