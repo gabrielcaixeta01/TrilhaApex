@@ -68,30 +68,6 @@ def get_appointment(db: Session, appointment_id: int):
 	return _sync_appointment_total(db, appointment)
 
 
-def list_appointments(
-	db: Session,
-	client_id: int | None = None,
-	store_id: int | None = None,
-	worker_id: int | None = None,
-	status: str | None = None,
-):
-	query = db.query(Appointment)
-	if client_id is not None:
-		query = query.filter(Appointment.client_id == client_id)
-	if store_id is not None:
-		query = query.filter(Appointment.store_id == store_id)
-	if worker_id is not None:
-		query = query.filter(Appointment.worker_id == worker_id)
-	if status is not None:
-		query = query.filter(Appointment.status == status)
-
-	appointments = query.order_by(Appointment.service_at.desc()).all()
-	for appointment in appointments:
-		appointment.value_final = _calculate_appointment_total(db, appointment.id)
-	db.commit()
-	return appointments
-
-
 def update_appointment(
 	db: Session,
 	appointment_id: int,
@@ -129,3 +105,7 @@ def delete_appointment(db: Session, appointment_id: int):
 	appointment = get_appointment(db, appointment_id)
 	db.delete(appointment)
 	db.commit()
+
+
+def list_appointments( db: Session) -> list[Appointment]:
+	return db.query(Appointment).order_by(Appointment.id).all()

@@ -5,13 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.schemas import Appointment
-from app.services.appointment_service import (
-	create_appointment,
-	delete_appointment,
-	get_appointment,
-	list_appointments,
-	update_appointment,
-)
+from app.services import appointment_service
 
 router = APIRouter(prefix="/appointment", tags=["CRUD de Atendimentos"])
 
@@ -28,7 +22,7 @@ def criar_atendimento(
 	online: bool = Query(False),
 	db: Session = Depends(get_db),
 ):
-	return create_appointment(
+	return appointment_service.create_appointment(
 		db=db,
 		service_at=service_at,
 		status=status,
@@ -41,26 +35,9 @@ def criar_atendimento(
 	)
 
 
-@router.get("", response_model=list[Appointment])
-def listar_atendimentos(
-	client_id: int | None = Query(None),
-	store_id: int | None = Query(None),
-	worker_id: int | None = Query(None),
-	status: str | None = Query(None),
-	db: Session = Depends(get_db),
-) -> list[Appointment]:
-	return list_appointments(
-		db,
-		client_id=client_id,
-		store_id=store_id,
-		worker_id=worker_id,
-		status=status,
-	)
-
-
 @router.get("/{id}", response_model=Appointment)
 def buscar_atendimento(id: int, db: Session = Depends(get_db)) -> Appointment:
-	appointment = get_appointment(db, id)
+	appointment = appointment_service.get_appointment(db, id)
 	if appointment is None:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 	return appointment
@@ -79,11 +56,11 @@ def atualizar_atendimento(
 	online: bool | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Appointment:
-	appointment = get_appointment(db, id)
+	appointment = appointment_service.get_appointment(db, id)
 	if appointment is None:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 
-	return update_appointment(
+	return appointment_service.update_appointment(
 		db=db,
 		appointment_id=id,
 		service_at=service_at,
@@ -99,9 +76,14 @@ def atualizar_atendimento(
 
 @router.delete("/{id}", status_code=200, response_model=dict)
 def deletar_atendimento(id: int, db: Session = Depends(get_db)) -> dict:
-	appointment = get_appointment(db, id)
+	appointment = appointment_service.get_appointment(db, id)
 	if appointment is None:
 		raise HTTPException(status_code=404, detail="Atendimento não encontrado")
 
-	delete_appointment(db, id)
+	appointment_service.delete_appointment(db, id)
 	return {"message": "Atendimento deletado com sucesso"}
+
+
+@router.get("", response_model=list[Appointment])
+def listar_atendimentos(db: Session = Depends(get_db)) -> list[Appointment]:
+	return appointment_service.list_appointments(db)
