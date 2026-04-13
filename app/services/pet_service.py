@@ -100,3 +100,7 @@ def delete_pet(db: Session, pet_id: int):
     db.delete(pet)
     db.commit()
 
+
+def list_pets( db: Session) -> list[Pet]:
+    return db.query(Pet).order_by(Pet.name.asc()).all()
+

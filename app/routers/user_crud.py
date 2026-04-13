@@ -1,14 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.services.user_service import (
-    create_user,
-    get_user,
-    update_user,
-    delete_user,
-    list_users,
-   
-)
+from app.services.user_service import user_service
 from app.schemas.schemas import User
 
 router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
@@ -25,7 +18,7 @@ def criar_user(
     db: Session = Depends(get_db),
 ) -> User:
     
-    created_user = create_user(
+    created_user = user_service.create_user(
         db=db,
         name=name,
         password=password,
@@ -39,7 +32,7 @@ def criar_user(
 
 @router.get("/{user_id}", response_model=User)
 def buscar_user(user_id: int, db: Session = Depends(get_db)) -> User:
-    return get_user(db, user_id)
+    return user_service.get_user(db, user_id)
 
 
 @router.put("/{user_id}", response_model=User)
@@ -57,7 +50,7 @@ def atualizar_user(
     if password is not None and len(password) < 8:
         raise HTTPException(status_code=400, detail="A senha deve ter pelo menos 8 caracteres")
         
-    return update_user(
+    return user_service.update_user(
         db=db,
         user_id=user_id,
         name=name,
@@ -71,10 +64,10 @@ def atualizar_user(
 
 @router.delete("/{user_id}", status_code=200, response_model=dict)
 def deletar_user(user_id: int, db: Session = Depends(get_db)) -> dict:
-    delete_user(db, user_id)
+    user_service.delete_user(db, user_id)
     return {"message": "Usuário deletado com sucesso"}
 
 
 @router.get("", response_model=list[User])
 def listar_users(db: Session = Depends(get_db)):
-    return list_users(db)
+    return user_service.list_users(db)
