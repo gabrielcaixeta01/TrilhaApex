@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv()
@@ -31,6 +31,54 @@ engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+def initialize_database() -> None:
+    """Create base tables and apply lightweight compatibility fixes."""
+    from app.schemas import models  # noqa: F401  # ensure models are registered on Base metadata
+
+    Base.metadata.create_all(bind=engine)
+    _ensure_sqlite_appointment_pet_id_column()
+    _backfill_sqlite_appointment_pet_id()
+
+
+def _ensure_sqlite_appointment_pet_id_column() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "atendimentos" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("atendimentos")}
+    if "pet_id" in existing_columns:
+        return
+
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE atendimentos ADD COLUMN pet_id INTEGER"))
+
+
+def _backfill_sqlite_appointment_pet_id() -> None:
+    if engine.dialect.name != "sqlite":
+        return
+
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                UPDATE atendimentos
+                SET pet_id = COALESCE(
+                    (
+                        SELECT MIN(p.id)
+                        FROM pets p
+                        WHERE p.dono_id = atendimentos.cliente_id
+                    ),
+                    (SELECT MIN(p2.id) FROM pets p2)
+                )
+                WHERE pet_id IS NULL
+                """
+            )
+        )
 
 def get_db():
     db = SessionLocal()

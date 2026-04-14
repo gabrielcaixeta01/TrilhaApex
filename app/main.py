@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from app.database import initialize_database
 from app.routers import appointment_crud, category_crud, pet_crud, service_crud, store_crud, tag_crud, user_crud
 
 app = FastAPI(title="Petstore da Apex")
@@ -17,6 +18,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    initialize_database()
 
 @app.get("/", include_in_schema=False)
 def root():
