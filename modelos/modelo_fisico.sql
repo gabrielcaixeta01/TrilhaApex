@@ -60,9 +60,11 @@ CREATE TABLE atendimentos (
 	loja_id INTEGER NOT NULL,
 	cliente_id INTEGER NOT NULL,
 	funcionario_id INTEGER NOT NULL,
+	pet_id INTEGER NOT NULL,
 	CONSTRAINT fk_atendimentos_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE CASCADE,
 	CONSTRAINT fk_atendimentos_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(usuario_id),
-	CONSTRAINT fk_atendimentos_funcionario FOREIGN KEY (funcionario_id) REFERENCES funcionarios(usuario_id)
+	CONSTRAINT fk_atendimentos_funcionario FOREIGN KEY (funcionario_id) REFERENCES funcionarios(usuario_id),
+	CONSTRAINT fk_atendimentos_pet FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
 );
 
 CREATE TABLE servicos (
@@ -237,12 +239,12 @@ INSERT INTO servicos (id, nome, descricao, preco) VALUES
 	(4, 'Vacinacao', 'Aplicacao de vacina conforme protocolo', 140.00),
 	(5, 'Adestramento Basico', 'Sessao inicial de comandos basicos', 220.00);
 
-INSERT INTO atendimentos (id, valor_final, data_atendimento, forma_pagamento, status, online, observacoes, loja_id, cliente_id, funcionario_id) VALUES
-	(1, 80.00, '2026-02-01 10:00:00', 'pix', 'concluido', FALSE, 'Atendimento tranquilo', 1, 1, 6),
-	(2, 95.00, '2026-02-02 11:00:00', 'cartao_credito', 'concluido', FALSE, 'Tosa com tesoura', 2, 2, 7),
-	(3, 180.00, '2026-02-03 15:30:00', 'cartao_debito', 'concluido', TRUE, 'Consulta por teleorientacao', 3, 3, 8),
-	(4, 140.00, '2026-02-04 09:15:00', 'dinheiro', 'concluido', FALSE, 'Vacinacao anual', 4, 4, 9),
-	(5, 220.00, '2026-02-05 16:45:00', 'pix', 'agendado', FALSE, 'Primeira sessao de adestramento', 5, 5, 10);
+INSERT INTO atendimentos (id, valor_final, data_atendimento, forma_pagamento, status, online, observacoes, loja_id, cliente_id, funcionario_id, pet_id) VALUES
+	(1, 80.00, '2026-02-01 10:00:00', 'pix', 'concluido', FALSE, 'Atendimento tranquilo', 1, 1, 6, 1),
+	(2, 95.00, '2026-02-02 11:00:00', 'cartao_credito', 'concluido', FALSE, 'Tosa com tesoura', 2, 2, 7, 2),
+	(3, 180.00, '2026-02-03 15:30:00', 'cartao_debito', 'concluido', TRUE, 'Consulta por teleorientacao', 3, 3, 8, 3),
+	(4, 140.00, '2026-02-04 09:15:00', 'dinheiro', 'concluido', FALSE, 'Vacinacao anual', 4, 4, 9, 4),
+	(5, 220.00, '2026-02-05 16:45:00', 'pix', 'agendado', FALSE, 'Primeira sessao de adestramento', 5, 5, 10, 5);
 
 INSERT INTO atendimento_servicos (atendimento_id, servico_id, valor_cobrado, observacoes) VALUES
 	(1, 1, 80.00, 'Banho completo realizado'),

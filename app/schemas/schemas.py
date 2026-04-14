@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List
 
 from enum import Enum
 
@@ -255,6 +255,8 @@ class Appointment(BaseModel):
     store_id: int
     client_id: int
     worker_id: int
+    pet_id: int
+    items: List['AppointmentService'] = []
 
     class Config:
         from_attributes = True
@@ -270,6 +272,7 @@ class AppointmentCreate(BaseModel):
     store_id: int
     client_id: int
     worker_id: int
+    pet_id: int
 
 
 class AppointmentUpdate(BaseModel):
@@ -282,6 +285,7 @@ class AppointmentUpdate(BaseModel):
     store_id: Optional[int] = None
     client_id: Optional[int] = None
     worker_id: Optional[int] = None
+    pet_id: Optional[int] = None
 
 
 class AppointmentService(BaseModel):

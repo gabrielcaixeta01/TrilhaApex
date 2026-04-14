@@ -34,6 +34,16 @@ await api.post('/user', null, {
 });
 ```
 
+## 2.1 Mudancas recentes
+
+### Appointments agora retornam os servicos prestados
+A partir da versao atual, ao retornar um atendimento, o endpoint inclui automaticamente a lista de servicos prestados (campo `items`). Isso elimina a necessidade de fazer uma chamada adicional para obter os detalhes dos servicos.
+
+**O que mudou:**
+- Campo `items` adicionado ao schema `Appointment`
+- Cada item contem: `service_id`, `charged_value`, `order_date`, `delivery_date`, e `observations`
+- O `value_final` é calculado automaticamente como soma dos `charged_value` dos itens
+
 ## 3. Convencao de respostas e erros
 
 ### 3.1 Sucesso
@@ -319,20 +329,21 @@ Prefixo: `/appointment`
     - `store_id` (int, obrigatorio)
     - `client_id` (int, obrigatorio)
     - `worker_id` (int, obrigatorio)
+    - `pet_id` (int, obrigatorio)
     - `payment_type` (string, obrigatorio na regra de negocio)
     - `observations` (string, opcional)
     - `online` (boolean, opcional, default `false`)
-  - Retorno: `201` + `Appointment`
+  - Retorno: `201` + `Appointment` (campos `items` vazio na criacao)
 
 - `GET /appointment/appointments`
-  - Retorno: `200` + `Appointment[]`
+  - Retorno: `200` + `Appointment[]` (com `items` preenchidos para cada atendimento)
 
 - `GET /appointment/{id}`
-  - Retorno: `200` + `Appointment`
+  - Retorno: `200` + `Appointment` (com `items` preenchidos)
 
 - `PUT /appointment/{id}`
   - Query params: todos opcionais
-  - Retorno: `200` + `Appointment`
+  - Retorno: `200` + `Appointment` (com `items` preenchidos)
 
 - `DELETE /appointment/{id}`
   - Retorno: `200` + `{ "message": "Atendimento deletado com sucesso" }`
@@ -342,17 +353,55 @@ Prefixo: `/appointment`
 ```json
 {
   "id": 1,
-  "value_final": 120,
-  "service_at": "2026-04-14T20:00:00",
+  "value_final": 80.00,
+  "service_at": "2026-02-01T10:00:00",
   "payment_type": "pix",
-  "status": "agendado",
+  "status": "concluido",
   "online": false,
-  "observations": "Cliente prefere horario da tarde",
+  "observations": "Atendimento tranquilo",
   "store_id": 1,
-  "client_id": 5,
-  "worker_id": 7
+  "client_id": 1,
+  "worker_id": 6,
+  "pet_id": 1,
+  "items": [
+    {
+      "appointment_id": 1,
+      "service_id": 1,
+      "charged_value": 80.00,
+      "order_date": "2026-02-01T10:00:00",
+      "delivery_date": null,
+      "observations": "Banho completo realizado"
+    },
+    {
+      "appointment_id": 1,
+      "service_id": 2,
+      "charged_value": 40.00,
+      "order_date": "2026-02-01T10:15:00",
+      "delivery_date": null,
+      "observations": "Tosa complementar"
+    }
+  ]
 }
 ```
+
+**Observação**: O campo `items` contém todos os serviços prestados no atendimento. Cada item representa um serviço com seu valor cobrado e opcional data de entrega. O `value_final` é calculado automaticamente como a soma de todos os `charged_value` dos itens.
+
+**O que muda no Frontend:**
+
+1. **Sem chamadas adicionais**: Antes, era necessário fazer uma chamada separada para obter os serviços de um atendimento. Agora eles vêm junto.
+
+2. **Estrutura de iteração**: Para listar os serviços de um atendimento agora é simples:
+```ts
+appointment.items.forEach(item => {
+  console.log(`Serviço ${item.service_id}: R$ ${item.charged_value}`);
+});
+```
+
+3. **Valor total**: O `value_final` já está calculado. Nunca calcule manualmente no front; use sempre `appointment.value_final`.
+
+**Criar um Atendimento com Serviços:**
+
+Atualmente, o endpoint POST cria apenas o atendimento vazio. Após criar, você precisa adicionar os serviços via um endpoint separado (que será documentado em breve) ou através da gestão de `atendimento_servicos`.
 
 ## 5. Tipos recomendados no frontend (TypeScript)
 
@@ -426,6 +475,15 @@ export interface Tag {
   description: string | null;
 }
 
+export interface AppointmentService {
+  appointment_id: number;
+  service_id: number;
+  charged_value: number;
+  order_date: string;
+  delivery_date: string | null;
+  observations: string | null;
+}
+
 export interface Appointment {
   id: number;
   value_final: number;
@@ -437,6 +495,8 @@ export interface Appointment {
   store_id: number;
   client_id: number;
   worker_id: number;
+  pet_id: number;
+  items: AppointmentService[];
 }
 ```
 
@@ -476,6 +536,33 @@ export async function updateUser(userId: number, payload: Partial<{
   const { data } = await api.put(`/user/${userId}`, null, { params: payload });
   return data;
 }
+
+// Exemplo especifico para appointments
+export async function getAppointment(appointmentId: number) {
+  const { data } = await api.get(`/appointment/${appointmentId}`);
+  // data sera um objeto Appointment com items preenchido
+  return data;
+}
+
+export async function listAppointments() {
+  const { data } = await api.get('/appointment/appointments');
+  // Cada item no array tera a lista de servicos prestados
+  return data;
+}
+```
+
+### Exemplo de uso no componente (React)
+
+```tsx
+const appointment = await getAppointment(1);
+
+// Agora voce poate acessar os servicos direto:
+appointment.items.forEach(item => {
+  console.log(`Servico ${item.service_id}: R$ ${item.charged_value}`);
+});
+
+// Total ja esta calculado
+console.log(`Total: R$ ${appointment.value_final}`);
 ```
 
 ## 7. Checklist de integracao no frontend

@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.schemas.models import Appointment, AppointmentService
+from app.schemas.models import Appointment, AppointmentService, Pet
 
 
 def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
@@ -29,6 +29,7 @@ def create_appointment(
 	store_id: int | None = None,
 	client_id: int | None = None,
 	worker_id: int | None = None,
+	pet_id: int | None = None,
 	payment_type: str | None = None,
 	observations: str | None = None,
 	online: bool = False,
@@ -39,8 +40,15 @@ def create_appointment(
 		raise HTTPException(status_code=400, detail="Cliente é obrigatório")
 	if worker_id is None:
 		raise HTTPException(status_code=400, detail="Funcionário é obrigatório")
+	if pet_id is None:
+		raise HTTPException(status_code=400, detail="Pet é obrigatório")
 	if not payment_type:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
+
+	# Validar se pet existe
+	pet = db.query(Pet).filter(Pet.id == pet_id).first()
+	if not pet:
+		raise HTTPException(status_code=404, detail="Pet não encontrado")
 
 	appointment = Appointment(
 		value_final=Decimal("0"),
@@ -52,6 +60,7 @@ def create_appointment(
 		store_id=store_id,
 		client_id=client_id,
 		worker_id=worker_id,
+		pet_id=pet_id,
 	)
 	db.add(appointment)
 	db.commit()
@@ -74,11 +83,17 @@ def update_appointment(
 	store_id: int | None = None,
 	client_id: int | None = None,
 	worker_id: int | None = None,
+	pet_id: int | None = None,
 	payment_type: str | None = None,
 	observations: str | None = None,
 	online: bool | None = None,
 ):
 	appointment = get_appointment(db, appointment_id)
+
+	if pet_id is not None:
+		pet = db.query(Pet).filter(Pet.id == pet_id).first()
+		if not pet:
+			raise HTTPException(status_code=404, detail="Pet não encontrado")
 
 	updates = {
 		"service_at": service_at,
@@ -86,6 +101,7 @@ def update_appointment(
 		"store_id": store_id,
 		"client_id": client_id,
 		"worker_id": worker_id,
+		"pet_id": pet_id,
 		"payment_type": payment_type,
 		"observations": observations,
 		"online": online,

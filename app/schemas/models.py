@@ -157,10 +157,12 @@ class Appointment(Base):
     store_id = Column("loja_id", Integer, ForeignKey("lojas.id", ondelete="CASCADE"), nullable=False)
     client_id = Column("cliente_id", Integer, ForeignKey("clientes.usuario_id"), nullable=False)
     worker_id = Column("funcionario_id", Integer, ForeignKey("funcionarios.usuario_id"), nullable=False)
+    pet_id = Column(Integer, ForeignKey("pets.id", ondelete="CASCADE"), nullable=False)
 
     store = relationship("Store", back_populates="appointments")
     client = relationship("ClientModel", back_populates="appointments")
     worker = relationship("EmployeeModel", back_populates="appointments")
+    pet = relationship("Pet", backref="appointments")
     items = relationship("AppointmentService", back_populates="appointment", cascade="all, delete-orphan")
 
 
