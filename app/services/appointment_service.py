@@ -50,6 +50,13 @@ def create_appointment(
 	if not pet:
 		raise HTTPException(status_code=404, detail="Pet não encontrado")
 
+	# Validar se o pet pertence ao cliente selecionado
+	if pet.owner_id != client_id:
+		raise HTTPException(
+			status_code=400,
+			detail=f"O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente {pet.owner_id}"
+		)
+
 	appointment = Appointment(
 		value_final=Decimal("0"),
 		service_at=service_at or datetime.utcnow(),
@@ -94,6 +101,15 @@ def update_appointment(
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
 		if not pet:
 			raise HTTPException(status_code=404, detail="Pet não encontrado")
+		
+		# Validar se o pet pertence ao cliente selecionado
+		# Se client_id está sendo atualizado, use o novo; senão, use o cliente atual
+		effective_client_id = client_id if client_id is not None else appointment.client_id
+		if pet.owner_id != effective_client_id:
+			raise HTTPException(
+				status_code=400,
+				detail=f"O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente {pet.owner_id}"
+			)
 
 	updates = {
 		"service_at": service_at,

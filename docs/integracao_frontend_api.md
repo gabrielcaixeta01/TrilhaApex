@@ -403,6 +403,18 @@ appointment.items.forEach(item => {
 
 Atualmente, o endpoint POST cria apenas o atendimento vazio. Após criar, você precisa adicionar os serviços via um endpoint separado (que será documentado em breve) ou através da gestão de `atendimento_servicos`.
 
+**Regras de Validacao de Atendimentos:**
+
+1. **Pet deve pertencer ao Cliente**: Ao criar ou atualizar um atendimento, o `pet_id` selecionado DEVE pertencer ao cliente (`client_id`) informado. Se tentar usar um pet que pertence a outro cliente, receberá um erro 400:
+   ```json
+   {
+     "detail": "O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente X"
+   }
+   ```
+   **Implicacao no Front**: Ao exibir o formulario de criacao/edicao de atendimento, popule o dropdown de pets filtrando apenas pelos pets do cliente selecionado. Isso evita erros e melhora UX.
+
+2. **Campos Obrigatorios**: `store_id`, `client_id`, `worker_id`, `pet_id` e `payment_type` sao obrigatorios na criacao do atendimento.
+
 ## 5. Tipos recomendados no frontend (TypeScript)
 
 ```ts
@@ -563,7 +575,26 @@ appointment.items.forEach(item => {
 
 // Total ja esta calculado
 console.log(`Total: R$ ${appointment.value_final}`);
-```
+// Quando criar um atendimento, sempre considere a regra de pet vs cliente
+async function criarAtendimento(dados: {
+  store_id: number;
+  client_id: number;
+  worker_id: number;
+  pet_id: number;
+  payment_type: string;
+}) {
+  try {
+    const response = await api.post('/appointment', null, { params: dados });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 400 && error.response?.data?.detail?.includes('pet')) {
+      // Erro de validacao: pet nao pertence ao cliente
+      console.error('Pet selecionado nao pertence ao cliente');
+      // Aqui voce pode exibir um alerta no UI
+    }
+    throw error;
+  }
+}```
 
 ## 7. Checklist de integracao no frontend
 

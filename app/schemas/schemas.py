@@ -311,6 +311,9 @@ class AppointmentServiceCreate(BaseModel):
 
 class AppointmentServiceUpdate(BaseModel):
     charged_value: Optional[Decimal] = None
+
+    # Rebuild Appointment model to resolve forward references
+    Appointment.model_rebuild()
     order_date: Optional[datetime] = None
     delivery_date: Optional[datetime] = None
     observations: Optional[str] = None
