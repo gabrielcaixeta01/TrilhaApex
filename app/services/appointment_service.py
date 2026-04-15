@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.schemas.models import Appointment, AppointmentService, Pet, Service
+from app.schemas.models import Appointment, AppointmentService, EmployeeModel, Pet, Service
 
 
 def _normalize_service_ids(service_ids: list[int] | None) -> list[int] | None:
@@ -37,6 +37,16 @@ def _require_services(services: list[Service] | None, action: str) -> list[Servi
 	if services is None or not services:
 		raise HTTPException(status_code=400, detail=f"{action} deve possuir pelo menos um serviço")
 	return services
+
+
+def _require_employee_belongs_to_store(db: Session, worker_id: int, store_id: int) -> None:
+	worker = (
+		db.query(EmployeeModel)
+		.filter(EmployeeModel.user_id == worker_id, EmployeeModel.store_id == store_id)
+		.first()
+	)
+	if worker is None:
+		raise HTTPException(status_code=400, detail="O funcionário selecionado não pertence à loja informada")
 
 
 def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
@@ -76,6 +86,8 @@ def create_appointment(
 		raise HTTPException(status_code=400, detail="Pet é obrigatório")
 	if not payment_type:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
+
+	_require_employee_belongs_to_store(db, worker_id, store_id)
 
 	services = _require_services(_load_services(db, service_ids), "Atendimento")
 
@@ -148,6 +160,10 @@ def update_appointment(
 	services = _load_services(db, service_ids)
 	if service_ids is not None:
 		services = _require_services(services, "Atendimento")
+
+	effective_store_id = store_id if store_id is not None else appointment.store_id
+	effective_worker_id = worker_id if worker_id is not None else appointment.worker_id
+	_require_employee_belongs_to_store(db, effective_worker_id, effective_store_id)
 
 	if pet_id is not None:
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
