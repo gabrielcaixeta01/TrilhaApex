@@ -135,6 +135,7 @@ class Client(BaseModel):
 
 class Employee(BaseModel):
     user_id: int
+    employee_name: Optional[str] = None
     matricula: str
     job_title: str
     salary: Decimal

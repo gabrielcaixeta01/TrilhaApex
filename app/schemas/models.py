@@ -86,6 +86,10 @@ class EmployeeModel(Base):
     store = relationship("Store", back_populates="employees")
     appointments = relationship("Appointment", back_populates="worker", passive_deletes=True)
 
+    @property
+    def employee_name(self) -> str | None:
+        return self.user.name if self.user is not None else None
+
 
 class Category(Base):
     __tablename__ = "categorias"

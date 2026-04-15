@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from fastapi import HTTPException
-from app.schemas.models import Store
+from app.schemas.models import EmployeeModel, Store
 
 
 def create_store(
@@ -63,7 +63,7 @@ def create_store(
 def get_store(db: Session, store_id: int):
     store = (
         db.query(Store)
-        .options(joinedload(Store.employees))
+        .options(joinedload(Store.employees).joinedload(EmployeeModel.user))
         .filter(Store.id == store_id)
         .first()
     )
@@ -116,4 +116,4 @@ def delete_store(db: Session, store_id: int):
 
 
 def list_stores(db: Session):
-    return db.query(Store).options(joinedload(Store.employees)).all()
+    return db.query(Store).options(joinedload(Store.employees).joinedload(EmployeeModel.user)).all()
