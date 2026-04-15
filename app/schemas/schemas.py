@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional, List
+from typing import Literal, Optional, List
 
 from enum import Enum
 
@@ -72,6 +72,8 @@ class User(BaseModel):
     active: bool = True
     is_superuser: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    client_profile: Optional['Client'] = None
+    employee_profile: Optional['Employee'] = None
 
     class Config:
         from_attributes = True
@@ -82,7 +84,7 @@ class UserCreate(BaseModel):
     email: str
     password: str
     phone: str
-    role: str = "cliente"
+    role: Literal["cliente", "funcionario"]
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: bool = True
@@ -103,7 +105,7 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone: Optional[str] = None
-    role: Optional[str] = None
+    role: Optional[Literal["cliente", "funcionario"]] = None
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: Optional[bool] = None

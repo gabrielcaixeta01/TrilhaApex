@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services import user_service
 from app.schemas.schemas import User
+from datetime import date
+from decimal import Decimal
+from typing import Literal
 
 router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
 
@@ -14,7 +17,18 @@ def criar_user(
     email: str = Query(...),
     phone: str | None = Query(None),
     user_active: bool = Query(True),
-    role: str = Query("cliente"),
+    role: Literal["cliente", "funcionario"] = Query(...),
+    cpf: str | None = Query(None),
+    cnpj: str | None = Query(None),
+    client_type: str | None = Query(None),
+    client_cep: str | None = Query(None),
+    client_state: str | None = Query(None),
+    client_city: str | None = Query(None),
+    matricula: str | None = Query(None),
+    job_title: str | None = Query(None),
+    salary: Decimal | None = Query(None),
+    hired_at: date | None = Query(None),
+    store_id: int | None = Query(None),
     db: Session = Depends(get_db),
 ) -> User:
     
@@ -26,6 +40,17 @@ def criar_user(
         phone=phone,
         user_active=user_active,
         role=role,
+        cpf=cpf,
+        cnpj=cnpj,
+        client_type=client_type,
+        client_cep=client_cep,
+        client_state=client_state,
+        client_city=client_city,
+        matricula=matricula,
+        job_title=job_title,
+        salary=salary,
+        hired_at=hired_at,
+        store_id=store_id,
     )
     return created_user
 
@@ -47,7 +72,18 @@ def atualizar_user(
     email: str | None = Query(None),
     password: str | None = Query(None),
     phone: str | None = Query(None),
-    role: str | None = Query(None),
+    role: Literal["cliente", "funcionario"] | None = Query(None),
+    cpf: str | None = Query(None),
+    cnpj: str | None = Query(None),
+    client_type: str | None = Query(None),
+    client_cep: str | None = Query(None),
+    client_state: str | None = Query(None),
+    client_city: str | None = Query(None),
+    matricula: str | None = Query(None),
+    job_title: str | None = Query(None),
+    salary: Decimal | None = Query(None),
+    hired_at: date | None = Query(None),
+    store_id: int | None = Query(None),
     user_active: bool | None = Query(None),
     db: Session = Depends(get_db),
 ) -> User:
@@ -60,6 +96,17 @@ def atualizar_user(
         password=password,
         phone=phone,
         role=role,
+        cpf=cpf,
+        cnpj=cnpj,
+        client_type=client_type,
+        client_cep=client_cep,
+        client_state=client_state,
+        client_city=client_city,
+        matricula=matricula,
+        job_title=job_title,
+        salary=salary,
+        hired_at=hired_at,
+        store_id=store_id,
         user_active=user_active,
     )
     return updated_user

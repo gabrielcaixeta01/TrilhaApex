@@ -37,10 +37,10 @@ await api.post('/user', null, {
 ## 2.1 Mudancas recentes
 
 ### Appointments agora retornam os servicos prestados
-A partir da versao atual, ao retornar um atendimento, o endpoint inclui automaticamente a lista de servicos prestados (campo `items`). Isso elimina a necessidade de fazer uma chamada adicional para obter os detalhes dos servicos.
+A partir da versao atual, ao retornar um atendimento, o endpoint inclui automaticamente a lista de servicos prestados (campo `services`). Isso elimina a necessidade de fazer uma chamada adicional para obter os detalhes dos servicos.
 
 **O que mudou:**
-- Campo `items` adicionado ao schema `Appointment`
+- Campo `services` adicionado ao schema `Appointment`
 - Cada item contem: `service_id`, `charged_value`, `order_date`, `delivery_date`, e `observations`
 - O `value_final` é calculado automaticamente como soma dos `charged_value` dos itens
 
@@ -334,17 +334,17 @@ Prefixo: `/appointment`
     - `observations` (string, opcional)
     - `online` (boolean, opcional, default `false`)
     - `service_ids` (lista de ints, obrigatorio; envie repetindo o parametro na URL)
-  - Retorno: `201` + `Appointment` (campos `items` preenchidos com os servicos informados)
+  - Retorno: `201` + `Appointment` (campos `services` preenchidos com os servicos informados)
 
 - `GET /appointment/appointments`
-  - Retorno: `200` + `Appointment[]` (com `items` preenchidos para cada atendimento)
+  - Retorno: `200` + `Appointment[]` (com `services` preenchidos para cada atendimento)
 
 - `GET /appointment/{id}`
-  - Retorno: `200` + `Appointment` (com `items` preenchidos)
+  - Retorno: `200` + `Appointment` (com `services` preenchidos)
 
 - `PUT /appointment/{id}`
   - Query params: todos opcionais, incluindo `service_ids` para substituir os servicos do atendimento; se informado, deve conter ao menos um id
-  - Retorno: `200` + `Appointment` (com `items` preenchidos)
+  - Retorno: `200` + `Appointment` (com `services` preenchidos)
 
 - `DELETE /appointment/{id}`
   - Retorno: `200` + `{ "message": "Atendimento deletado com sucesso" }`
@@ -364,7 +364,7 @@ Prefixo: `/appointment`
   "client_id": 1,
   "worker_id": 6,
   "pet_id": 1,
-  "items": [
+  "services": [
     {
       "appointment_id": 1,
       "service_id": 1,
@@ -385,7 +385,7 @@ Prefixo: `/appointment`
 }
 ```
 
-**Observação**: O campo `items` contém todos os serviços prestados no atendimento. Cada item representa um serviço com seu valor cobrado e opcional data de entrega. O `value_final` é calculado automaticamente como a soma de todos os `charged_value` dos itens. Um atendimento deve sempre ter ao menos um serviço.
+**Observação**: O campo `services` contém todos os serviços prestados no atendimento. Cada item representa um serviço com seu valor cobrado e opcional data de entrega. O `value_final` é calculado automaticamente como a soma de todos os `charged_value` dos itens. Um atendimento deve sempre ter ao menos um serviço.
 
 **O que muda no Frontend:**
 
