@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.schemas.models import ClientModel, EmployeeModel, UserModel
 
@@ -102,7 +102,12 @@ def create_user(
 
 
 def get_user(db: Session, user_id: int):
-    user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    user = (
+        db.query(UserModel)
+        .options(joinedload(UserModel.client_profile), joinedload(UserModel.employee_profile))
+        .filter(UserModel.id == user_id)
+        .first()
+    )
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return user
@@ -241,4 +246,9 @@ def delete_user(db: Session, user_id: int):
     db.commit()
 
 def list_users(db: Session) -> list[UserModel]:
-    return db.query(UserModel).order_by(UserModel.name.asc()).all()
+    return (
+        db.query(UserModel)
+        .options(joinedload(UserModel.client_profile), joinedload(UserModel.employee_profile))
+        .order_by(UserModel.name.asc())
+        .all()
+    )

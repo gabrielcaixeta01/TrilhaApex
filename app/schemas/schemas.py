@@ -121,11 +121,6 @@ class UserUpdate(BaseModel):
     store_id: Optional[int] = None
 
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-
 class Client(BaseModel):
     user_id: int
     client_type: str
@@ -147,6 +142,9 @@ class Employee(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+User.model_rebuild()
 
 
 class Category(BaseModel):
