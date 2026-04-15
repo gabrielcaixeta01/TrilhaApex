@@ -58,6 +58,8 @@ Perfis de acesso:
 - funcionario: realiza atendimentos na loja em que trabalha.
 - cliente: solicita e acompanha atendimentos dos proprios pets.
 
+Observacao: a especializacao entre Usuario, Cliente e Funcionario e disjunta no modelo fisico; um usuario nao pode ser cliente e funcionario ao mesmo tempo.
+
 ## Tipos de serviço prestados
 
 - banho

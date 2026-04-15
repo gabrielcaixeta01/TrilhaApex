@@ -30,6 +30,7 @@ Tipos de perfil aceitos no sistema:
 #### Cliente
 
 Extensao de Usuario para quem contrata os servicos.
+No modelo fisico, a especializacao de Usuario em Cliente e Funcionario e disjunta: um usuario pertence a apenas um desses subtipos.
 
 - cpf ou cnpj
 - data_nascimento ou data_abertura, conforme o tipo de cliente

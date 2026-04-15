@@ -49,6 +49,55 @@ CREATE TABLE funcionarios (
 	CONSTRAINT fk_funcionarios_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
+-- Especializacao disjunta: um usuario deve ser cliente ou funcionario, nunca ambos.
+CREATE TRIGGER tr_clientes_bd_disjoint
+BEFORE INSERT ON clientes
+FOR EACH ROW
+BEGIN
+	SELECT CASE
+		WHEN (SELECT tipo_perfil FROM usuarios WHERE id = NEW.usuario_id) <> 'cliente' THEN
+			RAISE(ABORT, 'Usuario deve ter tipo_perfil cliente para ser inserido em clientes')
+		WHEN EXISTS (SELECT 1 FROM funcionarios WHERE usuario_id = NEW.usuario_id) THEN
+			RAISE(ABORT, 'Usuario ja esta cadastrado como funcionario')
+	END;
+END;
+
+CREATE TRIGGER tr_clientes_bu_disjoint
+BEFORE UPDATE ON clientes
+FOR EACH ROW
+BEGIN
+	SELECT CASE
+		WHEN (SELECT tipo_perfil FROM usuarios WHERE id = NEW.usuario_id) <> 'cliente' THEN
+			RAISE(ABORT, 'Usuario deve ter tipo_perfil cliente para permanecer em clientes')
+		WHEN EXISTS (SELECT 1 FROM funcionarios WHERE usuario_id = NEW.usuario_id) THEN
+			RAISE(ABORT, 'Usuario ja esta cadastrado como funcionario')
+	END;
+END;
+
+CREATE TRIGGER tr_funcionarios_bd_disjoint
+BEFORE INSERT ON funcionarios
+FOR EACH ROW
+BEGIN
+	SELECT CASE
+		WHEN (SELECT tipo_perfil FROM usuarios WHERE id = NEW.usuario_id) <> 'funcionario' THEN
+			RAISE(ABORT, 'Usuario deve ter tipo_perfil funcionario para ser inserido em funcionarios')
+		WHEN EXISTS (SELECT 1 FROM clientes WHERE usuario_id = NEW.usuario_id) THEN
+			RAISE(ABORT, 'Usuario ja esta cadastrado como cliente')
+	END;
+END;
+
+CREATE TRIGGER tr_funcionarios_bu_disjoint
+BEFORE UPDATE ON funcionarios
+FOR EACH ROW
+BEGIN
+	SELECT CASE
+		WHEN (SELECT tipo_perfil FROM usuarios WHERE id = NEW.usuario_id) <> 'funcionario' THEN
+			RAISE(ABORT, 'Usuario deve ter tipo_perfil funcionario para permanecer em funcionarios')
+		WHEN EXISTS (SELECT 1 FROM clientes WHERE usuario_id = NEW.usuario_id) THEN
+			RAISE(ABORT, 'Usuario ja esta cadastrado como cliente')
+	END;
+END;
+
 CREATE TABLE atendimentos (
 	id INTEGER PRIMARY KEY,
 	valor_final DECIMAL(10,2) NOT NULL,
