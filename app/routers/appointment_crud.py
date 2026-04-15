@@ -21,6 +21,7 @@ def criar_atendimento(
 	payment_type: str | None = Query(None),
 	observations: str | None = Query(None),
 	online: bool = Query(False),
+	service_ids: list[int] | None = Query(None),
 	db: Session = Depends(get_db),
 ):
 	return appointment_service.create_appointment(
@@ -34,6 +35,7 @@ def criar_atendimento(
 		payment_type=payment_type,
 		observations=observations,
 		online=online,
+		service_ids=service_ids,
 	)
 
 
@@ -59,6 +61,7 @@ def atualizar_atendimento(
 	payment_type: str | None = Query(None),
 	observations: str | None = Query(None),
 	online: bool | None = Query(None),
+	service_ids: list[int] | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Appointment:
 	updated_appointment = appointment_service.update_appointment(
@@ -73,6 +76,7 @@ def atualizar_atendimento(
 		payment_type=payment_type,
 		observations=observations,
 		online=online,
+		service_ids=service_ids,
 	)
 	return updated_appointment
 

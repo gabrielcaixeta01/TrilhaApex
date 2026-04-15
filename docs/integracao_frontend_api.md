@@ -333,7 +333,8 @@ Prefixo: `/appointment`
     - `payment_type` (string, obrigatorio na regra de negocio)
     - `observations` (string, opcional)
     - `online` (boolean, opcional, default `false`)
-  - Retorno: `201` + `Appointment` (campos `items` vazio na criacao)
+    - `service_ids` (lista de ints, opcional; envie repetindo o parametro na URL)
+  - Retorno: `201` + `Appointment` (campos `items` preenchidos quando `service_ids` for informado)
 
 - `GET /appointment/appointments`
   - Retorno: `200` + `Appointment[]` (com `items` preenchidos para cada atendimento)
@@ -342,7 +343,7 @@ Prefixo: `/appointment`
   - Retorno: `200` + `Appointment` (com `items` preenchidos)
 
 - `PUT /appointment/{id}`
-  - Query params: todos opcionais
+  - Query params: todos opcionais, incluindo `service_ids` para substituir os servicos do atendimento
   - Retorno: `200` + `Appointment` (com `items` preenchidos)
 
 - `DELETE /appointment/{id}`
@@ -401,7 +402,30 @@ appointment.items.forEach(item => {
 
 **Criar um Atendimento com Serviços:**
 
-Atualmente, o endpoint POST cria apenas o atendimento vazio. Após criar, você precisa adicionar os serviços via um endpoint separado (que será documentado em breve) ou através da gestão de `atendimento_servicos`.
+Agora o endpoint POST aceita `service_ids` e cria automaticamente os registros em `atendimento_servicos`, usando o preço atual de cada serviço como `charged_value`.
+
+Exemplo de chamada:
+
+```http
+POST /appointment?store_id=1&client_id=1&worker_id=6&pet_id=1&payment_type=pix&service_ids=1&service_ids=2
+```
+
+No frontend (axios), envie a lista em `params`:
+
+```ts
+await api.post('/appointment', null, {
+  params: {
+    store_id: 1,
+    client_id: 1,
+    worker_id: 6,
+    pet_id: 1,
+    payment_type: 'pix',
+    service_ids: [1, 2],
+  },
+});
+```
+
+Ao atualizar um atendimento, informar `service_ids` substitui a lista atual de serviços por nova seleção.
 
 **Regras de Validacao de Atendimentos:**
 

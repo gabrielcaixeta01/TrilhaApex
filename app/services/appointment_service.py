@@ -5,7 +5,32 @@ from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.schemas.models import Appointment, AppointmentService, Pet
+from app.schemas.models import Appointment, AppointmentService, Pet, Service
+
+
+def _normalize_service_ids(service_ids: list[int] | None) -> list[int] | None:
+	if service_ids is None:
+		return None
+	return list(dict.fromkeys(service_ids))
+
+
+def _load_services(db: Session, service_ids: list[int] | None) -> list[Service] | None:
+	normalized_service_ids = _normalize_service_ids(service_ids)
+	if normalized_service_ids is None:
+		return None
+	if not normalized_service_ids:
+		return []
+
+	services = db.query(Service).filter(Service.id.in_(normalized_service_ids)).all()
+	services_by_id = {service.id: service for service in services}
+	missing_service_ids = [service_id for service_id in normalized_service_ids if service_id not in services_by_id]
+	if missing_service_ids:
+		raise HTTPException(
+			status_code=404,
+			detail=f"Serviço(s) não encontrado(s): {', '.join(str(service_id) for service_id in missing_service_ids)}",
+		)
+
+	return [services_by_id[service_id] for service_id in normalized_service_ids]
 
 
 def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
@@ -33,6 +58,7 @@ def create_appointment(
 	payment_type: str | None = None,
 	observations: str | None = None,
 	online: bool = False,
+	service_ids: list[int] | None = None,
 ):
 	if store_id is None:
 		raise HTTPException(status_code=400, detail="Loja é obrigatória")
@@ -44,6 +70,8 @@ def create_appointment(
 		raise HTTPException(status_code=400, detail="Pet é obrigatório")
 	if not payment_type:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
+
+	services = _load_services(db, service_ids)
 
 	# Validar se pet existe
 	pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -70,6 +98,20 @@ def create_appointment(
 		pet_id=pet_id,
 	)
 	db.add(appointment)
+	db.flush()
+
+	if services is not None:
+		for service in services:
+			db.add(
+				AppointmentService(
+					appointment_id=appointment.id,
+					service_id=service.id,
+					charged_value=service.price,
+				)
+			)
+		db.flush()
+
+	_sync_appointment_total(db, appointment)
 	db.commit()
 	db.refresh(appointment)
 	return _sync_appointment_total(db, appointment)
@@ -94,8 +136,10 @@ def update_appointment(
 	payment_type: str | None = None,
 	observations: str | None = None,
 	online: bool | None = None,
+	service_ids: list[int] | None = None,
 ):
 	appointment = get_appointment(db, appointment_id)
+	services = _load_services(db, service_ids)
 
 	if pet_id is not None:
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -125,6 +169,21 @@ def update_appointment(
 	for key, value in updates.items():
 		if value is not None:
 			setattr(appointment, key, value)
+
+	if services is not None:
+		appointment.items.clear()
+		db.flush()
+		for service in services:
+			db.add(
+				AppointmentService(
+					appointment_id=appointment.id,
+					service_id=service.id,
+					charged_value=service.price,
+				)
+			)
+		db.flush()
+
+	_sync_appointment_total(db, appointment)
 
 	db.commit()
 	db.refresh(appointment)
