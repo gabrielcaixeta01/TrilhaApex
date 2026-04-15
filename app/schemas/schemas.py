@@ -27,6 +27,7 @@ class Store(BaseModel):
     number: str
     active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    employees: List['Employee'] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -142,6 +143,9 @@ class Employee(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+Store.model_rebuild()
 
 
 User.model_rebuild()

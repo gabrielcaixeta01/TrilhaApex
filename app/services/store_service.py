@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 from fastapi import HTTPException
 from app.schemas.models import Store
 
@@ -60,7 +61,12 @@ def create_store(
     return db_store
 
 def get_store(db: Session, store_id: int):
-    store = db.query(Store).filter(Store.id == store_id).first()
+    store = (
+        db.query(Store)
+        .options(joinedload(Store.employees))
+        .filter(Store.id == store_id)
+        .first()
+    )
     if not store:
         raise HTTPException(status_code=404, detail="Loja não encontrada")
     return store
@@ -110,4 +116,4 @@ def delete_store(db: Session, store_id: int):
 
 
 def list_stores(db: Session):
-    return db.query(Store).all()
+    return db.query(Store).options(joinedload(Store.employees)).all()
