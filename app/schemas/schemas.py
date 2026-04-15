@@ -256,7 +256,7 @@ class Appointment(BaseModel):
     client_id: int
     worker_id: int
     pet_id: int
-    items: List['AppointmentService'] = Field(default_factory=list)
+    services: List['AppointmentService'] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -312,7 +312,6 @@ class AppointmentServiceCreate(BaseModel):
 class AppointmentServiceUpdate(BaseModel):
     charged_value: Optional[Decimal] = None
 
-    # Rebuild Appointment model to resolve forward references
     Appointment.model_rebuild()
     order_date: Optional[datetime] = None
     delivery_date: Optional[datetime] = None

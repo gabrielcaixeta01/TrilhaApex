@@ -179,7 +179,7 @@ def update_appointment(
 			setattr(appointment, key, value)
 
 	if services is not None:
-		appointment.items.clear()
+		appointment.services.clear()
 		db.flush()
 		for service in services:
 			db.add(

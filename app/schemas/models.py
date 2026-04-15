@@ -163,7 +163,7 @@ class Appointment(Base):
     client = relationship("ClientModel", back_populates="appointments")
     worker = relationship("EmployeeModel", back_populates="appointments")
     pet = relationship("Pet", backref="appointments")
-    items = relationship("AppointmentService", back_populates="appointment", cascade="all, delete-orphan")
+    services = relationship("AppointmentService", back_populates="appointment", cascade="all, delete-orphan")
 
 
 class AppointmentService(Base):
@@ -181,5 +181,5 @@ class AppointmentService(Base):
     delivery_date = Column("data_entrega", DateTime)
     observations = Column("observacoes", String(500))
 
-    appointment = relationship("Appointment", back_populates="items")
+    appointment = relationship("Appointment", back_populates="services")
     service = relationship("Service", back_populates="appointment_links")
