@@ -37,6 +37,8 @@ O sistema deve permitir:
 - Um pet pode ter nenhum ou varios atendimentos ao longo do tempo.
 - O pet exibe apenas o dono atual em seu cadastro.
 - Um atendimento deve estar vinculado a um pet, a um cliente, a um funcionario e a uma loja.
+- Um atendimento deve conter um ou mais servicos prestados.
+- Um servico pode estar associado a nenhum ou varios atendimentos.
 - Um funcionario atende em apenas uma loja.
 - Apenas um usuario com perfil "super_admin" pode criar, editar ou desativar lojas.
 - O usuario com perfil "admin_loja" pode gerenciar operacoes da propria loja, mas nao cria novas lojas.
@@ -81,6 +83,7 @@ Perfis de acesso:
 | Usuario (Funcionario) → Atendimento | 1:N | Um funcionario pode realizar nenhum ou varios atendimentos; um atendimento vincula-se a exatamente um funcionario |
 | Usuario (Funcionario) → Loja | N:1 (opcional) | Um funcionario atende em apenas uma loja (pode estar sem loja em periodo de alocacao); uma loja pode ter varios funcionarios |
 | Loja → Atendimento | 1:N | Uma loja pode ter varios atendimentos; um atendimento vincula-se a exatamente uma loja |
+| Atendimento ↔ Servico | 1:N / 0:N | Um atendimento deve ter um ou mais servicos; um servico pode estar em nenhum ou varios atendimentos |
 | Usuario (Admin_Loja) → Loja | 1:1 | Um admin_loja gerencia exatamente uma loja; uma loja pode ter um admin_loja |
 
 ### Diagrama de relacionamento simplificado

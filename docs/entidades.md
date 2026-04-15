@@ -143,3 +143,4 @@ Representa o registro de um atendimento realizado na loja.
 - funcionario_id
 
 O atendimento nao tera etapas internas; apenas o status do processo sera acompanhado.
+Um atendimento deve conter pelo menos um servico prestado, enquanto um servico pode aparecer em nenhum ou varios atendimentos.

@@ -21,7 +21,7 @@ def criar_atendimento(
 	payment_type: str | None = Query(None),
 	observations: str | None = Query(None),
 	online: bool = Query(False),
-	service_ids: list[int] | None = Query(None),
+	service_ids: list[int] = Query(...),
 	db: Session = Depends(get_db),
 ):
 	return appointment_service.create_appointment(

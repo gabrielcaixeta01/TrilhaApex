@@ -256,7 +256,7 @@ class Appointment(BaseModel):
     client_id: int
     worker_id: int
     pet_id: int
-    items: List['AppointmentService'] = []
+    items: List['AppointmentService'] = Field(default_factory=list)
 
     class Config:
         from_attributes = True

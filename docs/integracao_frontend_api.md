@@ -333,8 +333,8 @@ Prefixo: `/appointment`
     - `payment_type` (string, obrigatorio na regra de negocio)
     - `observations` (string, opcional)
     - `online` (boolean, opcional, default `false`)
-    - `service_ids` (lista de ints, opcional; envie repetindo o parametro na URL)
-  - Retorno: `201` + `Appointment` (campos `items` preenchidos quando `service_ids` for informado)
+    - `service_ids` (lista de ints, obrigatorio; envie repetindo o parametro na URL)
+  - Retorno: `201` + `Appointment` (campos `items` preenchidos com os servicos informados)
 
 - `GET /appointment/appointments`
   - Retorno: `200` + `Appointment[]` (com `items` preenchidos para cada atendimento)
@@ -343,7 +343,7 @@ Prefixo: `/appointment`
   - Retorno: `200` + `Appointment` (com `items` preenchidos)
 
 - `PUT /appointment/{id}`
-  - Query params: todos opcionais, incluindo `service_ids` para substituir os servicos do atendimento
+  - Query params: todos opcionais, incluindo `service_ids` para substituir os servicos do atendimento; se informado, deve conter ao menos um id
   - Retorno: `200` + `Appointment` (com `items` preenchidos)
 
 - `DELETE /appointment/{id}`
@@ -385,7 +385,7 @@ Prefixo: `/appointment`
 }
 ```
 
-**Observação**: O campo `items` contém todos os serviços prestados no atendimento. Cada item representa um serviço com seu valor cobrado e opcional data de entrega. O `value_final` é calculado automaticamente como a soma de todos os `charged_value` dos itens.
+**Observação**: O campo `items` contém todos os serviços prestados no atendimento. Cada item representa um serviço com seu valor cobrado e opcional data de entrega. O `value_final` é calculado automaticamente como a soma de todos os `charged_value` dos itens. Um atendimento deve sempre ter ao menos um serviço.
 
 **O que muda no Frontend:**
 
@@ -402,7 +402,7 @@ appointment.items.forEach(item => {
 
 **Criar um Atendimento com Serviços:**
 
-Agora o endpoint POST aceita `service_ids` e cria automaticamente os registros em `atendimento_servicos`, usando o preço atual de cada serviço como `charged_value`.
+Agora o endpoint POST exige `service_ids` e cria automaticamente os registros em `atendimento_servicos`, usando o preço atual de cada serviço como `charged_value`.
 
 Exemplo de chamada:
 

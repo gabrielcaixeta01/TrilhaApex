@@ -33,6 +33,12 @@ def _load_services(db: Session, service_ids: list[int] | None) -> list[Service] 
 	return [services_by_id[service_id] for service_id in normalized_service_ids]
 
 
+def _require_services(services: list[Service] | None, action: str) -> list[Service]:
+	if services is None or not services:
+		raise HTTPException(status_code=400, detail=f"{action} deve possuir pelo menos um serviço")
+	return services
+
+
 def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
 	total = (
 		db.query(func.coalesce(func.sum(AppointmentService.charged_value), 0))
@@ -71,7 +77,7 @@ def create_appointment(
 	if not payment_type:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
 
-	services = _load_services(db, service_ids)
+	services = _require_services(_load_services(db, service_ids), "Atendimento")
 
 	# Validar se pet existe
 	pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -140,6 +146,8 @@ def update_appointment(
 ):
 	appointment = get_appointment(db, appointment_id)
 	services = _load_services(db, service_ids)
+	if service_ids is not None:
+		services = _require_services(services, "Atendimento")
 
 	if pet_id is not None:
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
