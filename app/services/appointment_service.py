@@ -8,6 +8,18 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Appointment, AppointmentService, EmployeeModel, Pet, Service
 
 
+def _normalize_status(status: str | None, default: str = "agendado") -> str:
+	if status is None:
+		return default
+	status_map = {
+		"scheduled": "agendado",
+		"confirmed": "confirmado",
+		"completed": "concluido",
+		"canceled": "cancelado",
+	}
+	return status_map.get(status, status)
+
+
 def _normalize_service_ids(service_ids: list[int | str] | None) -> list[int] | None:
 	if service_ids is None:
 		return None
@@ -54,13 +66,13 @@ def _require_services(services: list[Service] | None, action: str) -> list[Servi
 	return services
 
 
-def _require_employee_belongs_to_store(db: Session, worker_id: int, store_id: int) -> None:
-	worker = (
+def _require_employee_belongs_to_store(db: Session, employee_id: int, store_id: int) -> None:
+	employee = (
 		db.query(EmployeeModel)
-		.filter(EmployeeModel.user_id == worker_id, EmployeeModel.store_id == store_id)
+		.filter(EmployeeModel.user_id == employee_id, EmployeeModel.store_id == store_id)
 		.first()
 	)
-	if worker is None:
+	if employee is None:
 		raise HTTPException(status_code=400, detail="O funcionário selecionado não pertence à loja informada")
 
 
@@ -74,7 +86,7 @@ def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
 
 
 def _sync_appointment_total(db: Session, appointment: Appointment) -> Appointment:
-	appointment.value_final = _calculate_appointment_total(db, appointment.id)
+	appointment.final_value = _calculate_appointment_total(db, appointment.id)
 	return appointment
 
 
@@ -84,50 +96,56 @@ def create_appointment(
 	status: str = "agendado",
 	store_id: int | None = None,
 	client_id: int | None = None,
+	employee_id: int | None = None,
 	worker_id: int | None = None,
 	pet_id: int | None = None,
+	payment_method: str | None = None,
 	payment_type: str | None = None,
+	notes: str | None = None,
 	observations: str | None = None,
 	online: bool = False,
 	service_ids: list[int | str] | None = None,
 ):
+	effective_employee_id = employee_id if employee_id is not None else worker_id
+	effective_payment_method = payment_method if payment_method is not None else payment_type
+	effective_notes = notes if notes is not None else observations
+	normalized_status = _normalize_status(status)
+
 	if store_id is None:
 		raise HTTPException(status_code=400, detail="Loja é obrigatória")
 	if client_id is None:
 		raise HTTPException(status_code=400, detail="Cliente é obrigatório")
-	if worker_id is None:
+	if effective_employee_id is None:
 		raise HTTPException(status_code=400, detail="Funcionário é obrigatório")
 	if pet_id is None:
 		raise HTTPException(status_code=400, detail="Pet é obrigatório")
-	if not payment_type:
+	if not effective_payment_method:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
 
-	_require_employee_belongs_to_store(db, worker_id, store_id)
+	_require_employee_belongs_to_store(db, effective_employee_id, store_id)
 
 	services = _require_services(_load_services(db, service_ids), "Atendimento")
 
-	# Validar se pet existe
 	pet = db.query(Pet).filter(Pet.id == pet_id).first()
 	if not pet:
 		raise HTTPException(status_code=404, detail="Pet não encontrado")
 
-	# Validar se o pet pertence ao cliente selecionado
 	if pet.owner_id != client_id:
 		raise HTTPException(
 			status_code=400,
-			detail=f"O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente {pet.owner_id}"
+			detail=f"O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente {pet.owner_id}",
 		)
 
 	appointment = Appointment(
-		value_final=Decimal("0"),
+		final_value=Decimal("0"),
 		service_at=service_at or datetime.utcnow(),
-		payment_type=payment_type,
-		status=status,
+		payment_method=effective_payment_method,
+		status=normalized_status,
 		online=online,
-		observations=observations,
+		notes=effective_notes,
 		store_id=store_id,
 		client_id=client_id,
-		worker_id=worker_id,
+		employee_id=effective_employee_id,
 		pet_id=pet_id,
 	)
 	db.add(appointment)
@@ -164,45 +182,51 @@ def update_appointment(
 	status: str | None = None,
 	store_id: int | None = None,
 	client_id: int | None = None,
+	employee_id: int | None = None,
 	worker_id: int | None = None,
 	pet_id: int | None = None,
+	payment_method: str | None = None,
 	payment_type: str | None = None,
+	notes: str | None = None,
 	observations: str | None = None,
 	online: bool | None = None,
 	service_ids: list[int | str] | None = None,
 ):
+	effective_employee_input = employee_id if employee_id is not None else worker_id
+	effective_payment_method_input = payment_method if payment_method is not None else payment_type
+	effective_notes_input = notes if notes is not None else observations
+	normalized_status = _normalize_status(status, default="agendado") if status is not None else None
+
 	appointment = get_appointment(db, appointment_id)
 	services = _load_services(db, service_ids)
 	if service_ids is not None:
 		services = _require_services(services, "Atendimento")
 
 	effective_store_id = store_id if store_id is not None else appointment.store_id
-	effective_worker_id = worker_id if worker_id is not None else appointment.worker_id
-	_require_employee_belongs_to_store(db, effective_worker_id, effective_store_id)
+	effective_employee_id = effective_employee_input if effective_employee_input is not None else appointment.employee_id
+	_require_employee_belongs_to_store(db, effective_employee_id, effective_store_id)
 
 	if pet_id is not None:
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
 		if not pet:
 			raise HTTPException(status_code=404, detail="Pet não encontrado")
 		
-		# Validar se o pet pertence ao cliente selecionado
-		# Se client_id está sendo atualizado, use o novo; senão, use o cliente atual
 		effective_client_id = client_id if client_id is not None else appointment.client_id
 		if pet.owner_id != effective_client_id:
 			raise HTTPException(
 				status_code=400,
-				detail=f"O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente {pet.owner_id}"
+				detail=f"O pet selecionado não pertence ao cliente informado. Pet pertence ao cliente {pet.owner_id}",
 			)
 
 	updates = {
 		"service_at": service_at,
-		"status": status,
+		"status": normalized_status,
 		"store_id": store_id,
 		"client_id": client_id,
-		"worker_id": worker_id,
+		"employee_id": effective_employee_input,
 		"pet_id": pet_id,
-		"payment_type": payment_type,
-		"observations": observations,
+		"payment_method": effective_payment_method_input,
+		"notes": effective_notes_input,
 		"online": online,
 	}
 	for key, value in updates.items():

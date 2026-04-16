@@ -7,21 +7,34 @@ from sqlalchemy.orm import Session, joinedload
 from app.schemas.models import ClientModel, EmployeeModel, UserModel
 
 
-ALLOWED__ROLES = {"cliente", "funcionario"}
+ALLOWED_PROFILE_TYPES = {"client", "employee"}
+
+
+def _normalize_profile_type(profile_type: str | None, default: str = "client") -> str:
+    if profile_type is None:
+        return default
+    profile_map = {
+        "cliente": "client",
+        "funcionario": "employee",
+    }
+    return profile_map.get(profile_type, profile_type)
 
 def create_user(
     db: Session,
     name: str,
     password: str,
     email: str,
-    role: str = "cliente",
+    profile_type: str = "client",
+    role: str | None = None,
     phone: str | None = None,
     cpf: str | None = None,
     cnpj: str | None = None,
     client_type: str | None = None,
+    client_zip_code: str | None = None,
     client_cep: str | None = None,
     client_state: str | None = None,
     client_city: str | None = None,
+    employee_code: str | None = None,
     matricula: str | None = None,
     job_title: str | None = None,
     salary: Decimal | None = None,
@@ -31,11 +44,15 @@ def create_user(
     is_superuser: bool = False,
     user_active: bool | None = None,
 ):
+    effective_profile_type = _normalize_profile_type(role if role is not None else profile_type)
+    effective_client_zip_code = client_zip_code if client_zip_code is not None else client_cep
+    effective_employee_code = employee_code if employee_code is not None else matricula
+
     if len(password.strip()) < 8:
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
 
-    if role not in ALLOWED__ROLES:
-        raise HTTPException(status_code=400, detail="Role inválida para criação de conta. Use 'cliente' ou 'funcionario'")
+    if effective_profile_type not in ALLOWED_PROFILE_TYPES:
+        raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente' ou 'funcionario'")
 
     if not name.strip():
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
@@ -52,7 +69,7 @@ def create_user(
         name=name.strip(),
         email=email,
         password_hash=password,
-        role=role,
+        profile_type=effective_profile_type,
         phone=phone or "",
         cpf=cpf,
         cnpj=cnpj,
@@ -63,33 +80,33 @@ def create_user(
     db.add(db_user)
     db.flush()
 
-    if role == "cliente":
-        if any(value is not None for value in [matricula, job_title, salary, hired_at, store_id]):
+    if effective_profile_type == "client":
+        if any(value is not None for value in [effective_employee_code, job_title, salary, hired_at, store_id]):
             raise HTTPException(
                 status_code=400,
-                detail="Campos de funcionário devem ser nulos quando role for 'cliente'",
+                detail="Campos de funcionário devem ser nulos quando o perfil for 'cliente'",
             )
         db.add(
             ClientModel(
                 user_id=db_user.id,
                 client_type=client_type or "cliente",
-                cep=client_cep or "",
+                zip_code=effective_client_zip_code or "",
                 state=client_state or "",
                 city=client_city or "",
             )
         )
 
-    if role == "funcionario":
-        if any(value is not None for value in [client_type, client_cep, client_state, client_city]):
+    if effective_profile_type == "employee":
+        if any(value is not None for value in [client_type, effective_client_zip_code, client_state, client_city]):
             raise HTTPException(
                 status_code=400,
-                detail="Campos de cliente devem ser nulos quando role for 'funcionario'",
+                detail="Campos de cliente devem ser nulos quando o perfil for 'funcionario'",
             )
         db.add(
             EmployeeModel(
                 user_id=db_user.id,
-                matricula=matricula or f"USR-{db_user.id}",
-                job_title=job_title or role,
+                employee_code=effective_employee_code or f"EMP-{db_user.id}",
+                job_title=job_title or effective_profile_type,
                 salary=salary or Decimal("0"),
                 hired_at=hired_at or date.today(),
                 store_id=store_id or 1,
@@ -123,13 +140,16 @@ def update_user(
     password: str | None = None,
     new_phone: str | None = None,
     phone: str | None = None,
+    profile_type: str | None = None,
     role: str | None = None,
     cpf: str | None = None,
     cnpj: str | None = None,
     client_type: str | None = None,
+    client_zip_code: str | None = None,
     client_cep: str | None = None,
     client_state: str | None = None,
     client_city: str | None = None,
+    employee_code: str | None = None,
     matricula: str | None = None,
     job_title: str | None = None,
     salary: Decimal | None = None,
@@ -140,11 +160,15 @@ def update_user(
 ):
     user = get_user(db, user_id)
 
+    effective_profile_type_input = _normalize_profile_type(role if role is not None else profile_type, default=user.profile_type)
+    effective_client_zip_code_input = client_zip_code if client_zip_code is not None else client_cep
+    effective_employee_code_input = employee_code if employee_code is not None else matricula
+
     if password is not None and len(password.strip()) < 8:
         raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
 
-    if role is not None and role not in ALLOWED__ROLES:
-        raise HTTPException(status_code=400, detail="Role inválida para atualização. Use 'cliente' ou 'funcionario'")
+    if effective_profile_type_input not in ALLOWED_PROFILE_TYPES:
+        raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente' ou 'funcionario'")
 
     if name is not None and not name.strip():
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
@@ -158,18 +182,18 @@ def update_user(
         if exists_email:
             raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
-    target_role = role if role is not None else user.role
+    target_profile_type = effective_profile_type_input
 
-    if target_role == "cliente" and any(value is not None for value in [matricula, job_title, salary, hired_at, store_id]):
+    if target_profile_type == "client" and any(value is not None for value in [effective_employee_code_input, job_title, salary, hired_at, store_id]):
         raise HTTPException(
             status_code=400,
-            detail="Campos de funcionário devem ser nulos quando role for 'cliente'",
+            detail="Campos de funcionário devem ser nulos quando o perfil for 'cliente'",
         )
 
-    if target_role == "funcionario" and any(value is not None for value in [client_type, client_cep, client_state, client_city]):
+    if target_profile_type == "employee" and any(value is not None for value in [client_type, effective_client_zip_code_input, client_state, client_city]):
         raise HTTPException(
             status_code=400,
-            detail="Campos de cliente devem ser nulos quando role for 'funcionario'",
+            detail="Campos de cliente devem ser nulos quando o perfil for 'funcionario'",
         )
     
     for field, value in {
@@ -177,7 +201,7 @@ def update_user(
         "email": email,
         "password_hash": password,
         "phone": new_phone or phone,
-        "role": role,
+        "profile_type": effective_profile_type_input if (profile_type is not None or role is not None) else None,
         "cpf": cpf,
         "cnpj": cnpj,
         "active": user_active,
@@ -186,7 +210,7 @@ def update_user(
         if value is not None:
             setattr(user, field, value)
 
-    if target_role == "cliente":
+    if target_profile_type == "client":
         if user.employee_profile is not None:
             db.delete(user.employee_profile)
             user.employee_profile = None
@@ -195,21 +219,21 @@ def update_user(
             user.client_profile = ClientModel(
                 user_id=user.id,
                 client_type=client_type or "cliente",
-                cep=client_cep or "",
+                zip_code=effective_client_zip_code_input or "",
                 state=client_state or "",
                 city=client_city or "",
             )
         else:
             if client_type is not None:
                 user.client_profile.client_type = client_type
-            if client_cep is not None:
-                user.client_profile.cep = client_cep
+            if effective_client_zip_code_input is not None:
+                user.client_profile.zip_code = effective_client_zip_code_input
             if client_state is not None:
                 user.client_profile.state = client_state
             if client_city is not None:
                 user.client_profile.city = client_city
 
-    if target_role == "funcionario":
+    if target_profile_type == "employee":
         if user.client_profile is not None:
             db.delete(user.client_profile)
             user.client_profile = None
@@ -217,15 +241,15 @@ def update_user(
         if user.employee_profile is None:
             user.employee_profile = EmployeeModel(
                 user_id=user.id,
-                matricula=matricula or f"USR-{user.id}",
-                job_title=job_title or "funcionario",
+                employee_code=effective_employee_code_input or f"EMP-{user.id}",
+                job_title=job_title or "employee",
                 salary=salary or Decimal("0"),
                 hired_at=hired_at or date.today(),
                 store_id=store_id or 1,
             )
         else:
-            if matricula is not None:
-                user.employee_profile.matricula = matricula
+            if effective_employee_code_input is not None:
+                user.employee_profile.employee_code = effective_employee_code_input
             if job_title is not None:
                 user.employee_profile.job_title = job_title
             if salary is not None:
