@@ -8,7 +8,7 @@ router = APIRouter(prefix="/pet", tags=["CRUD de Pets"])
 
 
 @router.post("", status_code=201, response_model=Pet)
-def criar_pet(
+def create_pet(
     name: str = Query(...),
     breed: str | None = Query(None),
     sex: str | None = Query(None),
@@ -34,16 +34,16 @@ def criar_pet(
 
 
 @router.get("/pets", response_model=list[Pet])
-def listar_pets(db: Session = Depends(get_db)):
+def list_pets(db: Session = Depends(get_db)):
     return pet_service.list_pets(db)
 
 
 @router.get("/{pet_id}", response_model=Pet)
-def buscar_pet(pet_id: int, db: Session = Depends(get_db)):
+def get_pet(pet_id: int, db: Session = Depends(get_db)):
     return pet_service.get_pet(db, pet_id)
 
 @router.put("/{pet_id}", response_model=Pet)
-def atualizar_pet(
+def update_pet(
     pet_id: int,
     name: str | None = Query(None),
     breed: str | None = Query(None),
@@ -70,6 +70,6 @@ def atualizar_pet(
     return updated_pet
 
 @router.delete("/{pet_id}", status_code=200, response_model=dict)
-def deletar_pet(pet_id: int, db: Session = Depends(get_db)):
+def delete_pet(pet_id: int, db: Session = Depends(get_db)):
     pet_service.delete_pet(db, pet_id)
     return {"message": "Pet deletado com sucesso"}

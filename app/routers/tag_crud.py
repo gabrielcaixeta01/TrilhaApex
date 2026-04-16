@@ -7,7 +7,7 @@ from app.services import tag_service
 router = APIRouter(prefix="/tag", tags=["CRUD de Tags"])
 
 @router.post("", status_code=201, response_model=Tag)
-def criar_tag(
+def create_tag(
     name: str = Query(...),
     db: Session = Depends(get_db),
 ):
@@ -16,15 +16,15 @@ def criar_tag(
 
 
 @router.get("/tags", response_model=list[Tag])
-def listar_tags(db: Session = Depends(get_db)):
+def list_tags(db: Session = Depends(get_db)):
     return tag_service.list_tags(db)
 
 
 @router.get("/{id}", response_model=Tag)
-def buscar_tag(id: int, db: Session = Depends(get_db)):
+def get_tag(id: int, db: Session = Depends(get_db)):
     return tag_service.get_tag(db, id)
 @router.put("/{id}", response_model=Tag)
-def atualizar_tag(
+def update_tag(
     id: int,
     name: str = Query(...),
     description: str | None = Query(None),
@@ -36,6 +36,6 @@ def atualizar_tag(
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
-def deletar_tag( id: int, db: Session = Depends(get_db)) -> dict:
+def delete_tag( id: int, db: Session = Depends(get_db)) -> dict:
     tag_service.delete_tag(db, id)
     return {"message": "Tag deletada com sucesso"}

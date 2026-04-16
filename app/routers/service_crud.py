@@ -8,7 +8,7 @@ router = APIRouter(prefix="/service", tags=["CRUD de Serviços"])
 
 
 @router.post("", status_code=201, response_model=Service)
-def criar_servico(
+def create_service(
     name: str = Query(...),
     description: str | None = Query(None),
     price: float | None = Query(None),
@@ -24,17 +24,17 @@ def criar_servico(
 
 
 @router.get("/services", response_model=list[Service])
-def listar_servicos(db: Session = Depends(get_db)) -> list[Service]:
+def list_services(db: Session = Depends(get_db)) -> list[Service]:
     return service_service.list_services(db)
 
 
 @router.get("/{id}", response_model=Service)
-def buscar_servico(id: int, db: Session = Depends(get_db)) -> Service:
+def get_service(id: int, db: Session = Depends(get_db)) -> Service:
    return service_service.get_service(db, id)
 
 
 @router.put("/{id}", response_model=Service)
-def atualizar_servico(
+def update_service(
     id: int,
     name: str | None = Query(None),
     description: str | None = Query(None),
@@ -52,6 +52,6 @@ def atualizar_servico(
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
-def deletar_servico(id: int, db: Session = Depends(get_db)) -> dict:
+def delete_service(id: int, db: Session = Depends(get_db)) -> dict:
     service_service.delete_service(db, id)
     return {"message": "Serviço deletado com sucesso"}
