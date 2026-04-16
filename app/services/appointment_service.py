@@ -8,17 +8,6 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Appointment, AppointmentService, EmployeeModel, Pet, Service
 
 
-def _normalize_status(status: str | None, default: str = "agendado") -> str:
-	if status is None:
-		return default
-	status_map = {
-		"scheduled": "agendado",
-		"confirmed": "confirmado",
-		"completed": "concluido",
-		"canceled": "cancelado",
-	}
-	return status_map.get(status, status)
-
 
 def _normalize_service_ids(service_ids: list[int | str] | None) -> list[int] | None:
 	if service_ids is None:
@@ -60,11 +49,6 @@ def _load_services(db: Session, service_ids: list[int | str] | None) -> list[Ser
 	return [services_by_id[service_id] for service_id in normalized_service_ids]
 
 
-def _require_services(services: list[Service] | None, action: str) -> list[Service]:
-	if services is None or not services:
-		raise HTTPException(status_code=400, detail=f"{action} deve possuir pelo menos um serviço")
-	return services
-
 
 def _require_employee_belongs_to_store(db: Session, employee_id: int, store_id: int) -> None:
 	employee = (
@@ -97,34 +81,30 @@ def create_appointment(
 	store_id: int | None = None,
 	client_id: int | None = None,
 	employee_id: int | None = None,
-	worker_id: int | None = None,
 	pet_id: int | None = None,
 	payment_method: str | None = None,
-	payment_type: str | None = None,
 	notes: str | None = None,
-	observations: str | None = None,
 	online: bool = False,
 	service_ids: list[int | str] | None = None,
 ):
-	effective_employee_id = employee_id if employee_id is not None else worker_id
-	effective_payment_method = payment_method if payment_method is not None else payment_type
-	effective_notes = notes if notes is not None else observations
-	normalized_status = _normalize_status(status)
+	
 
 	if store_id is None:
 		raise HTTPException(status_code=400, detail="Loja é obrigatória")
 	if client_id is None:
 		raise HTTPException(status_code=400, detail="Cliente é obrigatório")
-	if effective_employee_id is None:
+	if employee_id is None:
 		raise HTTPException(status_code=400, detail="Funcionário é obrigatório")
 	if pet_id is None:
 		raise HTTPException(status_code=400, detail="Pet é obrigatório")
-	if not effective_payment_method:
+	if not payment_method:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
 
-	_require_employee_belongs_to_store(db, effective_employee_id, store_id)
+	_require_employee_belongs_to_store(db, employee_id, store_id)
 
-	services = _require_services(_load_services(db, service_ids), "Atendimento")
+	if service_ids is None:
+		raise HTTPException(status_code=400, detail="Ao menos um serviço é obrigatório")
+	services = _load_services(db, service_ids)
 
 	pet = db.query(Pet).filter(Pet.id == pet_id).first()
 	if not pet:
@@ -139,13 +119,14 @@ def create_appointment(
 	appointment = Appointment(
 		final_value=Decimal("0"),
 		service_at=service_at or datetime.utcnow(),
-		payment_method=effective_payment_method,
-		status=normalized_status,
+		status= status,
+		payment_method=payment_method,
+		status=status,
 		online=online,
-		notes=effective_notes,
+		notes=notes,
 		store_id=store_id,
 		client_id=client_id,
-		employee_id=effective_employee_id,
+		employee_id=employee_id,
 		pet_id=pet_id,
 	)
 	db.add(appointment)
@@ -183,28 +164,20 @@ def update_appointment(
 	store_id: int | None = None,
 	client_id: int | None = None,
 	employee_id: int | None = None,
-	worker_id: int | None = None,
 	pet_id: int | None = None,
 	payment_method: str | None = None,
-	payment_type: str | None = None,
 	notes: str | None = None,
-	observations: str | None = None,
 	online: bool | None = None,
 	service_ids: list[int | str] | None = None,
 ):
-	effective_employee_input = employee_id if employee_id is not None else worker_id
-	effective_payment_method_input = payment_method if payment_method is not None else payment_type
-	effective_notes_input = notes if notes is not None else observations
-	normalized_status = _normalize_status(status, default="agendado") if status is not None else None
-
+	
 	appointment = get_appointment(db, appointment_id)
+	
+	if service_ids is None:
+		raise HTTPException(status_code=400, detail="Ao menos um serviço é obrigatório")
 	services = _load_services(db, service_ids)
-	if service_ids is not None:
-		services = _require_services(services, "Atendimento")
 
-	effective_store_id = store_id if store_id is not None else appointment.store_id
-	effective_employee_id = effective_employee_input if effective_employee_input is not None else appointment.employee_id
-	_require_employee_belongs_to_store(db, effective_employee_id, effective_store_id)
+	_require_employee_belongs_to_store(db, employee_id, store_id)
 
 	if pet_id is not None:
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -220,13 +193,13 @@ def update_appointment(
 
 	updates = {
 		"service_at": service_at,
-		"status": normalized_status,
+		"status": status,
 		"store_id": store_id,
 		"client_id": client_id,
-		"employee_id": effective_employee_input,
+		"employee_id": employee_id,
 		"pet_id": pet_id,
-		"payment_method": effective_payment_method_input,
-		"notes": effective_notes_input,
+		"payment_method": payment_method,
+		"notes": notes,
 		"online": online,
 	}
 	for key, value in updates.items():

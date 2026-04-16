@@ -10,28 +10,23 @@ def create_store(
     cnpj: str,
     phone: str | None = None,
     email: str | None = None,
-    zip_code: str | None = None,
     cep: str | None = None,
     city: str | None = None,
     state: str | None = None,
     street: str | None = None,
-    address: str | None = None,
     neighborhood: str | None = None,
     number: str | None = None,
     active: bool = True,
 ):
-    effective_zip_code = zip_code if zip_code is not None else cep
-    effective_street = street if street is not None else address
 
     required_fields = {
         "name": name,
         "cnpj": cnpj,
         "phone": phone,
         "email": email,
-        "zip_code": effective_zip_code,
         "city": city,
         "state": state,
-        "street": effective_street,
+        "street": street,
         "neighborhood": neighborhood,
         "number": number,
     }
@@ -52,10 +47,10 @@ def create_store(
         cnpj=cnpj,
         phone=phone,
         email=email,
-        zip_code=effective_zip_code,
+        cep=cep,
         city=city,
         state=state,
-        street=effective_street,
+        street=street,
         neighborhood=neighborhood,
         number=number,
         active=active,
@@ -83,18 +78,14 @@ def update_store(
     cnpj: str | None = None,
     phone: str | None = None,
     email: str | None = None,
-    zip_code: str | None = None,
     cep: str | None = None,
     city: str | None = None,
     state: str | None = None,
     street: str | None = None,
-    address: str | None = None,
     neighborhood: str | None = None,
     number: str | None = None,
     active: bool | None = None,
 ):
-    effective_zip_code = zip_code if zip_code is not None else cep
-    effective_street = street if street is not None else address
 
     store = get_store(db, store_id)
     for field, value in {
@@ -102,10 +93,10 @@ def update_store(
         "cnpj": cnpj,
         "phone": phone,
         "email": email,
-        "zip_code": effective_zip_code,
+        "cep": cep,
         "city": city,
         "state": state,
-        "street": effective_street,
+        "street": street,
         "neighborhood": neighborhood,
         "number": number,
         "active": active,
