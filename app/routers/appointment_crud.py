@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -61,9 +61,12 @@ def atualizar_atendimento(
 	payment_type: str | None = Query(None),
 	observations: str | None = Query(None),
 	online: bool | None = Query(None),
-	service_ids: list[int] | None = Query(None),
+	service_ids: list[str] | None = Query(None),
+	service_ids_brackets: list[str] | None = Query(None, alias="service_ids[]"),
 	db: Session = Depends(get_db),
 ) -> Appointment:
+	raw_service_ids = (service_ids or []) + (service_ids_brackets or [])
+
 	updated_appointment = appointment_service.update_appointment(
 		db=db,
 		appointment_id=id,
@@ -76,7 +79,7 @@ def atualizar_atendimento(
 		payment_type=payment_type,
 		observations=observations,
 		online=online,
-		service_ids=service_ids,
+		service_ids=raw_service_ids or None,
 	)
 	return updated_appointment
 

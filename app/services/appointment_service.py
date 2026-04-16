@@ -8,13 +8,28 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Appointment, AppointmentService, EmployeeModel, Pet, Service
 
 
-def _normalize_service_ids(service_ids: list[int] | None) -> list[int] | None:
+def _normalize_service_ids(service_ids: list[int | str] | None) -> list[int] | None:
 	if service_ids is None:
 		return None
-	return list(dict.fromkeys(service_ids))
+
+	normalized_ids: list[int] = []
+	for service_id in service_ids:
+		if isinstance(service_id, int):
+			normalized_ids.append(service_id)
+			continue
+
+		for chunk in service_id.split(","):
+			value = chunk.strip()
+			if not value:
+				continue
+			if not value.isdigit():
+				raise HTTPException(status_code=422, detail=f"service_ids inválido: {value}")
+			normalized_ids.append(int(value))
+
+	return list(dict.fromkeys(normalized_ids))
 
 
-def _load_services(db: Session, service_ids: list[int] | None) -> list[Service] | None:
+def _load_services(db: Session, service_ids: list[int | str] | None) -> list[Service] | None:
 	normalized_service_ids = _normalize_service_ids(service_ids)
 	if normalized_service_ids is None:
 		return None
@@ -74,7 +89,7 @@ def create_appointment(
 	payment_type: str | None = None,
 	observations: str | None = None,
 	online: bool = False,
-	service_ids: list[int] | None = None,
+	service_ids: list[int | str] | None = None,
 ):
 	if store_id is None:
 		raise HTTPException(status_code=400, detail="Loja é obrigatória")
@@ -154,7 +169,7 @@ def update_appointment(
 	payment_type: str | None = None,
 	observations: str | None = None,
 	online: bool | None = None,
-	service_ids: list[int] | None = None,
+	service_ids: list[int | str] | None = None,
 ):
 	appointment = get_appointment(db, appointment_id)
 	services = _load_services(db, service_ids)
