@@ -1,6 +1,6 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-
 from app.database import get_db
 from app.schemas.schemas import Store
 from app.services import store_service
@@ -14,19 +14,16 @@ def create_store(
 	cnpj: str = Query(...),
 	phone: str = Query(...),
 	email: str = Query(...),
-	zip_code: str | None = Query(None),
+	active: bool = Query(True),
+	created_at: datetime | None = Query(None),
 	cep: str = Query(...),
 	city: str = Query(...),
 	state: str = Query(...),
 	street: str | None = Query(None),
-	address: str = Query(...),
 	neighborhood: str = Query(...),
 	number: str = Query(...),
-	active: bool = Query(True),
 	db: Session = Depends(get_db),
 ) -> Store:
-	effective_zip_code = zip_code if zip_code is not None else cep
-	effective_street = street if street is not None else address
 
 	return store_service.create_store(
 		db=db,
@@ -34,13 +31,14 @@ def create_store(
 		cnpj=cnpj,
 		phone=phone,
 		email=email,
-		zip_code=effective_zip_code,
+		active=active,
+		created_at=created_at,
+		cep=cep,
 		city=city,
 		state=state,
-		street=effective_street,
+		street=street,
 		neighborhood=neighborhood,
 		number=number,
-		active=active,
 	)
 
 
@@ -61,19 +59,17 @@ def update_store(
 	cnpj: str | None = Query(None),
 	phone: str | None = Query(None),
 	email: str | None = Query(None),
-	zip_code: str | None = Query(None),
+	active: bool | None = Query(None),
+	created_at: datetime | None = Query(None),
 	cep: str | None = Query(None),
 	city: str | None = Query(None),
 	state: str | None = Query(None),
 	street: str | None = Query(None),
-	address: str | None = Query(None),
 	neighborhood: str | None = Query(None),
 	number: str | None = Query(None),
-	active: bool | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Store:
-	effective_zip_code = zip_code if zip_code is not None else cep
-	effective_street = street if street is not None else address
+	
 
 	updated_store = store_service.update_store(
 		db=db,
@@ -82,10 +78,12 @@ def update_store(
 		cnpj=cnpj,
 		phone=phone,
 		email=email,
-		zip_code=effective_zip_code,
+		active=active,
+		created_at=created_at,
+		cep=cep,
 		city=city,
 		state=state,
-		street=effective_street,
+		street=street,
 		neighborhood=neighborhood,
 		number=number,
 		active=active,

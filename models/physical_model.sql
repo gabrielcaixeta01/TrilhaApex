@@ -15,7 +15,7 @@ CREATE TABLE users (
 CREATE TABLE clients (
 	user_id INTEGER NOT NULL,
 	client_type VARCHAR(20) NOT NULL,
-	zip_code VARCHAR(9) NOT NULL,
+	cep VARCHAR(8) NOT NULL,
 	state CHAR(2) NOT NULL,
 	city VARCHAR(120) NOT NULL,
 	PRIMARY KEY (user_id),
@@ -30,7 +30,7 @@ CREATE TABLE stores (
 	email VARCHAR(255) NOT NULL UNIQUE,
 	active BOOLEAN NOT NULL DEFAULT TRUE,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	zip_code VARCHAR(9) NOT NULL,
+	cep VARCHAR(9) NOT NULL,
 	city VARCHAR(120) NOT NULL,
 	state CHAR(2) NOT NULL,
 	street VARCHAR(255) NOT NULL,
@@ -49,7 +49,6 @@ CREATE TABLE employees (
 	CONSTRAINT fk_employees_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Disjoint specialization: one user must be either client or employee, never both.
 CREATE TRIGGER tr_clients_bi_disjoint
 BEFORE INSERT ON clients
 FOR EACH ROW
@@ -234,7 +233,7 @@ INSERT INTO users (id, name, email, password_hash, phone, profile_type, cpf, cnp
 	(11, 'Marina Prado', 'marina.prado@exemplo.com', 'hash_marina_123', '11996666666', 'client', '123.456.789-00', NULL, TRUE, FALSE, '2026-01-20 11:00:00'),
 	(12, 'Admin Apex', 'admin@exemplo.com', 'hash_admin_123', '11997777777', 'employee', NULL, NULL, TRUE, TRUE, '2026-01-21 11:30:00');
 
-INSERT INTO clients (user_id, client_type, zip_code, state, city) VALUES
+INSERT INTO clients (user_id, client_type, cep, state, city) VALUES
 	(1, 'pessoa_fisica', '01001-000', 'SP', 'Sao Paulo'),
 	(2, 'pessoa_fisica', '20040-020', 'RJ', 'Rio de Janeiro'),
 	(3, 'pessoa_fisica', '30110-040', 'MG', 'Belo Horizonte'),
@@ -242,7 +241,7 @@ INSERT INTO clients (user_id, client_type, zip_code, state, city) VALUES
 	(5, 'pessoa_fisica', '40020-000', 'BA', 'Salvador'),
 	(11, 'pessoa_fisica', '70040-010', 'DF', 'Brasilia');
 
-INSERT INTO stores (id, name, cnpj, phone, email, active, created_at, zip_code, city, state, street, neighborhood, number) VALUES
+INSERT INTO stores (id, name, cnpj, phone, email, active, created_at, cep, city, state, street, neighborhood, number) VALUES
 	(1, 'Petshop GC Paulista', '10.000.000/0001-01', '1130001001', 'paulista@petshopgc.com', TRUE, '2026-01-01 08:00:00', '01310-100', 'Sao Paulo', 'SP', 'Av Paulista', 'Bela Vista', '1000'),
 	(2, 'Petshop GC Centro RJ', '10.000.000/0001-02', '2130002002', 'centrorj@petshopgc.com', TRUE, '2026-01-01 08:10:00', '20031-170', 'Rio de Janeiro', 'RJ', 'Rua Primeiro de Marco', 'Centro', '200'),
 	(3, 'Petshop GC Savassi', '10.000.000/0001-03', '3130003003', 'savassi@petshopgc.com', TRUE, '2026-01-01 08:20:00', '30140-070', 'Belo Horizonte', 'MG', 'Rua Pernambuco', 'Savassi', '300'),
@@ -325,3 +324,4 @@ INSERT INTO appointment_services (appointment_id, service_id, charged_value, not
 	(7, 7, 35.00, 'Corte de unhas'),
 	(8, 4, 140.00, 'Dose de reforco aplicada'),
 	(8, 7, 35.00, 'Unhas aparadas');
+

@@ -9,9 +9,10 @@ router = APIRouter(prefix="/tag", tags=["CRUD de Tags"])
 @router.post("", status_code=201, response_model=Tag)
 def create_tag(
     name: str = Query(...),
+    description: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
-    created_tag = tag_service.create_tag(db=db, name=name)
+    created_tag = tag_service.create_tag(db=db, name=name, description=description)
     return created_tag
 
 
@@ -23,10 +24,11 @@ def list_tags(db: Session = Depends(get_db)):
 @router.get("/{id}", response_model=Tag)
 def get_tag(id: int, db: Session = Depends(get_db)):
     return tag_service.get_tag(db, id)
+
 @router.put("/{id}", response_model=Tag)
 def update_tag(
     id: int,
-    name: str = Query(...),
+    name: str | None = Query(None),
     description: str | None = Query(None),
     db: Session = Depends(get_db),
 ):

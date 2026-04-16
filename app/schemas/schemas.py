@@ -6,11 +6,6 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
-class PetStatus(str, Enum):
-    available = "available"
-    pending = "pending"
-    sold = "sold"
-
 
 class Store(BaseModel):
     id: int
@@ -18,7 +13,7 @@ class Store(BaseModel):
     cnpj: str
     phone: str
     email: str
-    zip_code: str
+    cep: str
     city: str
     state: str
     street: str
@@ -37,7 +32,7 @@ class StoreCreate(BaseModel):
     cnpj: str
     phone: str
     email: str
-    zip_code: str
+    cep: str
     city: str
     state: str
     street: str
@@ -51,7 +46,7 @@ class StoreUpdate(BaseModel):
     cnpj: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
-    zip_code: Optional[str] = None
+    cep: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
     street: Optional[str] = None
@@ -111,7 +106,7 @@ class UserUpdate(BaseModel):
     active: Optional[bool] = None
     is_superuser: Optional[bool] = None
     client_type: Optional[str] = None
-    client_zip_code: Optional[str] = None
+    client_cep: Optional[str] = None
     client_state: Optional[str] = None
     client_city: Optional[str] = None
     employee_code: Optional[str] = None
@@ -124,7 +119,7 @@ class UserUpdate(BaseModel):
 class Client(BaseModel):
     user_id: int
     client_type: str
-    zip_code: str
+    cep: str
     state: str
     city: str
 

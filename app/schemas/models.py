@@ -16,7 +16,7 @@ class Store(Base):
     email = Column(String(255), nullable=False, unique=True)
     active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    zip_code = Column(String(9), nullable=False)
+    cep = Column(String(9), nullable=False)
     city = Column(String(120), nullable=False)
     state = Column(String(2), nullable=False)
     street = Column(String(255), nullable=False)
@@ -63,7 +63,7 @@ class ClientModel(Base):
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     client_type = Column(String(20), nullable=False)
-    zip_code = Column(String(9), nullable=False)
+    cep = Column(String(9), nullable=False)
     state = Column(String(2), nullable=False)
     city = Column(String(120), nullable=False)
 
