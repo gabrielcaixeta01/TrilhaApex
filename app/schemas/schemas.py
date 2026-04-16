@@ -1,8 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, Optional, List
-
 from enum import Enum
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -19,15 +18,15 @@ class Store(BaseModel):
     cnpj: str
     phone: str
     email: str
-    cep: str
+    zip_code: str
     city: str
     state: str
-    address: str
+    street: str
     neighborhood: str
     number: str
     active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    employees: List['Employee'] = Field(default_factory=list)
+    employees: List["Employee"] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -38,10 +37,10 @@ class StoreCreate(BaseModel):
     cnpj: str
     phone: str
     email: str
-    cep: str
+    zip_code: str
     city: str
     state: str
-    address: str
+    street: str
     neighborhood: str
     number: str
     active: bool = True
@@ -52,10 +51,10 @@ class StoreUpdate(BaseModel):
     cnpj: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
-    cep: Optional[str] = None
+    zip_code: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
-    address: Optional[str] = None
+    street: Optional[str] = None
     neighborhood: Optional[str] = None
     number: Optional[str] = None
     active: Optional[bool] = None
@@ -67,14 +66,14 @@ class User(BaseModel):
     email: str
     password_hash: str
     phone: str
-    role: str
+    profile_type: str
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: bool = True
     is_superuser: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    client_profile: Optional['Client'] = None
-    employee_profile: Optional['Employee'] = None
+    client_profile: Optional["Client"] = None
+    employee_profile: Optional["Employee"] = None
 
     class Config:
         from_attributes = True
@@ -85,16 +84,16 @@ class UserCreate(BaseModel):
     email: str
     password: str
     phone: str
-    role: Literal["cliente", "funcionario"]
+    profile_type: Literal["client", "employee"]
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: bool = True
     is_superuser: bool = False
     client_type: Optional[str] = None
-    client_cep: Optional[str] = None
+    client_zip_code: Optional[str] = None
     client_state: Optional[str] = None
     client_city: Optional[str] = None
-    matricula: Optional[str] = None
+    employee_code: Optional[str] = None
     job_title: Optional[str] = None
     salary: Optional[Decimal] = None
     hired_at: Optional[date] = None
@@ -106,16 +105,16 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone: Optional[str] = None
-    role: Optional[Literal["cliente", "funcionario"]] = None
+    profile_type: Optional[Literal["client", "employee"]] = None
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: Optional[bool] = None
     is_superuser: Optional[bool] = None
     client_type: Optional[str] = None
-    client_cep: Optional[str] = None
+    client_zip_code: Optional[str] = None
     client_state: Optional[str] = None
     client_city: Optional[str] = None
-    matricula: Optional[str] = None
+    employee_code: Optional[str] = None
     job_title: Optional[str] = None
     salary: Optional[Decimal] = None
     hired_at: Optional[date] = None
@@ -125,7 +124,7 @@ class UserUpdate(BaseModel):
 class Client(BaseModel):
     user_id: int
     client_type: str
-    cep: str
+    zip_code: str
     state: str
     city: str
 
@@ -136,7 +135,7 @@ class Client(BaseModel):
 class Employee(BaseModel):
     user_id: int
     employee_name: Optional[str] = None
-    matricula: str
+    employee_code: str
     job_title: str
     salary: Decimal
     hired_at: date
@@ -147,8 +146,6 @@ class Employee(BaseModel):
 
 
 Store.model_rebuild()
-
-
 User.model_rebuild()
 
 
@@ -251,45 +248,45 @@ class ServiceUpdate(BaseModel):
 
 class Appointment(BaseModel):
     id: int
-    value_final: Decimal
+    final_value: Decimal
     service_at: datetime
-    payment_type: str
+    payment_method: str
     status: str
     online: bool = False
-    observations: Optional[str] = None
+    notes: Optional[str] = None
     store_id: int
     client_id: int
-    worker_id: int
+    employee_id: int
     pet_id: int
-    services: List['AppointmentService'] = Field(default_factory=list)
+    services: List["AppointmentService"] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
 
 
 class AppointmentCreate(BaseModel):
-    value_final: Decimal
+    final_value: Decimal
     service_at: Optional[datetime] = None
-    payment_type: str
+    payment_method: str
     status: str
     online: bool = False
-    observations: Optional[str] = None
+    notes: Optional[str] = None
     store_id: int
     client_id: int
-    worker_id: int
+    employee_id: int
     pet_id: int
 
 
 class AppointmentUpdate(BaseModel):
-    value_final: Optional[Decimal] = None
+    final_value: Optional[Decimal] = None
     service_at: Optional[datetime] = None
-    payment_type: Optional[str] = None
+    payment_method: Optional[str] = None
     status: Optional[str] = None
     online: Optional[bool] = None
-    observations: Optional[str] = None
+    notes: Optional[str] = None
     store_id: Optional[int] = None
     client_id: Optional[int] = None
-    worker_id: Optional[int] = None
+    employee_id: Optional[int] = None
     pet_id: Optional[int] = None
 
 
@@ -297,9 +294,9 @@ class AppointmentService(BaseModel):
     appointment_id: int
     service_id: int
     charged_value: Decimal
-    order_date: datetime
-    delivery_date: Optional[datetime] = None
-    observations: Optional[str] = None
+    ordered_at: datetime
+    delivered_at: Optional[datetime] = None
+    notes: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -309,15 +306,16 @@ class AppointmentServiceCreate(BaseModel):
     appointment_id: int
     service_id: int
     charged_value: Decimal
-    order_date: Optional[datetime] = None
-    delivery_date: Optional[datetime] = None
-    observations: Optional[str] = None
+    ordered_at: Optional[datetime] = None
+    delivered_at: Optional[datetime] = None
+    notes: Optional[str] = None
 
 
 class AppointmentServiceUpdate(BaseModel):
     charged_value: Optional[Decimal] = None
+    ordered_at: Optional[datetime] = None
+    delivered_at: Optional[datetime] = None
+    notes: Optional[str] = None
 
-    Appointment.model_rebuild()
-    order_date: Optional[datetime] = None
-    delivery_date: Optional[datetime] = None
-    observations: Optional[str] = None
+
+Appointment.model_rebuild()
