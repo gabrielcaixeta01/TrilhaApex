@@ -220,18 +220,18 @@ END;
 -- ==========================================
 
 INSERT INTO users (id, name, email, password_hash, phone, profile_type, cpf, cnpj, active, is_superuser, created_at) VALUES
-	(1, 'Ana Paula', 'ana.paula@exemplo.com', 'hash_ana_123', '11990001111', 'client', '111.111.111-11', NULL, TRUE, FALSE, '2026-01-10 09:00:00'),
-	(2, 'Bruno Lima', 'bruno.lima@exemplo.com', 'hash_bruno_123', '11990002222', 'client', '222.222.222-22', NULL, TRUE, FALSE, '2026-01-11 09:10:00'),
-	(3, 'Carla Souza', 'carla.souza@exemplo.com', 'hash_carla_123', '11990003333', 'client', '333.333.333-33', NULL, TRUE, FALSE, '2026-01-12 09:20:00'),
-	(4, 'Diego Martins', 'diego.martins@exemplo.com', 'hash_diego_123', '11990004444', 'client', '444.444.444-44', NULL, TRUE, FALSE, '2026-01-13 09:30:00'),
-	(5, 'Elisa Rocha', 'elisa.rocha@exemplo.com', 'hash_elisa_123', '11990005555', 'client', '555.555.555-55', NULL, TRUE, FALSE, '2026-01-14 09:40:00'),
-	(6, 'Fabio Costa', 'fabio.costa@exemplo.com', 'hash_fabio_123', '11991111111', 'employee', '666.666.666-66', NULL, TRUE, FALSE, '2026-01-15 10:00:00'),
-	(7, 'Gabriela Nunes', 'gabriela.nunes@exemplo.com', 'hash_gabi_123', '11992222222', 'employee', '777.777.777-77', NULL, TRUE, FALSE, '2026-01-16 10:10:00'),
-	(8, 'Heitor Alves', 'heitor.alves@exemplo.com', 'hash_heitor_123', '11993333333', 'employee', '888.888.888-88', NULL, TRUE, FALSE, '2026-01-17 10:20:00'),
-	(9, 'Isabela Melo', 'isabela.melo@exemplo.com', 'hash_isabela_123', '11994444444', 'employee', '999.999.999-99', NULL, TRUE, FALSE, '2026-01-18 10:30:00'),
-	(10, 'Joao Pedro', 'joao.pedro@exemplo.com', 'hash_joao_123', '11995555555', 'employee', '000.000.000-00', NULL, TRUE, FALSE, '2026-01-19 10:40:00'),
-	(11, 'Marina Prado', 'marina.prado@exemplo.com', 'hash_marina_123', '11996666666', 'client', '123.456.789-00', NULL, TRUE, FALSE, '2026-01-20 11:00:00'),
-	(12, 'Admin Apex', 'admin@exemplo.com', 'hash_admin_123', '11997777777', 'employee', NULL, NULL, TRUE, TRUE, '2026-01-21 11:30:00');
+	(1, 'Ana Paula', 'ana.paula@exemplo.com', 'hash_ana_123', '11990001111', 'cliente', '111.111.111-11', NULL, TRUE, FALSE, '2026-01-10 09:00:00'),
+	(2, 'Bruno Lima', 'bruno.lima@exemplo.com', 'hash_bruno_123', '11990002222', 'cliente', '222.222.222-22', NULL, TRUE, FALSE, '2026-01-11 09:10:00'),
+	(3, 'Carla Souza', 'carla.souza@exemplo.com', 'hash_carla_123', '11990003333', 'cliente', '333.333.333-33', NULL, TRUE, FALSE, '2026-01-12 09:20:00'),
+	(4, 'Diego Martins', 'diego.martins@exemplo.com', 'hash_diego_123', '11990004444', 'cliente', '444.444.444-44', NULL, TRUE, FALSE, '2026-01-13 09:30:00'),
+	(5, 'Elisa Rocha', 'elisa.rocha@exemplo.com', 'hash_elisa_123', '11990005555', 'cliente', '555.555.555-55', NULL, TRUE, FALSE, '2026-01-14 09:40:00'),
+	(6, 'Fabio Costa', 'fabio.costa@exemplo.com', 'hash_fabio_123', '11991111111', 'funcionario', '666.666.666-66', NULL, TRUE, FALSE, '2026-01-15 10:00:00'),
+	(7, 'Gabriela Nunes', 'gabriela.nunes@exemplo.com', 'hash_gabi_123', '11992222222', 'funcionario', '777.777.777-77', NULL, TRUE, FALSE, '2026-01-16 10:10:00'),
+	(8, 'Heitor Alves', 'heitor.alves@exemplo.com', 'hash_heitor_123', '11993333333', 'funcionario', '888.888.888-88', NULL, TRUE, FALSE, '2026-01-17 10:20:00'),
+	(9, 'Isabela Melo', 'isabela.melo@exemplo.com', 'hash_isabela_123', '11994444444', 'funcionario', '999.999.999-99', NULL, TRUE, FALSE, '2026-01-18 10:30:00'),
+	(10, 'Joao Pedro', 'joao.pedro@exemplo.com', 'hash_joao_123', '11995555555', 'funcionario', '000.000.000-00', NULL, TRUE, FALSE, '2026-01-19 10:40:00'),
+	(11, 'Marina Prado', 'marina.prado@exemplo.com', 'hash_marina_123', '11996666666', 'cliente', '123.456.789-00', NULL, TRUE, FALSE, '2026-01-20 11:00:00'),
+	(12, 'Admin Apex', 'admin@exemplo.com', 'hash_admin_123', '11997777777', 'funcionario', NULL, NULL, TRUE, TRUE, '2026-01-21 11:30:00');
 
 INSERT INTO clients (user_id, client_type, cep, state, city) VALUES
 	(1, 'pessoa_fisica', '01001-000', 'SP', 'Sao Paulo'),

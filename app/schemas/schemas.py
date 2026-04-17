@@ -244,7 +244,7 @@ class ServiceUpdate(BaseModel):
 class Appointment(BaseModel):
     id: int
     final_value: Decimal
-    service_at: datetime
+    service_at: datetime = Field(default_factory=datetime.utcnow)
     payment_method: str
     status: str
     online: bool = False
@@ -261,7 +261,7 @@ class Appointment(BaseModel):
 
 class AppointmentCreate(BaseModel):
     final_value: Decimal
-    service_at: Optional[datetime] = None
+    service_at: datetime = Field(default_factory=datetime.utcnow)
     payment_method: str
     status: str
     online: bool = False
@@ -289,7 +289,7 @@ class AppointmentService(BaseModel):
     appointment_id: int
     service_id: int
     charged_value: Decimal
-    ordered_at: datetime
+    ordered_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     delivered_at: Optional[datetime] = None
     notes: Optional[str] = None
 
@@ -301,7 +301,7 @@ class AppointmentServiceCreate(BaseModel):
     appointment_id: int
     service_id: int
     charged_value: Decimal
-    ordered_at: Optional[datetime] = None
+    ordered_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     delivered_at: Optional[datetime] = None
     notes: Optional[str] = None
 

@@ -76,18 +76,18 @@ def _sync_appointment_total(db: Session, appointment: Appointment) -> Appointmen
 
 def create_appointment(
 	db: Session,
-	service_at: datetime | None = None,
-	status: str = "agendado",
-	store_id: int | None = None,
-	client_id: int | None = None,
-	employee_id: int | None = None,
-	pet_id: int | None = None,
-	payment_method: str | None = None,
-	notes: str | None = None,
+	store_id: int,
+	client_id: int,
+	employee_id: int,
+	pet_id: int,
+	payment_method: str,
+	service_ids: list[int | str],
+	service_at: datetime,
 	online: bool = False,
-	service_ids: list[int | str] | None = None,
-):
-	
+	status: str = "agendado",
+	notes: str | None = None,
+
+):	
 
 	if store_id is None:
 		raise HTTPException(status_code=400, detail="Loja é obrigatória")

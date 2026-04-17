@@ -7,6 +7,19 @@ from app.schemas.models import ClientModel, EmployeeModel, UserModel
 
 ALLOWED_PROFILE_TYPES = {"cliente", "funcionario"}
 
+PROFILE_TYPE_ALIASES = {
+    "cliente": "cliente",
+    "client": "cliente",
+    "funcionario": "funcionario",
+    "employee": "funcionario",
+}
+
+
+def _normalize_profile_type(profile_type: str | None) -> str | None:
+    if profile_type is None:
+        return None
+    return PROFILE_TYPE_ALIASES.get(profile_type.strip().lower())
+
 
 
 def create_user(
@@ -33,9 +46,10 @@ def create_user(
 ):
    
     name = name.strip() if name else name
+    normalized_profile_type = _normalize_profile_type(profile_type)
 
-    if profile_type is not None and profile_type not in ALLOWED_PROFILE_TYPES:
-        raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente' ou 'funcionario'")
+    if normalized_profile_type not in ALLOWED_PROFILE_TYPES:
+        raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente'/'client' ou 'funcionario'/'employee'")
 
     if not name:
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
@@ -50,7 +64,7 @@ def create_user(
         email=email,
         password_hash=password_hash,
         phone=phone,
-        profile_type=profile_type,
+        profile_type=normalized_profile_type,
         cpf=cpf,
         cnpj=cnpj,
         active=active,
@@ -62,7 +76,7 @@ def create_user(
     db.add(db_user)
     db.flush()
 
-    if profile_type == "cliente":
+    if normalized_profile_type == "cliente":
         if any(value is not None for value in [employee_code, job_title, salary, hired_at, store_id]):
             raise HTTPException(
                 status_code=400,
@@ -78,7 +92,7 @@ def create_user(
             )
         )
 
-    if profile_type == "funcionario":
+    if normalized_profile_type == "funcionario":
         if any(value is not None for value in [client_type, cep, state, city]):
             raise HTTPException(
                 status_code=400,
@@ -138,9 +152,10 @@ def update_user(
     ):
 
     user = get_user(db, user_id=user_id)
+    normalized_profile_type = _normalize_profile_type(profile_type)
 
-    if profile_type is not None and profile_type not in ALLOWED_PROFILE_TYPES:
-        raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente' ou 'funcionario'")
+    if profile_type is not None and normalized_profile_type not in ALLOWED_PROFILE_TYPES:
+        raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente'/'client' ou 'funcionario'/'employee'")
 
     if name is not None and not name.strip():
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
@@ -151,13 +166,13 @@ def update_user(
             raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
 
-    if profile_type == "cliente" and any(value is not None for value in [employee_code, job_title, salary, hired_at, store_id]):
+    if normalized_profile_type == "cliente" and any(value is not None for value in [employee_code, job_title, salary, hired_at, store_id]):
         raise HTTPException(
             status_code=400,
             detail="Campos de funcionário devem ser nulos quando o perfil for 'cliente'",
         )
 
-    if profile_type == "funcionario" and any(value is not None for value in [client_type, cep, state, city]):
+    if normalized_profile_type == "funcionario" and any(value is not None for value in [client_type, cep, state, city]):
         raise HTTPException(
             status_code=400,
             detail="Campos de cliente devem ser nulos quando o perfil for 'funcionario'",
@@ -168,7 +183,7 @@ def update_user(
         "email": email,
         "password_hash": password_hash,
         "phone": phone,
-        "profile_type": profile_type,
+        "profile_type": normalized_profile_type,
         "cpf": cpf,
         "cnpj": cnpj,
         "active": active,
@@ -177,7 +192,7 @@ def update_user(
         if value is not None:
             setattr(user, field, value)
 
-    if profile_type == "cliente":
+    if normalized_profile_type == "cliente":
         if user.employee_profile is not None:
             db.delete(user.employee_profile)
             user.employee_profile = None
@@ -200,7 +215,7 @@ def update_user(
             if city is not None:
                 user.client_profile.city = city
 
-    if profile_type == "funcionario":
+    if normalized_profile_type == "funcionario":
         if user.client_profile is not None:
             db.delete(user.client_profile)
             user.client_profile = None
