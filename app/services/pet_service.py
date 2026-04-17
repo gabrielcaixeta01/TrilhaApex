@@ -7,17 +7,17 @@ from app.schemas.models import Pet
 def create_pet(
     db: Session,
     name: str,
-    breed: str | None = None,
-    sex: str | None = None,
-    size: str | None = None,
-    weight: float | None = None,
+    breed: str,
+    sex: str,
+    size: str,
+    weight: float,
+    category_id: int,
+    owner_id: int,
     health_notes: str | None = None,
-    category_id: int | None = None,
-    owner_id: int | None = None,
 ):
-    normalized_name = name.strip()
+    name = name.strip() if name else name
 
-    if not normalized_name:
+    if not name:
         raise HTTPException(status_code=400, detail="Nome do pet é obrigatório")
 
     if category_id is None:
@@ -28,24 +28,23 @@ def create_pet(
 
     duplicated_pet = (
         db.query(Pet)
-        .filter(Pet.owner_id == owner_id, func.lower(Pet.name) == normalized_name.lower())
+        .filter(Pet.owner_id == owner_id, func.lower(Pet.name) == name.lower())
         .first()
     )
     if duplicated_pet:
         raise HTTPException(status_code=400, detail="Este dono já possui um pet com esse nome")
 
-    pet_data = {
-        "name": normalized_name,
-        "breed": breed,
-        "sex": sex,
-        "size": size,
-        "weight": weight,
-        "health_notes": health_notes,
-        "category_id": category_id,
-        "owner_id": owner_id,
-    }
+    db_pet = Pet(
+        name=name,
+        breed=breed,
+        sex=sex,
+        size=size,
+        weight=weight,
+        health_notes=health_notes,
+        category_id=category_id,
+        owner_id=owner_id,
+    )
 
-    db_pet = Pet(**pet_data)
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)

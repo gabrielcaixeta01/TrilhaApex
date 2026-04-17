@@ -10,13 +10,13 @@ router = APIRouter(prefix="/pet", tags=["CRUD de Pets"])
 @router.post("", status_code=201, response_model=Pet)
 def create_pet(
     name: str = Query(...),
-    breed: str | None = Query(None),
-    sex: str | None = Query(None),
-    size: str | None = Query(None),
-    weight: float | None = Query(None),
+    breed: str = Query(...),
+    sex: str = Query(...),
+    size: str = Query(...),
+    weight: float = Query(...),
     health_notes: str | None = Query(None),
-    category_id: int | None = Query(None),
-    owner_id: int | None = Query(None),
+    category_id: int = Query(...),
+    owner_id: int = Query(...),
     db: Session = Depends(get_db),
 ):
     created_pet = pet_service.create_pet(

@@ -32,11 +32,12 @@ def create_user(
     store_id: int | None = None,
 ):
    
+    name = name.strip() if name else name
 
     if profile_type is not None and profile_type not in ALLOWED_PROFILE_TYPES:
         raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente' ou 'funcionario'")
 
-    if name is None or not name.strip():
+    if not name:
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
    
     exists_email = db.query(UserModel).filter(UserModel.email == email).first()

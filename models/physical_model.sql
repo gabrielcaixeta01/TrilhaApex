@@ -142,11 +142,11 @@ CREATE TABLE categories (
 
 CREATE TABLE pets (
 	id INTEGER PRIMARY KEY,
-	name VARCHAR(120),
-	breed VARCHAR(80),
-	sex VARCHAR(20),
-	size VARCHAR(20),
-	weight DECIMAL(6,2),
+	name VARCHAR(120) NOT NULL,
+	breed VARCHAR(80) NOT NULL,
+	sex VARCHAR(20) NOT NULL,
+	size VARCHAR(20) NOT NULL,
+	weight DECIMAL(6,2) NOT NULL,
 	health_notes VARCHAR(500),
 	category_id INTEGER NOT NULL,
 	owner_id INTEGER NOT NULL,
