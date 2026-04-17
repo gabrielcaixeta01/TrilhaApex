@@ -47,15 +47,15 @@ def _ensure_sqlite_appointment_pet_id_column() -> None:
         return
 
     inspector = inspect(engine)
-    if "atendimentos" not in inspector.get_table_names():
+    if "appointments" not in inspector.get_table_names():
         return
 
-    existing_columns = {column["name"] for column in inspector.get_columns("atendimentos")}
+    existing_columns = {column["name"] for column in inspector.get_columns("appointments")}
     if "pet_id" in existing_columns:
         return
 
     with engine.begin() as connection:
-        connection.execute(text("ALTER TABLE atendimentos ADD COLUMN pet_id INTEGER"))
+        connection.execute(text("ALTER TABLE appointments ADD COLUMN pet_id INTEGER"))
 
 
 def _backfill_sqlite_appointment_pet_id() -> None:
@@ -66,12 +66,12 @@ def _backfill_sqlite_appointment_pet_id() -> None:
         connection.execute(
             text(
                 """
-                UPDATE atendimentos
+                UPDATE appointments
                 SET pet_id = COALESCE(
                     (
                         SELECT MIN(p.id)
                         FROM pets p
-                        WHERE p.dono_id = atendimentos.cliente_id
+                        WHERE p.owner_id = appointments.client_id
                     ),
                     (SELECT MIN(p2.id) FROM pets p2)
                 )

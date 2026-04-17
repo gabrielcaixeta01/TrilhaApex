@@ -86,7 +86,6 @@ def update_store(
 		street=street,
 		neighborhood=neighborhood,
 		number=number,
-		active=active,
 	)
 	return updated_store
 

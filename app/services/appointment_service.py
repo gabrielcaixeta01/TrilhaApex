@@ -120,14 +120,13 @@ def create_appointment(
 		final_value=Decimal("0"),
 		service_at=service_at or datetime.utcnow(),
 		status= status,
-		payment_method=payment_method,
-		status=status,
-		online=online,
-		notes=notes,
 		store_id=store_id,
 		client_id=client_id,
 		employee_id=employee_id,
 		pet_id=pet_id,
+		payment_method=payment_method,
+		notes=notes,
+		online=online,
 	)
 	db.add(appointment)
 	db.flush()

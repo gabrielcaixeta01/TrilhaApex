@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from app.schemas.schemas import Category
 from app.database import get_db
 from sqlalchemy.orm import Session
