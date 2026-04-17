@@ -42,20 +42,8 @@ class UserModel(Base):
     is_superuser = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
-    client_profile = relationship(
-        "ClientModel",
-        back_populates="user",
-        uselist=False,
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-    )
-    employee_profile = relationship(
-        "EmployeeModel",
-        back_populates="user",
-        uselist=False,
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-    )
+    client_profile = relationship("ClientModel", back_populates="user", uselist=False, cascade="all, delete-orphan", passive_deletes=True,)
+    employee_profile = relationship("EmployeeModel", back_populates="user", uselist=False, cascade="all, delete-orphan", passive_deletes=True,)
 
 
 class ClientModel(Base):

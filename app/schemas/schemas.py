@@ -79,15 +79,15 @@ class UserCreate(BaseModel):
     email: str
     password: str
     phone: str
-    profile_type: Literal["client", "employee"]
+    profile_type: Literal["cliente", "funcionario"]
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: bool = True
     is_superuser: bool = False
     client_type: Optional[str] = None
-    client_zip_code: Optional[str] = None
-    client_state: Optional[str] = None
-    client_city: Optional[str] = None
+    cep: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
     employee_code: Optional[str] = None
     job_title: Optional[str] = None
     salary: Optional[Decimal] = None
@@ -100,15 +100,15 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone: Optional[str] = None
-    profile_type: Optional[Literal["client", "employee"]] = None
+    profile_type: Optional[Literal["cliente", "funcionario"]] = None
     cpf: Optional[str] = None
     cnpj: Optional[str] = None
     active: Optional[bool] = None
     is_superuser: Optional[bool] = None
     client_type: Optional[str] = None
-    client_cep: Optional[str] = None
-    client_state: Optional[str] = None
-    client_city: Optional[str] = None
+    cep: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
     employee_code: Optional[str] = None
     job_title: Optional[str] = None
     salary: Optional[Decimal] = None

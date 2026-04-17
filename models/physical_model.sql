@@ -54,8 +54,8 @@ BEFORE INSERT ON clients
 FOR EACH ROW
 BEGIN
 	SELECT CASE
-		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'client' THEN
-			RAISE(ABORT, 'User must have profile_type client to be inserted into clients')
+		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'cliente' THEN
+			RAISE(ABORT, 'User must have profile_type cliente to be inserted into clients')
 		WHEN EXISTS (SELECT 1 FROM employees WHERE user_id = NEW.user_id) THEN
 			RAISE(ABORT, 'User is already registered as employee')
 	END;
@@ -66,8 +66,8 @@ BEFORE UPDATE ON clients
 FOR EACH ROW
 BEGIN
 	SELECT CASE
-		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'client' THEN
-			RAISE(ABORT, 'User must have profile_type client to remain in clients')
+		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'cliente' THEN
+			RAISE(ABORT, 'User must have profile_type cliente to remain in clients')
 		WHEN EXISTS (SELECT 1 FROM employees WHERE user_id = NEW.user_id) THEN
 			RAISE(ABORT, 'User is already registered as employee')
 	END;
@@ -78,8 +78,8 @@ BEFORE INSERT ON employees
 FOR EACH ROW
 BEGIN
 	SELECT CASE
-		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'employee' THEN
-			RAISE(ABORT, 'User must have profile_type employee to be inserted into employees')
+		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'funcionario' THEN
+			RAISE(ABORT, 'User must have profile_type funcionario to be inserted into employees')
 		WHEN EXISTS (SELECT 1 FROM clients WHERE user_id = NEW.user_id) THEN
 			RAISE(ABORT, 'User is already registered as client')
 	END;
@@ -90,8 +90,8 @@ BEFORE UPDATE ON employees
 FOR EACH ROW
 BEGIN
 	SELECT CASE
-		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'employee' THEN
-			RAISE(ABORT, 'User must have profile_type employee to remain in employees')
+		WHEN (SELECT profile_type FROM users WHERE id = NEW.user_id) <> 'funcionario' THEN
+			RAISE(ABORT, 'User must have profile_type funcionario to remain in employees')
 		WHEN EXISTS (SELECT 1 FROM clients WHERE user_id = NEW.user_id) THEN
 			RAISE(ABORT, 'User is already registered as client')
 	END;
