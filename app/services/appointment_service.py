@@ -51,13 +51,18 @@ def _load_services(db: Session, service_ids: list[int | str] | None) -> list[Ser
 
 
 def _require_employee_belongs_to_store(db: Session, employee_id: int, store_id: int) -> None:
-	employee = (
-		db.query(EmployeeModel)
-		.filter(EmployeeModel.user_id == employee_id, EmployeeModel.store_id == store_id)
-		.first()
-	)
+	employee = db.query(EmployeeModel).filter(EmployeeModel.user_id == employee_id).first()
 	if employee is None:
-		raise HTTPException(status_code=400, detail="O funcionário selecionado não pertence à loja informada")
+		raise HTTPException(status_code=404, detail="Funcionário não encontrado")
+
+	if employee.store_id != store_id:
+		raise HTTPException(
+			status_code=400,
+			detail=(
+				"O funcionário selecionado não pertence à loja informada "
+				f"(funcionário vinculado à loja {employee.store_id})"
+			),
+		)
 
 
 def _calculate_appointment_total(db: Session, appointment_id: int) -> Decimal:
@@ -171,12 +176,13 @@ def update_appointment(
 ):
 	
 	appointment = get_appointment(db, appointment_id)
+	effective_store_id = store_id if store_id is not None else appointment.store_id
+	effective_employee_id = employee_id if employee_id is not None else appointment.employee_id
 	
-	if service_ids is None:
-		raise HTTPException(status_code=400, detail="Ao menos um serviço é obrigatório")
-	services = _load_services(db, service_ids)
+	
+	effective_services = _load_services(db, service_ids) if service_ids is not None else None
 
-	_require_employee_belongs_to_store(db, employee_id, store_id)
+	_require_employee_belongs_to_store(db, effective_employee_id, effective_store_id)
 
 	if pet_id is not None:
 		pet = db.query(Pet).filter(Pet.id == pet_id).first()
@@ -205,10 +211,10 @@ def update_appointment(
 		if value is not None:
 			setattr(appointment, key, value)
 
-	if services is not None:
+	if effective_services is not None:
 		appointment.services.clear()
 		db.flush()
-		for service in services:
+		for service in effective_services:
 			db.add(
 				AppointmentService(
 					appointment_id=appointment.id,
