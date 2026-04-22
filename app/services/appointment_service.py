@@ -8,6 +8,10 @@ from sqlalchemy.orm import Session
 from app.schemas.models import Appointment, AppointmentService, EmployeeModel, Pet, Service
 
 
+VALID_PAYMENT_METHODS = {"dinheiro", "cartão de crédito", "cartão de débito", "pix", "transferência bancária"}
+VALID_APPOINTMENT_STATUS = {"agendado", "em andamento", "concluído", "cancelado"}
+
+
 
 def _normalize_service_ids(service_ids: list[int | str] | None) -> list[int] | None:
 	if service_ids is None:
@@ -79,6 +83,30 @@ def _sync_appointment_total(db: Session, appointment: Appointment) -> Appointmen
 	return appointment
 
 
+def _validate_appointment_fields(
+	payment_method: str | None,
+	status: str | None,
+	notes: str | None,
+) -> None:
+	if payment_method is not None and payment_method not in VALID_PAYMENT_METHODS:
+		raise HTTPException(
+			status_code=400,
+			detail=(
+				"Forma de pagamento inválida. Use 'dinheiro', 'cartão de crédito', "
+				"'cartão de débito', 'pix' ou 'transferência bancária'"
+			),
+		)
+
+	if status is not None and status not in VALID_APPOINTMENT_STATUS:
+		raise HTTPException(
+			status_code=400,
+			detail="Status inválido. Use 'agendado', 'em andamento', 'concluído' ou 'cancelado'",
+		)
+
+	if notes is not None and len(notes) > 500:
+		raise HTTPException(status_code=400, detail="Notas devem conter no máximo 500 caracteres")
+
+
 def create_appointment(
 	db: Session,
 	store_id: int,
@@ -105,6 +133,8 @@ def create_appointment(
 	if not payment_method:
 		raise HTTPException(status_code=400, detail="Forma de pagamento é obrigatória")
 
+	_validate_appointment_fields(payment_method=payment_method, status=status, notes=notes)
+	
 	_require_employee_belongs_to_store(db, employee_id, store_id)
 
 	if service_ids is None:
@@ -181,6 +211,7 @@ def update_appointment(
 	
 	
 	effective_services = _load_services(db, service_ids) if service_ids is not None else None
+	_validate_appointment_fields(payment_method=payment_method, status=status, notes=notes)
 
 	_require_employee_belongs_to_store(db, effective_employee_id, effective_store_id)
 

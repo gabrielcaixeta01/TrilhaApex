@@ -28,7 +28,7 @@ def create_user(
     employee_code: str | None = Query(None),
     job_title: str | None = Query(None),
     salary: Decimal | None = Query(None),
-    hired_at: datetime | None = Query(None),
+    hired_at: datetime = Query(datetime.utcnow()),
     store_id: int | None = Query(None),
     db: Session = Depends(get_db),
 ) -> User:

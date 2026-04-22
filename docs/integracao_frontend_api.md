@@ -321,6 +321,8 @@ Prefixo: `/tag`
 ## 4.7 Appointments
 Prefixo: `/appointment`
 
+**Observacao importante**: o campo `employee_id` usado em atendimentos deve receber o `id` do usuario (`users.id`) que possui `employee_profile`. Como a tabela `employees` usa `user_id` como chave primaria, nao existe um ID separado para o funcionario.
+
 ### Endpoints
 - `POST /appointment`
   - Query params:
@@ -328,10 +330,10 @@ Prefixo: `/appointment`
     - `status` (string, opcional, default `agendado`)
     - `store_id` (int, obrigatorio)
     - `client_id` (int, obrigatorio)
-    - `worker_id` (int, obrigatorio)
+    - `employee_id` (int, obrigatorio)
     - `pet_id` (int, obrigatorio)
-    - `payment_type` (string, obrigatorio na regra de negocio)
-    - `observations` (string, opcional)
+    - `payment_method` (string, obrigatorio na regra de negocio)
+    - `notes` (string, opcional)
     - `online` (boolean, opcional, default `false`)
     - `service_ids` (lista de ints, obrigatorio; envie repetindo o parametro na URL)
   - Retorno: `201` + `Appointment` (campos `services` preenchidos com os servicos informados)

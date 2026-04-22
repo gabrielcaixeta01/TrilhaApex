@@ -12,6 +12,13 @@ def create_service(
 ):
     if not name.strip():
         raise HTTPException(status_code=400, detail="Nome do serviço é obrigatório")
+    
+    if len(name.strip()) < 2 or len(name.strip()) > 120:
+        raise HTTPException(status_code=400, detail="Nome do serviço deve conter entre 2 e 120 caracteres")
+    
+    if description and len(description) > 200:
+        raise HTTPException(status_code=400, detail="Descrição do serviço deve conter no máximo 200 caracteres")
+
     if price is None:
         raise HTTPException(status_code=400, detail="Preço do serviço é obrigatório")
     if price < 0:
@@ -41,10 +48,19 @@ def update_service(
     service = get_service(db, service_id)
 
     if name is not None:
-       service.name = name
+        stripped_name = name.strip()
+        if not stripped_name:
+            raise HTTPException(status_code=400, detail="Nome do serviço é obrigatório")
+        if len(stripped_name) < 2 or len(stripped_name) > 120:
+            raise HTTPException(status_code=400, detail="Nome do serviço deve conter entre 2 e 120 caracteres")
+        service.name = stripped_name
     if description is not None:
+        if len(description) > 200:
+            raise HTTPException(status_code=400, detail="Descrição do serviço deve conter no máximo 200 caracteres")
         service.description = description
     if price is not None:
+        if price < 0:
+            raise HTTPException(status_code=400, detail="Preço do serviço não pode ser negativo")
         service.price = price
 
     db.commit()

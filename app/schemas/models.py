@@ -67,7 +67,7 @@ class EmployeeModel(Base):
     employee_code = Column(String(20), nullable=False, unique=True)
     job_title = Column(String(80), nullable=False)
     salary = Column(Numeric(10, 2), nullable=False)
-    hired_at = Column(Date, nullable=False)
+    hired_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     store_id = Column(Integer, ForeignKey("stores.id", ondelete="CASCADE"), nullable=False)
 
     user = relationship("UserModel", back_populates="employee_profile")

@@ -39,6 +39,7 @@ class StoreCreate(BaseModel):
     neighborhood: str
     number: str
     active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class StoreUpdate(BaseModel):
@@ -53,6 +54,7 @@ class StoreUpdate(BaseModel):
     neighborhood: Optional[str] = None
     number: Optional[str] = None
     active: Optional[bool] = None
+    created_at: Optional[datetime] = None
 
 
 class User(BaseModel):
@@ -91,7 +93,7 @@ class UserCreate(BaseModel):
     employee_code: Optional[str] = None
     job_title: Optional[str] = None
     salary: Optional[Decimal] = None
-    hired_at: Optional[date] = None
+    hired_at: datetime = Field(default_factory=datetime.utcnow)
     store_id: Optional[int] = None
 
 
@@ -133,7 +135,7 @@ class Employee(BaseModel):
     employee_code: str
     job_title: str
     salary: Decimal
-    hired_at: date
+    hired_at: datetime = Field(default_factory=datetime.utcnow)
     store_id: int
 
     class Config:

@@ -4,10 +4,17 @@ from app.schemas.models import Category
 
 
 def create_category(db: Session, name: str, description: str | None = None):
+    name = name.strip() if name else name
     exists = db.query(Category).filter(Category.name == name).first()
 
     if exists:
         raise HTTPException(status_code=400, detail="Categoria já existe")
+    
+    if len(name) < 2:
+        raise HTTPException(status_code=400, detail="Nome deve ter 2 ou mais caracteres")
+    
+    if description and len(description) > 500:
+        raise HTTPException(status_code=400, detail="Descrição deve ter no máximo 500 caracteres")
     
     db_category = Category(name=name, description=description)
     db.add(db_category)
@@ -25,12 +32,17 @@ def update_category(db: Session, category_id: int, name: str, description: str |
     category = get_category(db, category_id)
 
     if name is not None:
+        name = name.strip()
         if db.query(Category).filter(Category.name == name, Category.id != category_id).first():
             raise HTTPException(status_code=400, detail="Outra categoria já existe com esse nome")
+        if len(name) < 2:
+            raise HTTPException(status_code=400, detail="Nome deve ter 2 ou mais caracteres")
         
         category.name = name
     
     if description is not None:
+        if len(description) > 500:
+            raise HTTPException(status_code=400, detail="Descrição deve ter no máximo 500 caracteres")
         category.description = description
 
     db.commit()

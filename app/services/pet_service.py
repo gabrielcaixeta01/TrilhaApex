@@ -20,6 +20,18 @@ def create_pet(
     if not name:
         raise HTTPException(status_code=400, detail="Nome do pet é obrigatório")
 
+    if len(name) < 2 or len(name) > 120:
+        raise HTTPException(status_code=400, detail="Nome do pet deve conter entre 2 e 120 caracteres")
+    
+    if breed and len(breed) > 80:
+        raise HTTPException(status_code=400, detail="Raça do pet deve conter no máximo 80 caracteres")
+    
+    if sex and sex not in {"M", "F"}:
+        raise HTTPException(status_code=400, detail="Sexo do pet inválido. Use 'M' ou 'F'")
+    
+    if health_notes and len(health_notes) > 500:
+        raise HTTPException(status_code=400, detail="Anotações de saúde devem conter no máximo 500 caracteres")
+    
     if category_id is None:
         raise HTTPException(status_code=400, detail="Categoria do pet é obrigatória")
 
@@ -92,6 +104,18 @@ def update_pet(
 
     if not pet.name:
         raise HTTPException(status_code=400, detail="Nome do pet é obrigatório")
+
+    if len(pet.name) < 2 or len(pet.name) > 120:
+        raise HTTPException(status_code=400, detail="Nome do pet deve conter entre 2 e 120 caracteres")
+
+    if pet.breed and len(pet.breed) > 80:
+        raise HTTPException(status_code=400, detail="Raça do pet deve conter no máximo 80 caracteres")
+
+    if pet.sex and pet.sex not in {"M", "F"}:
+        raise HTTPException(status_code=400, detail="Sexo do pet inválido. Use 'M' ou 'F'")
+
+    if pet.health_notes and len(pet.health_notes) > 500:
+        raise HTTPException(status_code=400, detail="Anotações de saúde devem conter no máximo 500 caracteres")
 
     if pet.category_id is None:
         raise HTTPException(status_code=400, detail="Categoria do pet é obrigatória")

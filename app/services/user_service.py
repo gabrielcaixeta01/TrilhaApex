@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
@@ -14,11 +14,26 @@ PROFILE_TYPE_ALIASES = {
     "employee": "funcionario",
 }
 
+CLIENT_TYPE_ALIASES = {
+    "pessoa fisica": "pessoa_fisica",
+    "pessoa física": "pessoa_fisica",
+    "pessoa_fisica": "pessoa_fisica",
+    "pessoa juridica": "pessoa_juridica",
+    "pessoa jurídica": "pessoa_juridica",
+    "pessoa_juridica": "pessoa_juridica",
+}
+
 
 def _normalize_profile_type(profile_type: str | None) -> str | None:
     if profile_type is None:
         return None
     return PROFILE_TYPE_ALIASES.get(profile_type.strip().lower())
+
+
+def _normalize_client_type(client_type: str | None) -> str | None:
+    if client_type is None:
+        return None
+    return CLIENT_TYPE_ALIASES.get(client_type.strip().lower())
 
 
 
@@ -33,7 +48,7 @@ def create_user(
     cnpj: str | None = None,
     active: bool = True,
     is_superuser: bool = False,
-    created_at: date | None = None,
+    created_at: datetime | None = None,
     client_type: str | None = None,
     cep: str | None = None,
     state: str | None = None,
@@ -41,23 +56,41 @@ def create_user(
     employee_code: str | None = None,
     job_title: str | None = None,
     salary: Decimal | None = None,
-    hired_at: date | None = None,
+    hired_at: datetime | None = None,
     store_id: int | None = None,
 ):
    
     name = name.strip() if name else name
     normalized_profile_type = _normalize_profile_type(profile_type)
+    normalized_client_type = _normalize_client_type(client_type)
 
     if normalized_profile_type not in ALLOWED_PROFILE_TYPES:
         raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente'/'client' ou 'funcionario'/'employee'")
 
     if not name:
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
+    
+    if len(name) < 2 or len(name) > 120:
+        raise HTTPException(status_code=400, detail="Nome do usuário deve conter entre 2 e 120 caracteres")
+    
+    if phone and len(phone) > 20:
+        raise HTTPException(status_code=400, detail="Número de telefone deve conter no máximo 20 caracteres")
+    
+    if client_type is not None and normalized_client_type is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Tipo de cliente inválido. Use 'pessoa_fisica' ou 'pessoa_juridica'",
+        )
    
     exists_email = db.query(UserModel).filter(UserModel.email == email).first()
     if exists_email:
         raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
+    if cpf is not None and cnpj is not None:
+        raise HTTPException(status_code=400, detail="CPF e CNPJ não podem ser preenchidos ao mesmo tempo")
+    
+    if cpf is None and cnpj is None:
+        raise HTTPException(status_code=400, detail="CPF ou CNPJ deve ser preenchido")
 
     db_user = UserModel(
         name=name,
@@ -69,7 +102,7 @@ def create_user(
         cnpj=cnpj,
         active=active,
         is_superuser=is_superuser,
-        created_at=created_at or date.today(),
+        created_at=created_at or datetime.utcnow(),
     )
 
 
@@ -85,7 +118,7 @@ def create_user(
         db.add(
             ClientModel(
                 user_id=db_user.id,
-                client_type=client_type,
+                client_type=normalized_client_type,
                 cep=cep,
                 state=state,
                 city=city,
@@ -147,18 +180,25 @@ def update_user(
         employee_code: str | None = None,
         job_title: str | None = None,
         salary: Decimal | None = None,
-        hired_at: date | None = None,
+        hired_at: datetime | None = None,
         store_id: int | None = None,
     ):
 
     user = get_user(db, user_id=user_id)
     normalized_profile_type = _normalize_profile_type(profile_type)
+    normalized_client_type = _normalize_client_type(client_type)
 
     if profile_type is not None and normalized_profile_type not in ALLOWED_PROFILE_TYPES:
         raise HTTPException(status_code=400, detail="Perfil inválido. Use 'cliente'/'client' ou 'funcionario'/'employee'")
 
     if name is not None and not name.strip():
         raise HTTPException(status_code=400, detail="Nome do usuário é obrigatório")
+
+    if client_type is not None and normalized_client_type is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Tipo de cliente inválido. Use 'pessoa_fisica' ou 'pessoa_juridica'",
+        )
 
     if email is not None:
         exists_email = (db.query(UserModel).filter(UserModel.email == email, UserModel.id != user_id).first())
@@ -200,14 +240,14 @@ def update_user(
         if user.client_profile is None:
             user.client_profile = ClientModel(
                 user_id=user.id,
-                client_type=client_type,
+                client_type=normalized_client_type,
                 cep=cep,
                 state=state,
                 city=city,
             )
         else:
-            if client_type is not None:
-                user.client_profile.client_type = client_type
+            if normalized_client_type is not None:
+                user.client_profile.client_type = normalized_client_type
             if cep is not None:
                 user.client_profile.cep = cep
             if state is not None:

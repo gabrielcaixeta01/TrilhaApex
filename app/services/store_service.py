@@ -1,3 +1,5 @@
+from datetime import datetime
+import re
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from fastapi import HTTPException
@@ -17,7 +19,9 @@ def create_store(
     neighborhood: str | None = None,
     number: str | None = None,
     active: bool = True,
+    created_at: datetime | None = None,
 ):
+    name = name.strip() if name else name
 
     required_fields = {
         "name": name,
@@ -36,11 +40,35 @@ def create_store(
 
     exists_name = db.query(Store).filter(Store.name == name).first()
     exists_cnpj = db.query(Store).filter(Store.cnpj == cnpj).first()
+    exists_email = db.query(Store).filter(Store.email == email).first()
 
     if exists_name:
         raise HTTPException(status_code=400, detail="Loja já existe com esse nome")
     if exists_cnpj:
         raise HTTPException(status_code=400, detail="Loja já existe com esse CNPJ")
+    if exists_email:
+        raise HTTPException(status_code=400, detail="Loja já existe com esse email")
+
+    if len(name.strip()) < 2 or len(name.strip()) > 120:
+        raise HTTPException(status_code=400, detail="Nome da loja deve conter entre 2 e 120 caracteres")
+    
+    if phone and len(phone) > 20:
+        raise HTTPException(status_code=400, detail="Telefone da loja deve conter no máximo 20 caracteres")
+    if email and len(email) > 255:
+        raise HTTPException(status_code=400, detail="Email da loja deve conter no máximo 255 caracteres")
+    
+    if cep and not re.fullmatch(r"\d{5}-?\d{3}", cep):
+        raise HTTPException(status_code=400, detail="CEP da loja inválido. Use 8 dígitos com ou sem hífen")
+    if city and len(city) > 120:
+        raise HTTPException(status_code=400, detail="Cidade da loja deve conter no máximo 120 caracteres")
+    if state and len(state) > 2:
+        raise HTTPException(status_code=400, detail="Estado da loja deve conter no máximo 2 caracteres")
+    if street and len(street) > 255:
+        raise HTTPException(status_code=400, detail="Rua da loja deve conter no máximo 255 caracteres")
+    if neighborhood and len(neighborhood) > 120:
+        raise HTTPException(status_code=400, detail="Bairro da loja deve conter no máximo 120 caracteres")
+    if number and len(number) > 20:
+        raise HTTPException(status_code=400, detail="Número da loja deve conter no máximo 20 caracteres")
     
     db_store = Store(
         name=name,
@@ -54,6 +82,7 @@ def create_store(
         neighborhood=neighborhood,
         number=number,
         active=active,
+        created_at=created_at or datetime.utcnow(),
     )
     db.add(db_store)
     db.commit()
