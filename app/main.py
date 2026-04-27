@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import initialize_database
 from app.routers import appointment_crud, category_crud, pet_crud, service_crud, store_crud, tag_crud, user_crud
+from app.routers import auth_crud
 
 app = FastAPI(title="Petstore da Apex")
 
@@ -28,6 +29,7 @@ def on_startup() -> None:
 def root():
     return RedirectResponse(url="/docs")
 
+app.include_router(auth_crud.router)
 app.include_router(user_crud.router)
 app.include_router(pet_crud.router)
 app.include_router(appointment_crud.router)

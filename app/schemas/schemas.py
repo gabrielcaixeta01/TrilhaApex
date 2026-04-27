@@ -1,11 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
-from enum import Enum
 from typing import List, Literal, Optional
-
 from pydantic import BaseModel, Field
-
-
 
 class Store(BaseModel):
     id: int
@@ -73,6 +69,21 @@ class User(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: User
+
+
+class LogoutResponse(BaseModel):
+    message: str
 
 
 class UserCreate(BaseModel):
