@@ -17,6 +17,7 @@ def create_pet(
     health_notes: str | None = Query(None),
     category_id: int = Query(...),
     owner_id: int = Query(...),
+    tag_ids: list[int] | None = Query(None),
     db: Session = Depends(get_db),
 ):
     created_pet = pet_service.create_pet(
@@ -29,6 +30,7 @@ def create_pet(
         health_notes=health_notes,
         category_id=category_id,
         owner_id=owner_id,
+        tag_ids=tag_ids,
     )
     return created_pet
 
@@ -53,7 +55,8 @@ def update_pet(
     health_notes: str | None = Query(None),
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
-    db: Session =  Depends(get_db),
+    tag_ids: list[int] | None = Query(None),
+    db: Session = Depends(get_db),
 ):
     updated_pet = pet_service.update_pet(
         db=db,
@@ -65,7 +68,8 @@ def update_pet(
         weight=weight,
         health_notes=health_notes,
         category_id=category_id,
-        owner_id=owner_id
+        owner_id=owner_id,
+        tag_ids=tag_ids,
     )
     return updated_pet
 

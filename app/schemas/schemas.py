@@ -194,6 +194,7 @@ class Pet(BaseModel):
     health_notes: Optional[str] = None
     category_id: int
     owner_id: int
+    tags: list[Tag] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -208,6 +209,7 @@ class PetCreate(BaseModel):
     health_notes: Optional[str] = None
     category_id: int
     owner_id: int
+    tag_ids: list[int] = Field(default_factory=list)
 
 
 class PetUpdate(BaseModel):
@@ -219,6 +221,7 @@ class PetUpdate(BaseModel):
     health_notes: Optional[str] = None
     category_id: Optional[int] = None
     owner_id: Optional[int] = None
+    tag_ids: Optional[list[int]] = None
 
 
 class Service(BaseModel):

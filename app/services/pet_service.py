@@ -1,7 +1,48 @@
 from fastapi import HTTPException
 from sqlalchemy import func
-from sqlalchemy.orm import Session
-from app.schemas.models import Pet
+from sqlalchemy.orm import Session, selectinload
+
+from app.schemas.models import Pet, Tag
+
+
+def _normalize_tag_ids(tag_ids: list[int | str] | None) -> list[int] | None:
+    if tag_ids is None:
+        return None
+
+    normalized_ids: list[int] = []
+    for tag_id in tag_ids:
+        if isinstance(tag_id, int):
+            normalized_ids.append(tag_id)
+            continue
+
+        for chunk in tag_id.split(","):
+            value = chunk.strip()
+            if not value:
+                continue
+            if not value.isdigit():
+                raise HTTPException(status_code=422, detail=f"tag_ids inválido: {value}")
+            normalized_ids.append(int(value))
+
+    return list(dict.fromkeys(normalized_ids))
+
+
+def _load_tags(db: Session, tag_ids: list[int | str] | None) -> list[Tag] | None:
+    normalized_tag_ids = _normalize_tag_ids(tag_ids)
+    if normalized_tag_ids is None:
+        return None
+    if not normalized_tag_ids:
+        return []
+
+    tags = db.query(Tag).filter(Tag.id.in_(normalized_tag_ids)).all()
+    tags_by_id = {tag.id: tag for tag in tags}
+    missing_tag_ids = [tag_id for tag_id in normalized_tag_ids if tag_id not in tags_by_id]
+    if missing_tag_ids:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Tag(s) não encontrada(s): {', '.join(str(tag_id) for tag_id in missing_tag_ids)}",
+        )
+
+    return [tags_by_id[tag_id] for tag_id in normalized_tag_ids]
 
 
 def create_pet(
@@ -14,6 +55,7 @@ def create_pet(
     category_id: int,
     owner_id: int,
     health_notes: str | None = None,
+    tag_ids: list[int | str] | None = None,
 ):
     name = name.strip() if name else name
 
@@ -38,6 +80,8 @@ def create_pet(
     if owner_id is None:
         raise HTTPException(status_code=400, detail="Dono do pet é obrigatório para criar pet")
 
+    loaded_tags = _load_tags(db, tag_ids)
+
     duplicated_pet = (
         db.query(Pet)
         .filter(Pet.owner_id == owner_id, func.lower(Pet.name) == name.lower())
@@ -57,14 +101,22 @@ def create_pet(
         owner_id=owner_id,
     )
 
+    if loaded_tags is not None:
+        db_pet.tags = loaded_tags
+
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
-    return db_pet
+    return get_pet(db, db_pet.id)
 
 
 def get_pet(db: Session, pet_id: int):
-    pet = db.query(Pet).filter(Pet.id == pet_id).first()
+    pet = (
+        db.query(Pet)
+        .options(selectinload(Pet.tags))
+        .filter(Pet.id == pet_id)
+        .first()
+    )
     if not pet:
         raise HTTPException(status_code=404, detail="Pet não encontrado")
     return pet
@@ -81,8 +133,10 @@ def update_pet(
     health_notes: str | None = None,
     category_id: int | None = None,
     owner_id: int | None = None,
+    tag_ids: list[int | str] | None = None,
 ):
     pet = get_pet(db, pet_id)
+    loaded_tags = _load_tags(db, tag_ids)
 
     updates = {
         "name": name,
@@ -135,10 +189,12 @@ def update_pet(
     if duplicated_pet:
         raise HTTPException(status_code=400, detail="Este dono já possui um pet com esse nome")
 
-  
+    if loaded_tags is not None:
+        pet.tags = loaded_tags
+
     db.commit()
     db.refresh(pet)
-    return pet
+    return get_pet(db, pet.id)
 
 
 def delete_pet(db: Session, pet_id: int):
@@ -148,5 +204,5 @@ def delete_pet(db: Session, pet_id: int):
 
 
 def list_pets( db: Session) -> list[Pet]:
-    return db.query(Pet).order_by(Pet.id).all()
+    return db.query(Pet).options(selectinload(Pet.tags)).order_by(Pet.id).all()
 

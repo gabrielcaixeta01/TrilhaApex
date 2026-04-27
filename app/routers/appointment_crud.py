@@ -60,7 +60,7 @@ def update_appointment(
 	client_id: int | None = Query(None),
 	employee_id: int | None = Query(None),
 	pet_id: int | None = Query(None),
-	service_ids: list[str] | None = Query(None),
+	service_ids: list[int] | None = Query(None),
 	db: Session = Depends(get_db),
 ) -> Appointment:
 	

@@ -292,9 +292,4 @@ def delete_user(db: Session, user_id: int):
     db.commit()
 
 def list_users(db: Session) -> list[UserModel]:
-    return (
-        db.query(UserModel)
-        .options(joinedload(UserModel.client_profile), joinedload(UserModel.employee_profile))
-        .order_by(UserModel.name.asc())
-        .all()
-    )
+    return db.query(UserModel).all()

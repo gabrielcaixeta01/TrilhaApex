@@ -181,7 +181,7 @@ Prefixo: `/pet`
 - `POST /pet`
   - Query params:
     - obrigatorio: `name`
-    - opcionais no router: `breed`, `sex`, `size`, `weight`, `health_notes`, `category_id`, `owner_id`
+    - opcionais no router: `breed`, `sex`, `size`, `weight`, `health_notes`, `category_id`, `owner_id`, `tag_ids`
   - Regra de negocio (service): `category_id` e `owner_id` sao obrigatorios
   - Retorno: `201` + `Pet`
 
@@ -210,7 +210,14 @@ Prefixo: `/pet`
   "weight": 12.5,
   "health_notes": "Vacinado",
   "category_id": 1,
-  "owner_id": 5
+  "owner_id": 5,
+  "tags": [
+    {
+      "id": 1,
+      "name": "alergico",
+      "description": ""
+    }
+  ]
 }
 ```
 

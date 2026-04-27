@@ -13,7 +13,7 @@ VALID_APPOINTMENT_STATUS = {"agendado", "em andamento", "concluído", "cancelado
 
 
 
-def _normalize_service_ids(service_ids: list[int | str] | None) -> list[int] | None:
+def _normalize_service_ids(service_ids: list[int] | None) -> list[int] | None:
 	if service_ids is None:
 		return None
 
@@ -114,7 +114,7 @@ def create_appointment(
 	employee_id: int,
 	pet_id: int,
 	payment_method: str,
-	service_ids: list[int | str],
+	service_ids: list[int],
 	service_at: datetime,
 	online: bool = False,
 	status: str = "agendado",
@@ -202,7 +202,7 @@ def update_appointment(
 	payment_method: str | None = None,
 	notes: str | None = None,
 	online: bool | None = None,
-	service_ids: list[int | str] | None = None,
+	service_ids: list[int] | None = None,
 ):
 	
 	appointment = get_appointment(db, appointment_id)
