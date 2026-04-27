@@ -5,6 +5,7 @@ from app.services import user_service
 from app.schemas.schemas import User
 from datetime import datetime
 from decimal import Decimal
+from app.core.security import get_current_active_user
 
 router = APIRouter(prefix="/user", tags=["CRUD de Usuários"])
 
@@ -30,6 +31,7 @@ def create_user(
     salary: Decimal | None = Query(None),
     hired_at: datetime | None = Query(None),
     store_id: int | None = Query(None),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> User:
     
@@ -91,6 +93,7 @@ def update_user(
     salary: Decimal | None = Query(None),
     hired_at: datetime | None = Query(None),
     store_id: int | None = Query(None),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ) -> User:
    

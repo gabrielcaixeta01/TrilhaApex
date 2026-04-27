@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.schemas import Appointment
 from app.services import appointment_service
+from app.core.security import get_current_active_user
+from app.schemas.schemas import User
 
 router = APIRouter(prefix="/appointment", tags=["CRUD de Atendimentos"])
 
@@ -20,6 +22,7 @@ def create_appointment(
 	employee_id: int = Query(...),
 	pet_id: int = Query(...),
 	service_ids: list[int] = Query(...),
+	current_user: User = Depends(get_current_active_user),
 	db: Session = Depends(get_db),
 ):
 
@@ -61,6 +64,7 @@ def update_appointment(
 	employee_id: int | None = Query(None),
 	pet_id: int | None = Query(None),
 	service_ids: list[int] | None = Query(None),
+	current_user: User = Depends(get_current_active_user),
 	db: Session = Depends(get_db),
 ) -> Appointment:
 	
@@ -84,5 +88,7 @@ def update_appointment(
 
 @router.delete("/{id}", status_code=200, response_model=dict)
 def delete_appointment(id: int, db: Session = Depends(get_db)) -> dict:
+	# require auth
+	_ = get_current_active_user
 	appointment_service.delete_appointment(db, id)
 	return {"message": "Atendimento deletado com sucesso"}

@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services import pet_service
 from app.schemas.schemas import Pet
+from app.schemas.schemas import User
+from app.core.security import get_current_active_user
 
 router = APIRouter(prefix="/pet", tags=["CRUD de Pets"])
 
@@ -18,6 +20,7 @@ def create_pet(
     category_id: int = Query(...),
     owner_id: int = Query(...),
     tag_ids: list[int] | None = Query(None),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     created_pet = pet_service.create_pet(
@@ -56,6 +59,7 @@ def update_pet(
     category_id: int | None = Query(None),
     owner_id: int | None = Query(None),
     tag_ids: list[int] | None = Query(None),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     updated_pet = pet_service.update_pet(
@@ -75,5 +79,7 @@ def update_pet(
 
 @router.delete("/{pet_id}", status_code=200, response_model=dict)
 def delete_pet(pet_id: int, db: Session = Depends(get_db)):
+    # require auth
+    _ = get_current_active_user
     pet_service.delete_pet(db, pet_id)
     return {"message": "Pet deletado com sucesso"}
