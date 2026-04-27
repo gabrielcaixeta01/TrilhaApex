@@ -122,10 +122,10 @@ def create_user(
         db.add(
             ClientModel(
                 user_id=db_user.id,
-                client_type=normalized_client_type,
-                cep=cep,
-                state=state,
-                city=city,
+                client_type=normalized_client_type or "pessoa_fisica",
+                cep=cep or "00000-000",
+                state=state or "SP",
+                city=city or "São Paulo",
             )
         )
 

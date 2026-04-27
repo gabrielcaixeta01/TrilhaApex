@@ -103,7 +103,7 @@ class UserCreate(BaseModel):
     employee_code: Optional[str] = None
     job_title: Optional[str] = None
     salary: Optional[Decimal] = None
-    hired_at: datetime = Field(default_factory=datetime.utcnow)
+    hired_at: Optional[datetime] = None
     store_id: Optional[int] = None
 
 

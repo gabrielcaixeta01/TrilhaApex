@@ -9,18 +9,33 @@ from app.database import get_db
 from app.schemas.models import UserModel
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me-in-production")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
+def _normalize_password_for_bcrypt(password: str) -> str:
+    if password is None:
+        return ""
+    if not isinstance(password, str):
+        password = str(password)
+    pw_bytes = password.encode("utf-8")
+    if len(pw_bytes) > 72:
+        pw_bytes = pw_bytes[:72]
+    # decode using utf-8, ignoring partial multi-byte sequences
+    return pw_bytes.decode("utf-8", errors="ignore")
+
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    pw = _normalize_password_for_bcrypt(password)
+    return pwd_context.hash(pw)
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    pw = _normalize_password_for_bcrypt(plain_password)
+    return pwd_context.verify(pw, hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
@@ -59,7 +74,3 @@ def get_current_active_user(current_user: UserModel = Depends(get_current_user))
     if not current_user.active:
         raise HTTPException(status_code=400, detail="Usuário inativo")
     return current_user
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
