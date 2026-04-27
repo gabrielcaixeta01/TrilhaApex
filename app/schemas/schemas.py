@@ -61,7 +61,6 @@ class User(BaseModel):
     id: int
     name: str
     email: str
-    password_hash: str
     phone: str
     profile_type: str
     cpf: Optional[str] = None

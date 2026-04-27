@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
+from app.core.security import hash_password
 from app.schemas.models import ClientModel, EmployeeModel, UserModel
 
 
@@ -41,7 +42,7 @@ def create_user(
     db: Session,
     name: str,
     email: str,
-    password_hash: str,
+    password: str,
     phone: str,
     profile_type: str,
     cpf: str | None = None,
@@ -92,10 +93,13 @@ def create_user(
     if cpf is None and cnpj is None:
         raise HTTPException(status_code=400, detail="CPF ou CNPJ deve ser preenchido")
 
+    if not password or len(password) < 6:
+        raise HTTPException(status_code=400, detail="Senha deve conter ao menos 6 caracteres")
+
     db_user = UserModel(
         name=name,
         email=email,
-        password_hash=password_hash,
+        password_hash=hash_password(password),
         phone=phone,
         profile_type=normalized_profile_type,
         cpf=cpf,
@@ -166,7 +170,7 @@ def update_user(
         user_id: int,
         name: str | None = None,
         email: str | None = None,
-        password_hash: str | None = None,
+    password: str | None = None,
         phone: str | None = None,
         profile_type: str | None = None,
         cpf: str | None = None,
@@ -205,6 +209,9 @@ def update_user(
         if exists_email:
             raise HTTPException(status_code=400, detail="E-mail já cadastrado")
 
+    if password is not None and len(password) < 6:
+        raise HTTPException(status_code=400, detail="Senha deve conter ao menos 6 caracteres")
+
 
     if normalized_profile_type == "cliente" and any(value is not None for value in [employee_code, job_title, salary, hired_at, store_id]):
         raise HTTPException(
@@ -221,7 +228,6 @@ def update_user(
     for field, value in {
         "name": name,
         "email": email,
-        "password_hash": password_hash,
         "phone": phone,
         "profile_type": normalized_profile_type,
         "cpf": cpf,
@@ -231,6 +237,9 @@ def update_user(
     }.items():
         if value is not None:
             setattr(user, field, value)
+
+    if password is not None:
+        user.password_hash = hash_password(password)
 
     if normalized_profile_type == "cliente":
         if user.employee_profile is not None:
