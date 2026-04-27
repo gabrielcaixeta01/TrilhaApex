@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from app.schemas.schemas import Category
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.services import category_service
+from app.schemas.models import UserModel
+from app.core.security import get_current_active_user
 
 router = APIRouter(prefix="/category", tags=["CRUD de Categorias"])
 
@@ -10,8 +12,11 @@ router = APIRouter(prefix="/category", tags=["CRUD de Categorias"])
 def create_category(
     name: str = Query(...),
     description: str | None = Query(None),
+    current_user: UserModel = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
+    if not (getattr(current_user, "profile_type", None) == "funcionario" or getattr(current_user, "is_superuser", False)):
+        raise HTTPException(status_code=403, detail="Apenas funcionários ou superusers podem criar categorias")
     created_category = category_service.create_category(db=db, name=name, description=description)
     return created_category
 
@@ -30,14 +35,19 @@ def update_category(
     id: int,
     name: str = Query(...),
     description: str | None = Query(None),
+    current_user: UserModel = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
+    if not (getattr(current_user, "profile_type", None) == "funcionario" or getattr(current_user, "is_superuser", False)):
+        raise HTTPException(status_code=403, detail="Apenas funcionários ou superusers podem atualizar categorias")
     updated_category = category_service.update_category(db=db, category_id=id, name=name, description=description)
     return updated_category
 
 
 
 @router.delete("/{id}", status_code=200, response_model=dict)
-def delete_category( id: int, db: Session = Depends(get_db)) -> dict:
+def delete_category( id: int, current_user: UserModel = Depends(get_current_active_user), db: Session = Depends(get_db)) -> dict:
+    if not (getattr(current_user, "profile_type", None) == "funcionario" or getattr(current_user, "is_superuser", False)):
+        raise HTTPException(status_code=403, detail="Apenas funcionários ou superusers podem deletar categorias")
     category_service.delete_category(db, id)
     return {"message": "Categoria deletada com sucesso"}

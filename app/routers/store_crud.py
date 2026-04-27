@@ -1,8 +1,10 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.schemas import Store
+from app.schemas.models import UserModel
+from app.core.security import get_current_active_user
 from app.services import store_service
 
 router = APIRouter(prefix="/store", tags=["CRUD de Lojas"])
@@ -22,8 +24,12 @@ def create_store(
 	street: str | None = Query(None),
 	neighborhood: str = Query(...),
 	number: str = Query(...),
+	current_user: UserModel = Depends(get_current_active_user),
 	db: Session = Depends(get_db),
 ) -> Store:
+
+	if not getattr(current_user, "is_superuser", False):
+		raise HTTPException(status_code=403, detail="Apenas superusers podem criar lojas")
 
 	return store_service.create_store(
 		db=db,
