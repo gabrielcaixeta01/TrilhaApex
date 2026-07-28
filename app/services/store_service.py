@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from fastapi import HTTPException
 from app.schemas.models import EmployeeModel, Store
+from app.core.datetime_utils import to_naive_utc, utcnow
 
 
 def create_store(
@@ -80,7 +81,7 @@ def create_store(
         neighborhood=neighborhood,
         number=number,
         active=active,
-        created_at=created_at or datetime.utcnow(),
+        created_at=to_naive_utc(created_at) or utcnow(),
     )
     db.add(db_store)
     db.commit()

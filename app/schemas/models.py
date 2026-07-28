@@ -1,7 +1,7 @@
-from datetime import datetime, date
 from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Table
 from sqlalchemy.orm import relationship
 from app.database import Base
+from app.core.datetime_utils import utcnow
 
 
 class Store(Base):
@@ -13,7 +13,7 @@ class Store(Base):
     phone = Column(String(20), nullable=False)
     email = Column(String(255), nullable=False, unique=True)
     active = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
     cep = Column(String(9), nullable=False)
     city = Column(String(120), nullable=False)
     state = Column(String(2), nullable=False)
@@ -38,7 +38,7 @@ class UserModel(Base):
     cnpj = Column(String(18))
     active = Column(Boolean, nullable=False, default=True)
     is_superuser = Column(Boolean, nullable=False, default=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     client_profile = relationship("ClientModel", back_populates="user", uselist=False, cascade="all, delete-orphan", passive_deletes=True,)
     employee_profile = relationship("EmployeeModel", back_populates="user", uselist=False, cascade="all, delete-orphan", passive_deletes=True,)
@@ -139,7 +139,7 @@ class Appointment(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     final_value = Column(Numeric(10, 2), nullable=False)
-    service_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    service_at = Column(DateTime, nullable=False, default=utcnow)
     payment_method = Column(String(20), nullable=False)
     status = Column(String(20), nullable=False)
     online = Column(Boolean, nullable=False, default=False)
@@ -166,7 +166,7 @@ class AppointmentService(Base):
     )
     service_id = Column(Integer, ForeignKey("services.id", ondelete="CASCADE"), primary_key=True)
     charged_value = Column(Numeric(10, 2), nullable=False)
-    ordered_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    ordered_at = Column(DateTime, nullable=False, default=utcnow)
     delivered_at = Column(DateTime)
     notes = Column(String(500))
 

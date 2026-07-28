@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 from app.core.security import hash_password
 from app.schemas.models import ClientModel, EmployeeModel, Pet, Store, UserModel
+from app.core.datetime_utils import to_naive_utc, utcnow
 
 
 ALLOWED_PROFILE_TYPES = {"cliente", "funcionario"}
@@ -118,7 +119,7 @@ def create_user(
         cnpj=cnpj,
         active=active,
         is_superuser=is_superuser,
-        created_at=created_at or datetime.utcnow(),
+        created_at=to_naive_utc(created_at) or utcnow(),
     )
 
 

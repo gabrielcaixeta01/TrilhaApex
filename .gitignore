@@ -13,6 +13,15 @@ venv/
 # Environment files
 .env
 .env.*
+!.env.example
+
+# Banco local de desenvolvimento
+*.db
+*.sqlite
+*.sqlite3
 
 # IDE
 .vscode/
+
+# macOS
+.DS_Store

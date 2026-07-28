@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
@@ -8,13 +9,29 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.models import UserModel
 
+load_dotenv()
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me-in-production")
+DEV_SECRET_KEY = "change-me-in-production"
+APP_ENV = os.getenv("APP_ENV", "development").strip().lower()
+
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or DEV_SECRET_KEY
+if APP_ENV == "production" and JWT_SECRET_KEY == DEV_SECRET_KEY:
+    # Falha no boot em vez de subir com uma chave publica: com ela qualquer
+    # pessoa forja um token de superuser.
+    raise RuntimeError(
+        "JWT_SECRET_KEY deve ser definida quando APP_ENV=production. "
+        "Gere uma com: python -c \"import secrets; print(secrets.token_urlsafe(64))\""
+    )
+
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+try:
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+except ValueError as exc:
+    raise RuntimeError("ACCESS_TOKEN_EXPIRE_MINUTES deve ser um numero inteiro de minutos") from exc
 
 
 def hash_password(password: str) -> str:

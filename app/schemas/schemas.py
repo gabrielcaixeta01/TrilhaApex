@@ -2,6 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
+from app.core.datetime_utils import utcnow
 
 class Store(BaseModel):
     id: int
@@ -16,7 +17,7 @@ class Store(BaseModel):
     neighborhood: str
     number: str
     active: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
     employees: List["Employee"] = Field(default_factory=list)
 
     class Config:
@@ -61,7 +62,7 @@ class User(BaseModel):
     cnpj: Optional[str] = None
     active: bool = True
     is_superuser: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utcnow)
     client_profile: Optional["Client"] = None
     employee_profile: Optional["Employee"] = None
 
@@ -257,7 +258,7 @@ class ServiceUpdate(BaseModel):
 class Appointment(BaseModel):
     id: int
     final_value: Decimal
-    service_at: datetime = Field(default_factory=datetime.utcnow)
+    service_at: datetime = Field(default_factory=utcnow)
     payment_method: str
     status: str
     online: bool = False
@@ -273,7 +274,7 @@ class Appointment(BaseModel):
 
 
 class AppointmentCreate(BaseModel):
-    service_at: datetime = Field(default_factory=datetime.utcnow)
+    service_at: datetime = Field(default_factory=utcnow)
     payment_method: str
     status: str
     online: bool = False
@@ -300,7 +301,7 @@ class AppointmentService(BaseModel):
     appointment_id: int
     service_id: int
     charged_value: Decimal
-    ordered_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    ordered_at: Optional[datetime] = Field(default_factory=utcnow)
     delivered_at: Optional[datetime] = None
     notes: Optional[str] = None
 
@@ -312,7 +313,7 @@ class AppointmentServiceCreate(BaseModel):
     appointment_id: int
     service_id: int
     charged_value: Decimal
-    ordered_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    ordered_at: Optional[datetime] = Field(default_factory=utcnow)
     delivered_at: Optional[datetime] = None
     notes: Optional[str] = None
 

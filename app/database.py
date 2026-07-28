@@ -5,16 +5,30 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./petstore.db")
+APP_ENV = os.getenv("APP_ENV", "development").strip().lower()
+
+_raw_database_url = os.getenv("DATABASE_URL")
+if APP_ENV == "production" and not _raw_database_url:
+    # Sem esse guard a aplicacao sobe em SQLite num disco efemero: tudo o que
+    # for gravado desaparece no proximo restart, e sem nenhum erro visivel.
+    raise RuntimeError("DATABASE_URL deve ser definida quando APP_ENV=production")
+
+DATABASE_URL = _raw_database_url or "sqlite:///./petstore.db"
 
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs = {"connect_args": {"check_same_thread": False}}
+else:
+    # Conexoes ociosas sao derrubadas pelo provedor gerenciado; sem isso a
+    # primeira query depois de um periodo parado falha com
+    # "server closed the connection unexpectedly".
+    engine_kwargs = {"pool_pre_ping": True, "pool_recycle": 300}
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

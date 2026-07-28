@@ -328,7 +328,10 @@ def update_appointment(
 			)
 
 	updates = {
-		"service_at": service_at,
+		# Converte antes de gravar, igual ao create_appointment. Sem isso o
+		# offset era usado so na validacao e descartado na escrita: um PUT com
+		# "10:00:00-03:00" era salvo como 10:00 em vez de 13:00 UTC.
+		"service_at": _to_utc_aware(service_at) if service_at is not None else None,
 		"status": normalized_status or status,
 		"store_id": store_id,
 		"client_id": client_id,
